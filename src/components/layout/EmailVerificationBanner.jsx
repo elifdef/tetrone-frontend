@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import api from '../api/axios';
-import { notifyError, notifyInfo } from "../components/Notify";
+import api from '../../api/axios';
+import { notifyError, notifyInfo } from "../Notify";
 
 const EmailVerificationBanner = ({ user }) => {
     const [loading, setLoading] = useState(false);

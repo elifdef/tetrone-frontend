@@ -7,26 +7,24 @@ const EmailVerifyPage = () => {
     const { id, hash } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-
     const { user, setUser } = useContext(AuthContext);
-
     const [status, setStatus] = useState('loading');
     const [message, setMessage] = useState('Перевіряємо вашу пошту...');
 
     useEffect(() => {
-        const verifyEmail = async () => {
-            if (user?.email_verified_at) {
-                navigate(`/${user.username}`);
-                return;
-            }
+        // якщо пошта вже підтверджена редірект на профіль
+        if (user?.email_verified_at) {
+            navigate(`/${user.username}`);
+            return;
+        }
 
+        const verifyEmail = async () => {
             try {
                 const query = searchParams.toString();
-                const url = `/email/verify/${id}/${hash}?${query}`;
-                const response = await api.get(url);
+                const response = await api.get(`/email/verify/${id}/${hash}?${query}`);
 
                 setStatus('success');
-                setMessage(response.data.message);
+                setMessage(response.data.message || 'Пошту успішно підтверджено!');
 
                 const verifiedDate = new Date().toISOString();
                 if (setUser) {
@@ -43,16 +41,16 @@ const EmailVerifyPage = () => {
                 // закриваєм канал після відправки
                 setTimeout(() => {
                     channel.close();
-                    navigate(`/${user?.username}`)
-                }, 20);
+                    navigate(`/${user?.username || ''}`);
+                }, 3000);
 
             } catch (error) {
                 setStatus('error');
-                setMessage(error.response?.data?.message || 'Щось пішло не так.');
+                setMessage(error.response?.data?.message || 'Посилання недійсне або застаріло.');
             }
         };
         verifyEmail();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="verify-container">
