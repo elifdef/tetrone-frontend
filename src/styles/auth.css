@@ -98,6 +98,7 @@
     align-items: center;
     justify-content: center;
     transition: color 0.2s;
+    padding-top: 6px;
 }
 
 .tetrone-password-toggle:hover {

@@ -377,7 +377,8 @@
     "moderation": "Модерация",
     "repost": "Репост",
     "preview": "Предпросмотр",
-    "my_activity": "Моя активность"
+    "my_activity": "Моя активность",
+    "home": "Главная"
   },
   "auth": {
     "title_login": "Вход",
@@ -396,7 +397,6 @@
   },
   "sidebar": {
     "left": {
-      "home": "Главная",
       "settings": "Настройки"
     },
     "guest": {
@@ -491,8 +491,8 @@
     "your_status": "Ваш статус...",
     "not_setup": "Профиль ещё не настроен",
     "not_setup_desc": "@{{name}} ещё не заполнил(а) информацию о себе.",
-    "restricted_profile_m": "{{name}} ограничил доступ к своему профилю.",
-    "restricted_profile_f": "{{name}} ограничила доступ к своему профилю.",
+    "restricted_profile_male": "{{name}} ограничил доступ к своему профилю.",
+    "restricted_profile_female": "{{name}} ограничила доступ к своему профилю.",
     "banned_status": "Этот аккаунт заблокирован за нарушение правил платформы.",
     "menu": {
       "you_have_blocked": "Вы заблокировали",
@@ -636,7 +636,6 @@
     },
     "dashboard": {
       "title": "Дашборд",
-      "last_7_days": "Данные за последние 7 дней",
       "server_health": "Состояние сервера",
       "cpu_load": "Загрузка CPU",
       "disk_usage": "Дисковое пространство",

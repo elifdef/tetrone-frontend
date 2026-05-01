@@ -259,9 +259,9 @@ const SupportPage = () => {
                 <h1>{t('support.welcome_title', { name: 'Tetrone' })}</h1>
                 <p>{t('support.welcome_desc')}</p>
                 <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-                    <button className="tetrone-support-main-btn" onClick={() => navigateTo('form')}>
+                    <Button onClick={() => navigateTo('form')}>
                         {t('support.create_ticket')}
-                    </button>
+                    </Button>
                     <Button variant="secondary" onClick={() => navigateTo('tickets')}>
                         {t('support.tab_my_tickets')}
                     </Button>

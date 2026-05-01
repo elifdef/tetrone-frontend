@@ -156,7 +156,7 @@
     "cancel": "Скасувати",
     "close": "Закрити",
     "reply": "Відповісти",
-    "send": "Надіслати",
+    "send": "Опублікувати",
     "sending": "Надсилання...",
     "find": "Знайти",
     "search": "Пошук",
@@ -377,7 +377,8 @@
     "repost": "Репост",
     "preview": "Попередній перегляд",
     "my_activity": "Моя активність",
-    "home": "Головна"
+    "home": "Головна",
+    "attachment": "Вкладення"
   },
   "auth": {
     "title_login": "Вхід",
@@ -385,7 +386,7 @@
     "username": "Ім’я користувача",
     "email": "Електронна пошта",
     "password": "Пароль",
-    "password_confirmation": "Підтвердження пароля",
+    "password_confirmation": "Повторити пароль",
     "not_have_account": "Немає акаунта?",
     "already_have_account": "Вже є акаунт?",
     "you_have_registered": "Ви зареєструвалися",
@@ -464,8 +465,7 @@
     "add_repost_comment": "Додати коментар до репосту...",
     "anonymous_poll": "Анонімне опитування",
     "updated_avatar_male": "оновив аватар",
-    "updated_avatar_female": "оновила аватар",
-    "attachment": "Вкладення"
+    "updated_avatar_female": "оновила аватар"
   },
   "editor": {
     "toolbar_bold": "Жирний (Ctrl+B)",

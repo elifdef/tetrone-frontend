@@ -365,7 +365,8 @@
     "moderation": "Moderation",
     "repost": "Repost",
     "preview": "Preview",
-    "my_activity": "My Activity"
+    "my_activity": "My Activity",
+    "home": "Home"
   },
   "auth": {
     "title_login": "Log in",
@@ -384,7 +385,6 @@
   },
   "sidebar": {
     "left": {
-      "home": "Home",
       "settings": "Settings"
     },
     "guest": {
@@ -479,8 +479,8 @@
     "your_status": "Your status...",
     "not_setup": "Profile not set up yet",
     "not_setup_desc": "@{{name}} hasn't filled out their info yet.",
-    "restricted_profile_m": "{{name}} has restricted access to his profile.",
-    "restricted_profile_f": "{{name}} has restricted access to her profile.",
+    "restricted_profile_male": "{{name}} has restricted access to his profile.",
+    "restricted_profile_female": "{{name}} has restricted access to her profile.",
     "banned_status": "This account has been banned for violating platform rules.",
     "menu": {
       "you_have_blocked": "You have blocked",
@@ -624,7 +624,6 @@
     },
     "dashboard": {
       "title": "Dashboard",
-      "last_7_days": "Data for the last 7 days",
       "server_health": "Server health",
       "cpu_load": "CPU load",
       "disk_usage": "Disk usage",
@@ -986,5 +985,67 @@
     "pack_deleted": "Pack deleted.",
     "err_shortcode_format": "Sticker code can only contain letters, numbers, and underscores.",
     "err_tags_format": "Tags must be separated by commas without spaces."
+  },
+  "support": {
+    "page_title": "Technical Support",
+    "contact_us_btn": "Contact Support",
+    "tab_my_tickets": "My Tickets",
+    "create_ticket": "Create Ticket",
+    "field_category": "Problem Category",
+    "field_subcategory": "Subcategory",
+    "select_subcategory": "Select a subcategory...",
+    "field_subject": "Subject",
+    "field_message": "Problem Description",
+    "field_steps": "Steps to Reproduce the Bug",
+    "field_attachments": "Screenshots (required)",
+    "ticket_created_success": "Your request has been successfully submitted!",
+    "ticket_create_error": "Error creating request",
+    "no_tickets": "You have no tickets yet",
+    "ticket_id": "Ticket",
+
+    "status_open": "Open",
+    "status_in_progress": "In Progress",
+    "status_waiting_for_user": "Awaiting your reply",
+    "status_resolved": "Resolved",
+    "status_closed": "Closed",
+
+    "fieldset_general": "General Information",
+    "fieldset_details": "Request Details",
+    "bug_report_warning": "Attention! To resolve the issue quickly, please provide detailed reproduction steps and attach screenshots (up to 5 files).",
+    "min_10_chars": "Minimum 10 characters",
+    "message_placeholder": "Describe your issue in detail...",
+
+    "welcome_title": "Welcome to {{name}} Support Center!",
+    "welcome_desc": "Here you will find answers to the most common questions. If your issue is unique or you haven't found a solution in the sections below — feel free to create a ticket, and our moderators will help you.",
+    "reply_placeholder": "Write your reply...",
+    "no_questions_yet": "There are no ready answers in this section yet.",
+
+    "cat_bug": "Bug",
+    "cat_account": "Account & Profile",
+    "cat_appeal": "Appeal (Unban)",
+    "cat_general": "General Question",
+    "cat_popular": "Frequently Asked Questions",
+    "cat_post": "Posts & Feed",
+    "cat_security": "Security",
+    "cat_other": "Other",
+
+    "sub_design": "Design / Interface",
+    "sub_localization": "Translation / Text",
+    "sub_functional": "Functionality not working",
+
+    "faq": {
+      "popular": {
+        "1_q": "How to reset my password?",
+        "1_a": "Go to the login page and click 'Forgot password'."
+      },
+      "account": {
+        "1_q": "How to change my avatar?",
+        "1_a": "Go to Settings → Profile and click on the photo."
+      },
+      "post": {
+        "1_q": "How to delete my post?",
+        "1_a": "Click the three dots next to your post and select 'Delete'."
+      }
+    }
   }
 }

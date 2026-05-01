@@ -84,7 +84,7 @@
     margin-top: 20px;
 }
 
-.tetrone-label {
+.tetrone-info-block .tetrone-label {
     width: 130px;
     color: var(--theme-text-muted);
 }

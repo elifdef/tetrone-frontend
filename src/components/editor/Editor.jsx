@@ -28,6 +28,8 @@ export default function Editor({
     const pickerRef = useRef(null);
     const onEnterRef = useRef(onEnter);
 
+    const isStickersEnabled = import.meta.env.VITE_ENABLE_STICKERS === 'true';
+
     useEffect(() => {
         onEnterRef.current = onEnter;
     }, [onEnter]);
@@ -41,12 +43,15 @@ export default function Editor({
             Color,
             FontSize,
             SpoilerMark,
-            CustomStickerNode,
             EnterHandler.configure({ onEnterRef }),
 
-            StickerTrigger.configure({
-                suggestion: stickerSuggestion,
-            }),
+            // Додаємо розширення стікерів ТІЛЬКИ якщо фіча увімкнена
+            ...(isStickersEnabled ? [
+                CustomStickerNode,
+                StickerTrigger.configure({
+                    suggestion: stickerSuggestion,
+                })
+            ] : []),
 
             Mention.configure({
                 HTMLAttributes: { class: 'tetrone-user-mention' },
@@ -107,17 +112,19 @@ export default function Editor({
                     <EditorContent editor={editor} />
                 </div>
 
-                <button
-                    type="button"
-                    className="tetrone-sticker-trigger-side"
-                    onClick={() => setShowPicker(!showPicker)}
-                    title={t('editor.toolbar_stickers')}
-                >
-                    🙂
-                </button>
+                {isStickersEnabled && (
+                    <button
+                        type="button"
+                        className="tetrone-sticker-trigger-side"
+                        onClick={() => setShowPicker(!showPicker)}
+                        title={t('editor.toolbar_stickers')}
+                    >
+                        🙂
+                    </button>
+                )}
             </div>
 
-            {showPicker && (
+            {showPicker && isStickersEnabled && (
                 <div className="tetrone-sticker-picker-container" ref={pickerRef}>
                     <StickerPicker
                         onSelect={handleStickerSelect}

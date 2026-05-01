@@ -93,7 +93,7 @@ const ProfileSettings = ({ isSetupMode = false }) => {
                 disabled={!canSubmit}
                 className={isSetupMode ? 'tetrone-btn-full-width' : ''}
             >
-                {t(isSetupMode ? 'first_setup.save_and_finish' : 'common.save')}
+                {t(isSetupMode ? 'first_setup.save_and_finish' : 'action.save')}
             </Button>
         </form>
     );

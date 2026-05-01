@@ -14,6 +14,8 @@ const LeftSidebar = () => {
 
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+    const isStickersEnabled = import.meta.env.VITE_ENABLE_STICKERS === 'true';
+
     useEffect(() => {
         setIsMobileOpen(false);
     }, [location.pathname]);
@@ -90,13 +92,14 @@ const LeftSidebar = () => {
                             </Link>
                             <Link to="/activity" className={getLinkClass("/activity")} onClick={closeMenu}>
                                 {t('common.activity')}
-
                             </Link>
 
-                            <Link to="/stickers-shop" className={getLinkClass("/stickers-shop")} onClick={closeMenu}>
-                                {t('common.stickers_shop')}
-                            </Link>
-                            
+                            {isStickersEnabled && (
+                                <Link to="/stickers-shop" className={getLinkClass("/stickers-shop")} onClick={closeMenu}>
+                                    {t('common.stickers_shop')}
+                                </Link>
+                            )}
+
                             <Link to="/settings" className={getLinkClass("/settings")} onClick={closeMenu}>
                                 {t('common.settings')}
                             </Link>

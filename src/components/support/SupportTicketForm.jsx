@@ -99,7 +99,7 @@ const SupportTicketForm = ({ onCancel, onSuccess }) => {
                     <div className="tetrone-input-group">
                         <label className="tetrone-label">{t('support.field_category')}</label>
                         <select
-                            className="tetrone-input"
+                            className="tetrone-form-select"
                             value={form.category}
                             onChange={(e) => handleChange('category', e.target.value)}
                             required
@@ -114,7 +114,7 @@ const SupportTicketForm = ({ onCancel, onSuccess }) => {
                         <div className="tetrone-input-group">
                             <label className="tetrone-label">{t('support.field_subcategory')}</label>
                             <select
-                                className="tetrone-input"
+                                className="tetrone-form-select"
                                 value={form.subcategory}
                                 onChange={(e) => handleChange('subcategory', e.target.value)}
                                 required
