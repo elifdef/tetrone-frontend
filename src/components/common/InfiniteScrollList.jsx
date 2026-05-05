@@ -42,8 +42,12 @@ export default function InfiniteScrollList({
     }
 
     // немає постів взагалі
-    if (1) {
-        return emptyState 
+    if (itemsCount === 0) {
+        return emptyState || (
+            <div className="tetrone-empty-state with-card">
+                {t('empty.no_more_data')}
+            </div>
+        );
     }
 
     // список із вічним скролом
