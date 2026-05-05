@@ -37,8 +37,9 @@ class AdminService {
         return await fetchClient(`/admin/appeals/${appealId}/${actionType}`, { method: 'POST', body: { admin_response: adminResponse } });
     }
 
-    async getUserPosts(username, page = 1) {
-        return await fetchClient(`/admin/users/${username}/posts?page=${page}`);
+    async getUserPosts(username = '', page = 1) {
+        const query = username ? `?username=${username}&page=${page}` : `?page=${page}`;
+        return await fetchClient(`/admin/posts${query}`);
     }
 
     async getUserComments(username, page = 1) {
@@ -48,7 +49,7 @@ class AdminService {
     async getUserLikes(username, page = 1) {
         return await fetchClient(`/admin/users/${username}/likes?page=${page}`);
     }
-    
+
     async getUserSessions(username) {
         return await fetchClient(`/admin/users/${username}/sessions`);
     }

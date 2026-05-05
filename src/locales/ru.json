@@ -347,7 +347,7 @@
     "hours_short": "ч",
     "minutes_short": "мин",
     "seconds_short": "сек",
-    "you": "Вы",
+    "you": "Вы: ",
     "typing": "печатает",
     "id": "ID",
     "role": "Роль",
@@ -645,7 +645,7 @@
       "users_online": "Сейчас онлайн",
       "no_one_online": "Сейчас нет пользователей онлайн.",
       "registrations_chart": "Регистрации (последние 7 дней)",
-      "activity_chart": "Активность (Посты и Комментарии)",
+      "activity_chart": "Активность (Посты, rомментарии и репосты)",
       "new_users": "Новые пользователи"
     },
     "posts": {

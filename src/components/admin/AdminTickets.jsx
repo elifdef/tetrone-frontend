@@ -169,7 +169,7 @@ const AdminTickets = () => {
                             {t('admin.support.internal_note_desc')}
                         </label>
                         <Button type="submit" disabled={replying || !replyText.trim()}>
-                            {t('admin.support.send_reply')}
+                            {t('action.send')}
                         </Button>
                     </div>
                 </form>
@@ -186,9 +186,8 @@ const AdminTickets = () => {
             )}
 
             <div className="tetrone-support-header-actions">
-                <h2 className="tetrone-section-title">{t('admin.support.support_tickets')}</h2>
                 <select
-                    className="tetrone-input tetrone-status-filter"
+                    className="tetrone-form-select tetrone-status-filter"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                 >

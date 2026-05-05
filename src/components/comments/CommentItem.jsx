@@ -7,6 +7,7 @@ import ReportModal from '../modals/ReportModal';
 import RichText from '../common/RichText';
 import Editor from '../editor/Editor';
 import { isEditorEmpty } from '../../utils/editorHelpers';
+import Button from '../ui/Button';
 
 export default function CommentItem({ comment, currentUser, onDelete, onEdit, onReply }) {
     const { t } = useTranslation();
@@ -78,12 +79,12 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                             onChange={setEditContent}
                         />
                         <div className="tetrone-edit-buttons-right">
-                            <button className="tetrone-btn" onClick={handleSave}>
+                            <Button onClick={handleSave}>
                                 {t('action.save')}
-                            </button>
-                            <button className="tetrone-btn tetrone-btn-cancel" onClick={() => setIsEditing(false)}>
+                            </Button>
+                            <Button variant='secondary' onClick={() => setIsEditing(false)}>
                                 {t('action.cancel')}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 ) : (

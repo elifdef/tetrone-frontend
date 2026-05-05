@@ -335,7 +335,7 @@
     "hours_short": "h",
     "minutes_short": "min",
     "seconds_short": "sec",
-    "you": "You",
+    "you": "You: ",
     "typing": "typing",
     "id": "ID",
     "role": "Role",
@@ -633,7 +633,7 @@
       "users_online": "Users online",
       "no_one_online": "No users online at the moment.",
       "registrations_chart": "Registrations (last 7 days)",
-      "activity_chart": "Activity (Posts & Comments)",
+      "activity_chart": "Activity (Posts, comments & reposts)",
       "new_users": "New users"
     },
     "posts": {

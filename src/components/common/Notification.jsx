@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { useNotificationText } from '../../hooks/useNotificationText';
 import { useTranslation } from 'react-i18next';
+import { useNotificationText } from '../../hooks/useNotificationText';
+import { extractPreviewText } from '../../utils/editorHelpers';
 import ShieldIcon from '../../assets/shield.svg?react';
 import RichText from './RichText';
 
@@ -65,23 +66,40 @@ export default function Notification({ notification, onClose }) {
         return () => clearTimeout(timer);
     }, [onClose]);
 
-    const payload = notification.data || notification;
+    // 1. Беремо оригінальні дані
+    const originalPayload = notification.data || notification;
 
-    const { actionText, linkText } = getNotificationData(notification.type, notification);
+    // 2. Парсимо текст повідомлення
+    let parsedMessageText = originalPayload.message_text
+        ? extractPreviewText(originalPayload.message_text, t)
+        : null;
+
+    // 3. Якщо тексту немає, але є файл — ставимо маркер прикріплення
+    if (originalPayload.file_type) {
+        parsedMessageText = 'ATTACHMENT';
+    }
+
+    // 4. Створюємо безпечні об'єкти без сирого JSON
+    const safePayload = { ...originalPayload, message_text: parsedMessageText };
+    const safeNotification = { ...notification, data: safePayload, message_text: parsedMessageText };
+
+    // 5. Отримуємо переклади
+    const { actionText, linkText } = getNotificationData(safeNotification.type, safeNotification);
     const fullText = `${actionText} ${linkText || ''}`.trim();
 
-    const isSystem = notification.type?.includes('ReportReviewed') || payload.type === 'report_reviewed';
+    const isSystem = safeNotification.type?.includes('ReportReviewed') || safePayload.type === 'report_reviewed';
 
     const senderName = isSystem
         ? t('common.moderation')
-        : `${notification.user_first_name || ''} ${notification.user_last_name || ''}`.trim();
+        : `${safeNotification.user_first_name || ''} ${safeNotification.user_last_name || ''}`.trim();
 
-    const snippetText = payload.admin_response || payload.post_snippet;
+    // 6. Формуємо сніпет
+    const snippetText = safePayload.admin_response || safePayload.post_snippet || parsedMessageText;
 
     return (
         <div className="tetrone-toast">
             <NotificationAvatar
-                src={notification.user_avatar}
+                src={safeNotification.user_avatar}
                 isSystem={isSystem}
             />
 

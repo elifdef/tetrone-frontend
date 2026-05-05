@@ -221,8 +221,8 @@
     flex-direction: column;
     gap: 6px;
 }
-.tetrone-support-form-body
-.tetrone-label {
+
+.tetrone-support-form-body .tetrone-label {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -310,6 +310,46 @@
     margin-top: 8px;
     padding-top: 16px;
     border-top: 1px solid var(--border-color);
+}
+
+.tetrone-hidden-file-input {
+    display: none;
+}
+
+.tetrone-file-upload-wrapper {
+    margin-bottom: 10px;
+}
+
+.tetrone-selected-files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: var(--theme-bg-page);
+    border: 1px dashed var(--theme-border);
+    border-radius: 4px;
+}
+
+.tetrone-selected-file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--theme-text-main);
+}
+
+.tetrone-remove-file-btn {
+    background: none;
+    border: none;
+    color: var(--theme-error);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.tetrone-remove-file-btn:hover {
+    opacity: 0.7;
 }
 
 @media (max-width: 1024px) {

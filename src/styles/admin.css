@@ -720,6 +720,24 @@
     color: var(--text-primary);
 }
 
+.admin-progress-bar {
+    height: 100%;
+    width: var(--progress-width, 0%);
+    transition: width 0.5s ease-in-out;
+}
+
+.admin-progress-bar.cpu {
+    background-color: #3498db;
+}
+
+.admin-progress-bar.ram {
+    background-color: #2ecc71;
+}
+
+.admin-progress-bar.disk {
+    background-color: #e74c3c;
+}
+
 @media (max-width: 768px) {
     .admin-table-card {
         overflow-x: auto;

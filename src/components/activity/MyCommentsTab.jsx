@@ -63,7 +63,7 @@ export default function MyCommentsTab({ onCountUpdate }) {
         const res = await CommentService.delete(commentId);
 
         if (res.success) {
-            setComments(prev => prev.filter(c => c.id !== commentId));
+            setComments(prev => prev.filter(c => c.uid !== commentId));
             if (onCountUpdate) onCountUpdate(-1);
         } else {
             notifyError(res.message || t('error.delete_failed'));
@@ -89,9 +89,9 @@ export default function MyCommentsTab({ onCountUpdate }) {
         >
             {comments.map((comment, index) => (
                 <ActivityCommentItem
-                    key={comment.id ? `comment-${comment.id}` : `fallback-${index}`}
+                    key={comment.uid ? `comment-${comment.uid}` : `fallback-${index}`}
                     comment={comment}
-                    onDelete={() => handleDeleteComment(comment.id)}
+                    onDelete={() => handleDeleteComment(comment.uid)}
                 />
             ))}
         </InfiniteScrollList>

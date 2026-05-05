@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import RichText from '../common/RichText';
 import { extractPreviewText } from '../../utils/messageParser';
+import MessageImage from './MessageImage';
 
-export default function MessageItem({ msg, targetUser, formatDate, t, handleEditClick, handleDelete, setReplyingTo, togglePin }) {
+export default function MessageItem({
+    msg, targetUser, formatDate, t, handleEditClick, handleDelete, setReplyingTo, togglePin, chatSlug 
+}) {
     const [showActions, setShowActions] = useState(false);
 
     const isTemp = msg.status === 'sending' || msg.status === 'error';
@@ -36,16 +39,26 @@ export default function MessageItem({ msg, targetUser, formatDate, t, handleEdit
                     {msg.reply_to && (
                         <div className="tetrone-modern-reply-quote" onClick={() => document.getElementById(`message-${msg.reply_to.id}`)?.scrollIntoView({ behavior: 'smooth' })}>
                             <div className="reply-author">{msg.reply_to.sender_name}</div>
-                            {/* 🔥 Використовуємо парсер для тексту відповіді */}
                             <div className="reply-text">{extractPreviewText(msg.reply_to.text, t)}</div>
                         </div>
                     )}
 
                     {msg.files?.length > 0 && (
                         <div className="tetrone-modern-msg-files">
-                            {msg.files.map((file, idx) => (
-                                <img key={idx} src={file.url} alt="attachment" className="tetrone-modern-image-attachment" />
-                            ))}
+                            {msg.files.map((fileItem, idx) => {
+                                const fileUrl = typeof fileItem === 'string'
+                                    ? `${import.meta.env.VITE_API_URL}/chat/${chatSlug}/files/${fileItem}`
+                                    : fileItem.url;
+
+                                return (
+                                    <MessageImage
+                                        key={idx}
+                                        src={fileUrl}
+                                        alt="attachment"
+                                        className="tetrone-modern-image-attachment"
+                                    />
+                                );
+                            })}
                         </div>
                     )}
 

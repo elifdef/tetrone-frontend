@@ -68,6 +68,26 @@ export const useComments = (postId) => {
         }
     });
 
+    const deleteMutation = useMutation({
+        mutationFn: (commentId) => CommentService.delete(commentId),
+        onSuccess: (res, deletedId) => {
+            if (res.success) {
+                queryClient.setQueryData(queryKey, (oldData) => {
+                    if (!oldData) return oldData;
+                    return {
+                        ...oldData,
+                        pages: oldData.pages.map(page => ({
+                            ...page,
+                            data: page.data.filter(c => c.id !== deletedId)
+                        }))
+                    };
+                });
+            } else {
+                notifyError(res.message || t('error.delete_failed'));
+            }
+        }
+    });
+
     const addComment = async (content) => {
         if (!content) return false;
         if (typeof content === 'string' && !content.trim()) return false;
@@ -84,7 +104,7 @@ export const useComments = (postId) => {
         return true;
     };
 
-    const removeComment = async (commentId) => {
+    const removeComment = async (commentId) => {        
         const isConfirmed = await openConfirm(t('action.delete'));
         if (!isConfirmed) return false;
         await deleteMutation.mutateAsync(commentId);

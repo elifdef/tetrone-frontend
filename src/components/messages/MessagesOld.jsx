@@ -26,8 +26,8 @@ export default function MessagesOld(props) {
     const formatDate = useDateFormatter();
     const { onlineUsers } = useContext(NotificationContext) || { onlineUsers: [] };
 
-       const pinnedMessage = messages.find(m => m.is_pinned);
-    
+    const pinnedMessage = messages.find(m => m.is_pinned);
+
     const targetOnline = onlineUsers?.includes(activeChat?.target_user?.id) ||
         (activeChat?.target_user?.last_seen_at && (new Date() - new Date(activeChat.target_user.last_seen_at)) < 3 * 60 * 1000);
 
@@ -136,7 +136,18 @@ export default function MessagesOld(props) {
                 ) : (
                     <div className="tetrone-messages-old-history">
                         {messages.map(msg => (
-                            <MessageItemOld key={`old-${msg.id}`} msg={msg} myAvatar={currentUser?.avatar} myName={currentUser?.first_name} targetUser={activeChat.target_user} formatDate={formatDate} t={t} handleEditClick={handleEditClick} handleDelete={handleDelete} setReplyingTo={setReplyingTo} togglePin={togglePin} />
+                            <MessageItemOld
+                                key={`old-${msg.id}`}
+                                msg={msg}
+                                messages={messages}
+                                myAvatar={currentUser?.avatar}
+                                myName={currentUser?.first_name}
+                                targetUser={activeChat.target_user}
+                                formatDate={formatDate} t={t}
+                                handleEditClick={handleEditClick}
+                                handleDelete={handleDelete}
+                                setReplyingTo={setReplyingTo}
+                                togglePin={togglePin} />
                         ))}
                     </div>
                 )}

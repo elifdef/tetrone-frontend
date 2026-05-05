@@ -38,17 +38,19 @@ export default function AdminDashboard() {
 
     return (
         <div className="admin-dashboard-wrapper">
-            <div className="admin-dossier-row admin-stats-row">
+            <div className="admin-stats-row admin-tables-row">
                 <div className="admin-stats-box">
                     <div className="admin-stats-label">{t('common.users')}</div>
                     <div className="admin-stats-value">{stats.summary.users}</div>
                 </div>
-
                 <div className="admin-stats-box">
                     <div className="admin-stats-label">{t('common.posts')}</div>
                     <div className="admin-stats-value">{stats.summary.posts}</div>
                 </div>
-
+                <div className="admin-stats-box">
+                    <div className="admin-stats-label">{t('common.reposts')}</div>
+                    <div className="admin-stats-value">{stats.summary.reposts}</div>
+                </div>
                 <div className="admin-stats-box">
                     <div className="admin-stats-label">{t('common.comments')}</div>
                     <div className="admin-stats-value">{stats.summary.comments}</div>
@@ -58,7 +60,6 @@ export default function AdminDashboard() {
             <div className="admin-tables-row admin-infrastructure-row">
                 <div className="admin-table-card admin-server-card">
                     <h3 className="admin-chart-title">{t('admin.dashboard.server_health')}</h3>
-
                     <div className="admin-server-metric">
                         <div className="admin-server-metric-header">
                             <span>{t('admin.dashboard.cpu_load')}</span>
@@ -67,11 +68,25 @@ export default function AdminDashboard() {
                         <div className="admin-progress-track">
                             <div
                                 className="admin-progress-bar cpu"
-                                style={{ '--progress-width': `${Math.min(stats.server.cpu_load * 10, 100)}%` }}
+                                style={{ '--progress-width': `${Math.min(stats.server.cpu_load, 100)}%` }}
                             ></div>
                         </div>
                     </div>
-
+                    <div className="admin-server-metric">
+                        <div className="admin-server-metric-header">
+                            <span>
+                                {t('admin.dashboard.ram_usage')}
+                                {stats.server.memory_total_gb > 0 ? ` (${stats.server.memory_total_gb} GB)` : ''}
+                            </span>
+                            <span>{stats.server.memory_percent}%</span>
+                        </div>
+                        <div className="admin-progress-track">
+                            <div
+                                className="admin-progress-bar ram"
+                                style={{ '--progress-width': `${Math.min(stats.server.memory_percent, 100)}%` }}
+                            ></div>
+                        </div>
+                    </div>
                     <div className="admin-server-metric">
                         <div className="admin-server-metric-header">
                             <span>{t('admin.dashboard.disk_usage')} ({stats.server.disk_free_gb} GB {t('admin.dashboard.free')})</span>
@@ -80,18 +95,24 @@ export default function AdminDashboard() {
                         <div className="admin-progress-track">
                             <div
                                 className="admin-progress-bar disk"
-                                style={{ '--progress-width': `${stats.server.disk_percent}%` }}
+                                style={{ '--progress-width': `${Math.min(stats.server.disk_percent, 100)}%` }}
                             ></div>
                         </div>
                     </div>
-
-                    <div className="admin-server-info-row">
-                        <span className="tetrone-label">{t('admin.dashboard.version')} PHP:</span>
+                    <div className="admin-server-info-row" style={{ marginTop: '15px' }}>
+                        <span className="tetrone-label">{t('admin.dashboard.version')}</span>
                         <span className="tetrone-value">{stats.server.php_version}</span>
                     </div>
+
                     <div className="admin-server-info-row">
-                        <span className="tetrone-label">{t('admin.dashboard.ram_usage')}:</span>
-                        <span className="tetrone-value">{stats.server.memory_mb} MB</span>
+                        <span className="tetrone-label">{t('admin.dashboard.db_info')}</span>
+                        <span className="tetrone-value">
+                            {stats.server.db_driver} ({stats.server.db_version})
+                        </span>
+                    </div>
+                    <div className="admin-server-info-row">
+                        <span className="tetrone-label">{t('admin.dashboard.db_size')}</span>
+                        <span className="tetrone-value">{stats.server.db_size_mb} MB</span>
                     </div>
                 </div>
 
@@ -162,8 +183,9 @@ export default function AdminDashboard() {
                                 <YAxis stroke="var(--theme-text-muted)" fontSize={10} allowDecimals={false} />
                                 <Tooltip contentClassName="admin-chart-tooltip" wrapperClassName="admin-chart-tooltip-wrapper" />
                                 <Legend wrapperClassName="admin-chart-legend" />
-                                <Bar dataKey="posts" name={t('common.posts')} fill="var(--theme-link)" radius={[2, 2, 0, 0]} />
-                                <Bar dataKey="comments" name={t('common.comments')} fill="var(--theme-error)" radius={[2, 2, 0, 0]} />
+                                <Bar dataKey="posts" name={t('common.posts')} fill="#E67E22"/>
+                                <Bar dataKey="comments" name={t('common.comments')} fill="#F1C40F" />
+                                <Bar dataKey="reposts" name={t('common.reposts')} fill="#E91E63" />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

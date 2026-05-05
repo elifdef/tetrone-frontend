@@ -107,7 +107,7 @@ const LeftSidebar = () => {
                             {user.role === userRole.Support && (
                                 <>
                                     <hr />
-                                    <Link to="/support" className={`${getLinkClass("/support")} nav-link-support`} onClick={closeMenu}>
+                                    <Link to="/support-panel" className={`${getLinkClass("/support-panel")} nav-link-support`} onClick={closeMenu}>
                                         {t('common.support_panel')}
                                     </Link>
                                 </>
@@ -125,7 +125,7 @@ const LeftSidebar = () => {
                             {user.role === userRole.Admin && (
                                 <>
                                     <hr />
-                                    <Link to="/control-panel" className={`${getLinkClass("/admin")} nav-link-admin`} onClick={closeMenu}>
+                                    <Link to="/control-panel" className={`${getLinkClass("/control-panel")} nav-link-admin`} onClick={closeMenu}>
                                         {t('common.admin_panel')}
                                     </Link>
                                 </>

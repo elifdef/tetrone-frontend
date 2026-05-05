@@ -139,8 +139,7 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
                                             <img
                                                 src={friend.avatar}
                                                 alt=""
-                                                className="tetrone-avatar-small tetrone-img-cover"
-                                                style={{ borderRadius: '50%' }}
+                                                className="tetrone-avatar tetrone-img-cover"
                                             />
                                             <div className="tetrone-friend-select-text">
                                                 <span className="tetrone-friend-name">

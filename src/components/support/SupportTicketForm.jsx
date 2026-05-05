@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import supportService from '../../services/support.service';
 import Input from '../ui/Input';
 import Textarea from '../ui/Textarea';
 import Button from '../ui/Button';
-import FileInput from '../ui/FileInput';
 
 const SupportTicketForm = ({ onCancel, onSuccess }) => {
     const { t } = useTranslation();
+    const fileInputRef = useRef(null);
 
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
@@ -20,7 +20,7 @@ const SupportTicketForm = ({ onCancel, onSuccess }) => {
         subject: '',
         message: '',
         steps_to_reproduce: '',
-        attachments: []
+        attachments: [] // Тут тепер зберігаємо масив File об'єктів
     });
 
     useEffect(() => {
@@ -41,26 +41,51 @@ const SupportTicketForm = ({ onCancel, onSuccess }) => {
 
     const handleChange = (field, value) => {
         setErrorMessage(null);
-        setForm(prev => ({ ...prev, [field]: value }));
+        setForm(prev => {
+            const updated = { ...prev, [field]: value };
+            if (field === 'category' && value !== 'bug_report') {
+                updated.subcategory = '';
+                updated.steps_to_reproduce = '';
+                updated.attachments = [];
+            }
+            return updated;
+        });
     };
 
-    const isFormValid = () => {
-        if (!form.subject.trim() || form.message.trim().length < 10) return false;
+    // 🚨 ЛОГІКА ДЛЯ ФАЙЛІВ 🚨
+    const handleFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        setErrorMessage(null);
+        
+        // Додаємо нові файли до вже існуючих (максимум 5 штук, наприклад)
+        setForm(prev => ({
+            ...prev,
+            attachments: [...prev.attachments, ...files].slice(0, 5) 
+        }));
 
-        if (form.category === 'bug_report') {
-            if (!form.subcategory || !form.steps_to_reproduce.trim() || form.attachments.length === 0) {
-                return false;
-            }
+        // Очищаємо інпут, щоб можна було вибрати той самий файл ще раз, якщо треба
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
-        return true;
+    };
+
+    const removeFile = (indexToRemove) => {
+        setForm(prev => ({
+            ...prev,
+            attachments: prev.attachments.filter((_, index) => index !== indexToRemove)
+        }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!isFormValid()) return;
+
+        if (form.message.trim().length < 10) {
+            return setErrorMessage(t('support.min_10_chars'));
+        }
 
         setLoading(true);
         setErrorMessage(null);
+
         try {
             const formData = new FormData();
             formData.append('category', form.category);
@@ -68,15 +93,28 @@ const SupportTicketForm = ({ onCancel, onSuccess }) => {
             formData.append('message', form.message);
 
             if (form.category === 'bug_report') {
-                formData.append('subcategory', form.subcategory);
+                if (form.subcategory) formData.append('subcategory', form.subcategory);
                 formData.append('meta[steps_to_reproduce]', form.steps_to_reproduce);
-                form.attachments.forEach(file => formData.append('attachments[]', file));
+                
+                // 🚨 ФІКС ДЛЯ БЕКЕНДУ: додаємо файли по одному 🚨
+                if (form.attachments.length > 0) {
+                    form.attachments.forEach(file => {
+                        formData.append('attachments[]', file);
+                    });
+                }
             }
 
             await supportService.createTicket(formData);
             onSuccess();
         } catch (error) {
-            setErrorMessage(error.message || t('common.error'));
+            let errMsg = error.message || t('common.error');
+            
+            if (error.data && error.data.errors) {
+                const firstErrorKey = Object.keys(error.data.errors)[0];
+                errMsg = error.data.errors[firstErrorKey][0];
+            }
+            
+            setErrorMessage(errMsg);
         } finally {
             setLoading(false);
         }
@@ -170,13 +208,43 @@ const SupportTicketForm = ({ onCancel, onSuccess }) => {
                                     required
                                 />
                             </div>
+                            
                             <div className="tetrone-input-group">
                                 <label className="tetrone-label">{t('support.field_attachments')}</label>
-                                <FileInput
-                                    accept="image/*"
-                                    multiple
-                                    onChange={(files) => handleChange('attachments', Array.from(files))}
-                                />
+                                
+                                <div className="tetrone-file-upload-wrapper">
+                                    <input 
+                                        type="file" 
+                                        id="ticket-files" 
+                                        multiple 
+                                        accept="image/*"
+                                        className="tetrone-hidden-file-input"
+                                        onChange={handleFileSelect}
+                                        ref={fileInputRef}
+                                    />
+                                    <label htmlFor="ticket-files" className="tetrone-btn tetrone-btn-secondary">
+                                        📁 {t('action.attach')}
+                                    </label>
+                                </div>
+
+                                {/* Прев'ю обраних файлів */}
+                                {form.attachments.length > 0 && (
+                                    <div className="tetrone-selected-files-list">
+                                        {form.attachments.map((file, index) => (
+                                            <div key={index} className="tetrone-selected-file-item">
+                                                <span className="tetrone-file-name">{file.name}</span>
+                                                <button 
+                                                    type="button" 
+                                                    className="tetrone-remove-file-btn"
+                                                    onClick={() => removeFile(index)}
+                                                    title={t('action.remove')}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </>
                     )}
@@ -186,7 +254,7 @@ const SupportTicketForm = ({ onCancel, onSuccess }) => {
                     <Button type="button" variant="secondary" onClick={onCancel} disabled={loading}>
                         {t('action.cancel')}
                     </Button>
-                    <Button type="submit" disabled={!isFormValid() || loading}>
+                    <Button type="submit" disabled={loading}>
                         {t('action.submit')}
                     </Button>
                 </div>
