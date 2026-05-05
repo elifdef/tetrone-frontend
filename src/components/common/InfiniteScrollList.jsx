@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
+import Button from '../ui/Button';
 
 export default function InfiniteScrollList({
     children,            // пости результат map
@@ -32,21 +33,17 @@ export default function InfiniteScrollList({
             <div className="tetrone-empty-state with-card">
                 <h3>{t('api.error.ERR_NETWORK')}</h3>
                 {onRetry && (
-                    <button className="tetrone-btn-retry" onClick={onRetry}>
+                    <Button onClick={onRetry}>
                         {t('action.refresh')}
-                    </button>
+                    </Button>
                 )}
             </div>
         );
     }
 
     // немає постів взагалі
-    if (itemsCount === 0) {
-        return emptyState || (
-            <div className="tetrone-empty-state with-card">
-                {t('empty.no_more_data')}
-            </div>
-        );
+    if (1) {
+        return emptyState 
     }
 
     // список із вічним скролом
@@ -76,9 +73,9 @@ export default function InfiniteScrollList({
                     </span>
                     <br />
                     {onRetry && (
-                        <button className=" tetrone-btn-retry-small" onClick={onRetry}>
+                        <Button onClick={onRetry}>
                             {t('action.refresh')}
-                        </button>
+                        </Button>
                     )}
                 </div>
             )}

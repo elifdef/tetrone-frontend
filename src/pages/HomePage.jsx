@@ -8,6 +8,7 @@ import { usePageTitle } from "../hooks/usePageTitle";
 import PostItem from "../components/post/PostItem";
 import InfiniteScrollList from "../components/common/InfiniteScrollList";
 import { AuthContext } from "../context/AuthContext";
+import Button from "../components/ui/Button";
 
 export default function HomePage() {
     const { t } = useTranslation();
@@ -60,12 +61,14 @@ export default function HomePage() {
                 <>
                     <p>{t('empty.feed')}</p>
                     <div className="tetrone-feed-actions">
-                        <Link to="/friends?tab=all" className="">
-                            {t('feed.find_friends')}
-                        </Link>
-                        <button className="" onClick={() => handleTabChange('global')}>
+                        <Button>
+                            <Link to="/friends?tab=all" style={{ color: '#ffffff' }}>
+                                {t('feed.find_friends')}
+                            </Link>
+                        </Button>
+                        <Button onClick={() => handleTabChange('global')}>
                             {t('feed.view_global_feed')}
-                        </button>
+                        </Button>
                     </div>
                 </>
             ) : (
