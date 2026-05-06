@@ -347,7 +347,7 @@
     border-bottom: 1px solid var(--theme-border);
 }
 
-.tetrone-auth-widget-intro h1{
+.tetrone-auth-widget-intro h1 {
     font-size: 15px;
 }
 
@@ -383,5 +383,19 @@
     .tetrone-feature-classic-thumb {
         margin-right: 0;
         margin-bottom: 10px;
+    }
+
+    .tetrone-feature-classic-item:nth-child(even) {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .tetrone-feature-classic-item:nth-child(even) .tetrone-feature-classic-thumb {
+        margin-left: 0;
+        margin-bottom: 10px;
+    }
+
+    .tetrone-feature-classic-thumb img {
+        max-width: 100%;
     }
 }
