@@ -8,6 +8,7 @@ import ChatComposer from './ChatComposer';
 import { extractPreviewText } from '../../utils/messageParser';
 import { BackIcon, CloseIcon, DeleteIcon } from '../ui/Icons';
 import "../../styles/chat-modern.css";
+import Button from '../ui/Button';
 
 export default function Messages(props) {
     const {
@@ -110,9 +111,9 @@ export default function Messages(props) {
                                     ) : targetOnline ? t('common.online') : ''}
                                 </span>
                             </div>
-                            <button className="tetrone-modern-header-btn" onClick={onDeleteChatClick}>
+                            <Button variant='secondary' onClick={onDeleteChatClick}>
                                 <DeleteIcon width={20} height={20} />
-                            </button>
+                            </Button>
                         </div>
 
                         {pinnedMessage && (

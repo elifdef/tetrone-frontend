@@ -89,6 +89,13 @@
     margin-bottom: 4px;
 }
 
+.tetrone-modern-empty-inbox {
+    display: flex;
+    justify-content: center;
+    font-size: 11px;
+    align-items: center;
+}
+
 .tetrone-modern-chat-name {
     font-weight: 600;
     font-size: 15px;

@@ -34,14 +34,14 @@ export default function PostDocuments({ documents = [] }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="tetrone-document-item"
-                    download={doc.original_name}
-                >
+                    download={doc.file_name}
+                >   
                     <div className="tetrone-document-icon">
-                        {getFileIcon(doc.original_name)}
+                        {getFileIcon(doc.file_name)}
                     </div>
                     <div className="tetrone-document-info">
-                        <span className="tetrone-document-name" title={doc.original_name}>
-                            {doc.original_name || 'Document'}
+                        <span className="tetrone-document-name" title={doc.file_name}>
+                            {doc.file_name}
                         </span>
                         <span className="tetrone-document-size">
                             {formatFileSize(doc.file_size)}

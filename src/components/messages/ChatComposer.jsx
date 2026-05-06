@@ -53,6 +53,22 @@ export default function ChatComposer({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        if (editingMessage) {
+            if (!editingMessage.text) {
+                setText('');
+                return;
+            }
+
+            try {
+                const parsedText = JSON.parse(editingMessage.text);
+                setText(parsedText);
+            } catch (e) {
+                setText(editingMessage.text);
+            }
+        }
+    }, [editingMessage, setText]);
+
     const isEditorEmpty = !text || (typeof text === 'object' && text.content?.length === 1 && !text.content[0].content) || (typeof text === 'string' && !text.trim());
     const isSendDisabled = isEditorEmpty && files.length === 0;
 
@@ -130,6 +146,7 @@ export default function ChatComposer({
 
                 <div className={theme === 'modern' ? "tetrone-modern-composer-center" : "tetrone-messages-old-composer-center"}>
                     <Editor
+                        key={editingMessage ? `edit-${editingMessage.id}` : 'new-message'}
                         className={theme === 'modern' ? "tetrone-modern-textarea" : "tetrone-messages-old-textarea"}
                         value={text}
                         onChange={(val) => { setText(val); if (onTyping) onTyping(); }}

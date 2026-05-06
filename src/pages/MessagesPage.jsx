@@ -13,6 +13,7 @@ import MessageService from '../services/chat.service';
 import FriendService from '../services/friend.service';
 import ChatInfoModal from '../components/modals/ChatInfoModal';
 import { notifyError, notifySuccess } from '../components/common/Notify';
+import Button from '../components/ui/Button';
 
 const CloseIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -231,8 +232,8 @@ export default function MessagesPage() {
                     </label>
                 </div>
                 <div className="tetrone-modal-footer">
-                    <button className="tetrone-btn-ghost" onClick={() => closeModal()}>{t('action.cancel')}</button>
-                    <button className="tetrone-btn-danger" onClick={async () => {
+                    <Button variant='secondary' onClick={() => closeModal()}>{t('action.cancel')}</Button>
+                    <Button variant="danger" onClick={async () => {
                         closeModal();
                         const res = await MessageService.deleteChat(dmSlug, isForBoth);
                         if (res.success) {
@@ -241,7 +242,7 @@ export default function MessagesPage() {
                         } else {
                             notifyError(res.message);
                         }
-                    }}>{t('action.delete')}</button>
+                    }}>{t('action.delete')}</Button>
                 </div>
             </div>
         );
