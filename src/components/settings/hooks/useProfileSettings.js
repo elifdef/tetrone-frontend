@@ -89,22 +89,24 @@ export const useProfileSettings = (isSetupMode = false) => {
             data.append('avatar', formData.avatarFile);
         }
 
-        const res = await UserService.updateProfile(user.username, data);
+        try {
+            const res = await UserService.updateProfile(user.username, data);
 
-        if (res.success) {
-            setUser(prev => ({ ...prev, ...previewUser, is_setup_complete: true }));
+            if (res.success) {
+                setUser(prev => ({ ...prev, ...previewUser, is_setup_complete: true }));
 
-            if (isSetupMode) {
-                window.location.href = `/${user.username}`;
-            } else {
-                notifySuccess(res.message);
-                setFormData(prev => ({ ...prev, avatarFile: null }));
+                if (isSetupMode) {
+                    window.location.href = `/${user.username}`;
+                } else {
+                    notifySuccess(res.message);
+                    setFormData(prev => ({ ...prev, avatarFile: null }));
+                }
             }
-        } else {
-            notifyError(res.message);
+        } catch (error) {
+            notifyError(error.message || t('common.error'));
+        } finally {
+            dismissToast(toastId);
         }
-
-        dismissToast(toastId);
     };
 
     return { formData, previewUser, canSubmit, handleChange, handleFileChange, handleSubmit, avatarFile: formData.avatarFile };
