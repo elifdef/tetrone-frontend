@@ -27,7 +27,7 @@ export default async function fetchClient(endpoint, { method = 'GET', body, ...c
 
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, config);
-        
+
         let data = null;
         if (response.status !== 204) {
             try {
@@ -42,16 +42,17 @@ export default async function fetchClient(endpoint, { method = 'GET', body, ...c
 
             if (response.status === 401 && errorCode !== 'ERR_INVALID_CREDENTIALS') {
                 window.dispatchEvent(new CustomEvent('session-expired'));
-                throw { 
-                    success: false, 
-                    code: 'ERR_UNAUTHENTICATED', 
-                    message: i18n.t('api.error.ERR_UNAUTHENTICATED') 
+                return {
+                    success: false,
+                    status: response.status,
+                    code: 'ERR_UNAUTHENTICATED',
+                    message: i18n.t('api.error.ERR_UNAUTHENTICATED')
                 };
             }
 
             const translatedMessage = i18n.t(`api.error.${errorCode}`);
 
-            throw {
+            return {
                 success: false,
                 status: response.status,
                 code: errorCode,
@@ -93,9 +94,9 @@ export default async function fetchClient(endpoint, { method = 'GET', body, ...c
         };
 
     } catch (error) {
-        if (error.success === false) throw error;
+        if (error.success === false) return error;
 
-        throw {
+        return {
             success: false,
             status: 0,
             code: 'ERR_NETWORK',

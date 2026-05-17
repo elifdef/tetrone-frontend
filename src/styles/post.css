@@ -869,6 +869,35 @@
     color: var(--theme-text-main);
 }
 
+.tetrone-sticker-picker {
+    width: 280px;
+    height: 320px;
+    background: var(--theme-bg-box);
+    border: 1px solid #555;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tetrone-sticker-picker-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.tetrone-sticker-picker-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    background: var(--theme-bg-box);
+    min-height: 0;
+}
+
 .tetrone-toolbar-btn:hover {
     background-color: rgba(128, 128, 128, 0.1);
 }
@@ -878,25 +907,33 @@
     color: var(--theme-link);
 }
 
-.tetrone-micro-sticker {
-    width: 24px;
-    height: 24px;
-    display: inline-block;
-    vertical-align: middle;
-    margin: 0 2px;
-    margin-top: -4px;
-    pointer-events: auto;
-    user-select: none;
-}
-
-.tetrone-post-text p {
-    line-height: 1.5;
-    margin-bottom: 8px;
+.tetrone-post-text p,
+.tetrone-comment-text p,
+.ProseMirror p {
+    word-spacing: normal;
 }
 
 .tetrone-spoiler img.tetrone-micro-sticker {
     opacity: 0;
     transition: opacity 0.2s ease;
+}
+
+.tetrone-post-text.tetrone-post-only-stickers p,
+.tetrone-comment-text.tetrone-post-only-stickers p,
+.tetrone-post-only-stickers p {
+    line-height: 0 !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    display: block !important;
+}
+
+.tetrone-post-only-stickers .tetrone-micro-sticker {
+    height: 100px !important;
+    width: 100px !important;
+    margin: 0 !important;
+    object-fit: contain;
+    display: inline-block !important;
+    vertical-align: bottom !important;
 }
 
 .tetrone-spoiler:hover img.tetrone-micro-sticker,

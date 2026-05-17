@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { usePageTitle } from "../hooks/usePageTitle";
 import supportService from '../services/support.service';
 import SupportTicketForm from '../components/support/SupportTicketForm';
@@ -21,10 +24,8 @@ const SupportPage = () => {
     const currentTicketId = searchParams.get('ticket_id');
 
     const [openFaqId, setOpenFaqId] = useState(null);
-
     const [tickets, setTickets] = useState([]);
     const [selectedTicket, setSelectedTicket] = useState(null);
-    const [replyText, setReplyText] = useState('');
     const [loading, setLoading] = useState(false);
 
     const categories = [
@@ -34,6 +35,19 @@ const SupportPage = () => {
         { id: 'security', icon: <SecurityIcon width={32} height={32} />, titleKey: 'support.cat_security' },
         { id: 'other', icon: <PollIcon width={32} height={32} />, titleKey: 'support.cat_other' }
     ];
+
+    const replySchema = z.object({
+        message: z.string().min(1, t('validation.required') || 'Field is required')
+    });
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm({
+        resolver: zodResolver(replySchema)
+    });
 
     const categoryFaqs = useMemo(() => {
         if (!currentCat) return [];
@@ -86,18 +100,14 @@ const SupportPage = () => {
         }
     };
 
-    const handleReply = async (e) => {
-        e.preventDefault();
-        if (!replyText.trim()) return;
-        setLoading(true);
-        try {
-            await supportService.replyToTicket(currentTicketId, replyText);
-            setReplyText('');
+    const onReplySubmit = async (data) => {
+        const res = await supportService.replyToTicket(currentTicketId, data.message);
+
+        if (res.success) {
+            reset();
             loadSingleTicket(currentTicketId);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
+        } else {
+            console.error("Failed to reply:", res.message);
         }
     };
 
@@ -236,15 +246,16 @@ const SupportPage = () => {
                 </div>
 
                 {selectedTicket.status !== 'closed' && selectedTicket.status !== 'resolved' && (
-                    <form onSubmit={handleReply} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <form onSubmit={handleSubmit(onReplySubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <Textarea
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
+                            {...register("message")}
+                            error={errors.message}
                             placeholder={t('support.reply_placeholder')}
-                            required
                         />
                         <div style={{ alignSelf: 'flex-end' }}>
-                            <Button type="submit" disabled={loading || !replyText.trim()}>{t('action.send')}</Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? t('common.loading') : t('action.send')}
+                            </Button>
                         </div>
                     </form>
                 )}
@@ -254,7 +265,6 @@ const SupportPage = () => {
 
     return (
         <div className="tetrone-card-wrapper" style={{ padding: 0, background: 'transparent', border: 'none' }}>
-
             <div className="tetrone-support-welcome">
                 <h1>{t('support.welcome_title', { name: 'Tetrone' })}</h1>
                 <p>{t('support.welcome_desc')}</p>

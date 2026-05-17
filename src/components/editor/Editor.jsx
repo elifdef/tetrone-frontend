@@ -79,8 +79,14 @@ export default function Editor({
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        // Додаємо слухача тільки коли пікер відкритий (для оптимізації)
+        if (showPicker) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, [showPicker]);
 
     const handleStickerSelect = (sticker) => {
@@ -94,10 +100,11 @@ export default function Editor({
                         src: sticker.url || sticker.src,
                         packName: sticker.pack_short_name || sticker.packName
                     }
-                },
-                { type: 'text', text: ' ' }
+                }
             ]).run();
-            setShowPicker(false);
+
+            // setShowPicker(false);
+            // Тепер меню залишається відкритим для множинного вибору
         }
     };
 

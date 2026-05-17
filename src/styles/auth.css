@@ -7,8 +7,18 @@
     max-width: 400px;
 }
 
-.tetrone-auth-card .tetrone-form-input {
-    margin-bottom: 10px;
+.tetrone-login-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tetrone-login-btn {
+    min-width: 120px;
+}
+
+.tetrone-forgot-link {
+    font-size: 11px;
 }
 
 .tetrone-auth-header {
@@ -392,6 +402,42 @@
 
 .banned-btn-flex {
     flex: 1;
+}
+
+.tetrone-code-inputs-wrapper {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.tetrone-code-single-input {
+    width: 36px;
+    height: 44px;
+    text-align: center;
+    font-size: 16px;
+    font-family: tahoma, verdana, arial, sans-serif;
+    font-weight: bold;
+    border: 1px solid var(--theme-input-border);
+    background: var(--theme-input-bg);
+    color: var(--theme-text-main);
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.tetrone-code-single-input:focus {
+    border-color: var(--theme-link);
+}
+
+.tetrone-code-single-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tetrone-auth-form-container {
+    font-family: tahoma, verdana, arial, sans-serif;
+    font-size: 11px;
 }
 
 @media (max-width: 768px) {

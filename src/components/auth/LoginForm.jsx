@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuthForms } from "./hooks/useAuthForms";
 import { useTranslation } from 'react-i18next';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useAuthForms } from "./hooks/useAuthForms";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 
@@ -9,56 +12,71 @@ export default function LoginForm() {
     const { t } = useTranslation();
     const { loginUser, loading, error, setError } = useAuthForms();
 
-    const [formData, setFormData] = useState({
-        login: "",
-        password: ""
+    const loginSchema = z.object({
+        login: z.string({ required_error: t('validation.required') }).min(1, t('validation.required')),
+        password: z.string({ required_error: t('validation.required') }).min(1, t('validation.required'))
     });
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors }
+    } = useForm({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            login: "",
+            password: ""
+        }
+    });
+
+    useEffect(() => {
+        const subscription = watch(() => {
+            if (error) setError(null);
+        });
+        return () => subscription.unsubscribe();
+    }, [watch, error, setError]);
+
+    const onSubmit = (data) => {
         if (error) setError(null);
+        loginUser(data.login, data.password);
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        loginUser(formData.login, formData.password);
-    };
+    const zodError = Object.values(errors)[0]?.message;
+    const displayError = error || zodError;
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)} className="tetrone-auth-form">
             <Input
-                type="text"
-                name="login"
                 id="login-id"
                 label={t('auth.email_or_username')}
                 autoComplete="username"
-                value={formData.login}
-                onChange={handleChange}
-                required
+                {...register("login")}
             />
 
             <Input
                 type="password"
-                name="password"
                 id="login-password"
                 label={t('auth.password')}
                 autoComplete="current-password"
-                value={formData.password}
-                onChange={handleChange}
-                required
+                {...register("password")}
             />
 
-            {error && (
+            {displayError && (
                 <div className="tetrone-auth-msg error">
-                    {error}
+                    {String(displayError)}
                 </div>
             )}
 
-            <Button
-                disabled={loading}
-            >
-                {loading ? t('common.loading') : t('action.login')}
-            </Button>
+            <div className="tetrone-login-actions">
+                <Button disabled={loading} className="tetrone-login-btn">
+                    {loading ? t('common.loading') : t('action.login')}
+                </Button>
+
+                <Link to="/forgot-password" className="tetrone-link tetrone-forgot-link">
+                    {t('auth.forgot_password_link')}
+                </Link>
+            </div>
 
             <div className="tetrone-auth-footer">
                 {t('auth.not_have_account')} <Link to="/register" className="tetrone-link">{t('action.register')}</Link>

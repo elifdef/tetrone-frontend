@@ -44,6 +44,27 @@ class AuthService {
     async revokeAllOtherSessions() {
         return await fetchClient('/settings/sessions', { method: 'DELETE' });
     }
+
+    async verifyResetCode(email, code) {
+        return await fetchClient('/verify-reset-code', {
+            method: 'POST',
+            body: { email, code }
+        });
+    }
+
+    async forgotPassword(email) {
+        return await fetchClient('/forgot-password', {
+            method: 'POST',
+            body: { email }
+        });
+    }
+
+    async resetPassword(email, code, password, password_confirmation) {
+        return await fetchClient('/reset-password', {
+            method: 'POST',
+            body: { email, code, password, password_confirmation }
+        });
+    }
 }
 
 export default new AuthService();

@@ -24,6 +24,7 @@ import NotificationsPage from "../pages/NotificationsPage";
 import ActivityPage from "../pages/ActivityPage";
 import MessagesPage from "../pages/MessagesPage";
 import StickerShopPage from '../pages/StickerShopPage';
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 
 export default function AppRoutes() {
     const { user } = useContext(AuthContext);
@@ -35,6 +36,7 @@ export default function AppRoutes() {
             <Route element={<GuestGuard />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             </Route>
 
             {/* якщо користувач не закінчив оформлення профілю вертаєм назад */}

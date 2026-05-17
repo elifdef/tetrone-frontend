@@ -112,7 +112,7 @@ export default function StickerPackModal({ pack, onClose, onRefresh }) {
                         <div className="tetrone-pack-text-info">
                             <span className="tetrone-pack-title-label">{pack.title}</span>
                             <span className="tetrone-pack-meta-label">{t('stickers.by_author')} {pack.author}</span>
-                            <span className="tetrone-pack-meta-label">{pack.stickers_count} / 120 {t('stickers.stickers_count')}</span>
+                            <span className="tetrone-pack-meta-label">{pack.stickers_count} {t('stickers.stickers_count')}</span>
                         </div>
                     </div>
 
