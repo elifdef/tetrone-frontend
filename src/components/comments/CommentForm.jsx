@@ -17,10 +17,10 @@ export default function CommentForm({ user, onSubmit, placeholder, replyToUser, 
         if (replyToUser && finalContent.content && finalContent.content.length > 0) {
             const firstParagraph = finalContent.content[0];
             if (!firstParagraph.content) firstParagraph.content = [];
-            
+
             firstParagraph.content.unshift(
-                { type: 'text', text: ', ' },
-                { type: 'mention', attrs: { id: replyToUser.id, username: replyToUser.username } }
+                { type: 'mention', attrs: { id: replyToUser.id, username: replyToUser.username } },
+                { type: 'text', text: ', ' }
             );
         }
 
@@ -59,7 +59,7 @@ export default function CommentForm({ user, onSubmit, placeholder, replyToUser, 
                                 value={content}
                                 onChange={setContent}
                             />
-                            
+
                             <button type="submit" className="tetrone-send-btn" disabled={isEditorEmpty(content)}>
                                 <SendIcon width={16} height={16} />
                             </button>

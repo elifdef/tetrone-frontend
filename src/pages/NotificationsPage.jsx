@@ -23,12 +23,11 @@ const NotificationListItem = ({ notif, handleNotificationClick, getNotificationD
     const { t } = useTranslation();
     const isUnread = !notif.read_at;
     const data = notif.data || {};
-    const { actionText, linkText, linkUrl } = getNotificationData(notif.type, data);
+    const { actionText, linkText, linkUrl, snippetText } = getNotificationData(notif.type, data);
 
     const isSystem = notif.type?.includes('ReportReviewed') || data.type === 'report_reviewed';
     const actualUser = data.user || data;
     const senderName = isSystem ? t('common.moderator') : `${actualUser.user_first_name || actualUser.first_name} ${actualUser.user_last_name || actualUser.last_name || ''}`.trim();
-    const snippetText = data.admin_response || data.post_snippet;
     const avatarUrl = actualUser.user_avatar || actualUser.avatar;
     const usernameUrl = actualUser.user_username || actualUser.username;
     const nameColor = actualUser.personalization?.username_color;
@@ -73,10 +72,10 @@ const NotificationListItem = ({ notif, handleNotificationClick, getNotificationD
                         {actionText && linkText ? ' ' : ''}
                         {linkUrl && linkText ? (
                             <Link to={linkUrl} className="tetrone-link">
-                                {linkText}
+                                {linkText}{snippetText ? ':' : ''}
                             </Link>
                         ) : (
-                            linkText
+                            <>{linkText}{snippetText ? ':' : ''}</>
                         )}
                     </span>
                 </div>
