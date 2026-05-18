@@ -134,8 +134,293 @@
     width: 20%;
     min-width: 200px;
     flex-shrink: 0;
-    padding: 15px 0;
+    padding: 10px 0;
+    position: sticky;
+    top: 10px;
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+}
+
+.tetrone-global-player {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--theme-bg-box);
+    border: 1px solid var(--theme-border);
+    padding: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tetrone-player-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    position: relative;
+}
+
+.tetrone-player-cover {
+    width: 50px;
+    height: 50px;
+    background: var(--theme-bg-hover);
+    border: 1px solid var(--theme-border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--theme-text-muted);
+}
+
+.tetrone-player-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     display: block;
+}
+
+.tetrone-player-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-grow: 1;
+    padding-right: 20px;
+    padding-top: 2px;
+}
+
+.tetrone-player-label {
+    font-size: 10px;
+    color: var(--theme-text-muted);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.tetrone-player-title {
+    font-size: 12px;
+    color: var(--theme-link);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: bold;
+}
+
+.tetrone-player-close {
+    background: transparent;
+    border: none;
+    color: var(--theme-text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.tetrone-player-close:hover {
+    color: var(--theme-error);
+}
+
+.tetrone-player-waveform {
+    width: 100%;
+    cursor: pointer;
+    background: var(--theme-bg-hover);
+    border: 1px solid var(--theme-border);
+}
+
+.tetrone-player-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    padding: 0 5px;
+}
+
+.tetrone-player-btn {
+    background: transparent;
+    border: none;
+    color: var(--theme-text-main);
+    font-size: 14px;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.tetrone-player-btn:hover {
+    opacity: 1;
+    color: var(--theme-link);
+}
+
+.tetrone-player-btn.active {
+    color: var(--theme-link);
+    opacity: 1;
+    font-weight: bold;
+}
+
+.tetrone-player-btn-main {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--theme-link);
+}
+
+.tetrone-player-speed {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.tetrone-player-loading {
+    font-size: 14px;
+}
+
+.tetrone-player-error {
+    color: var(--theme-error);
+    font-size: 11px;
+    text-align: center;
+    padding: 10px 0;
+    border: 1px solid var(--theme-error);
+    background: rgba(255, 0, 0, 0.05);
+}
+
+.tetrone-audio-track {
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tetrone-audio-track:hover {
+    background: var(--theme-bg-hover);
+    border: 1px solid var(--theme-border);
+}
+
+.tetrone-audio-track.active {
+    border: 1px solid var(--theme-link);
+    background: var(--theme-bg-hover);
+}
+
+.tetrone-audio-cover-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid var(--theme-border);
+}
+
+.tetrone-audio-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tetrone-audio-play-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    opacity: 0;
+}
+
+.tetrone-audio-track:hover .tetrone-audio-play-overlay,
+.tetrone-audio-track.active .tetrone-audio-play-overlay {
+    opacity: 1;
+}
+
+.tetrone-audio-track.has-cover .tetrone-document-icon {
+    display: none;
+}
+
+.tetrone-player-volume-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tetrone-player-volume-popover {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--theme-bg-box);
+    border: 1px solid var(--theme-border);
+    /* Задаємо жорсткі розміри для віконця */
+    width: 32px;
+    height: 90px;
+    box-shadow: none;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    margin-bottom: 5px;
+}
+
+.tetrone-volume-bridge {
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    background: transparent;
+}
+
+.tetrone-player-volume-slider {
+    cursor: pointer;
+    width: 70px;
+    height: 16px;
+    outline: none;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    transform: rotate(-90deg);
+    margin: 0;
+}
+
+.tetrone-player-volume-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    background: var(--theme-bg-hover);
+    border: 1px solid var(--theme-border);
+    border-radius: 0;
+}
+
+.tetrone-player-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 8px;
+    height: 16px;
+    background: var(--theme-link);
+    border: 1px solid var(--theme-text-main);
+    border-radius: 0;
+    cursor: pointer;
+    margin-top: -7px;
+}
+
+.tetrone-player-volume-slider::-moz-range-track {
+    width: 100%;
+    height: 4px;
+    background: var(--theme-bg-hover);
+    border: 1px solid var(--theme-border);
+    border-radius: 0;
+}
+
+.tetrone-player-volume-slider::-moz-range-thumb {
+    width: 8px;
+    height: 16px;
+    background: var(--theme-link);
+    border: 1px solid var(--theme-text-main);
+    border-radius: 0;
+    cursor: pointer;
 }
 
 .tetrone-footer {
