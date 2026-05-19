@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { APP_NAME, userRole } from "../../config";
 import { AuthContext } from "../../context/AuthContext";
 import { NotificationContext } from "../../context/NotificationContext";
+import GlobalAudioPlayer from "./GlobalAudioPlayer";
 
 const LeftSidebar = () => {
     const { t } = useTranslation();
@@ -69,6 +70,10 @@ const LeftSidebar = () => {
                 <Link to="/" className="tetrone-logo" onClick={closeMenu}>
                     {APP_NAME}
                 </Link>
+
+                <div className="tetrone-mobile-player">
+                    <GlobalAudioPlayer />
+                </div>
 
                 <nav className="tetrone-nav-list">
                     {user ? (

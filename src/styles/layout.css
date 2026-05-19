@@ -12,7 +12,7 @@
 .tetrone-app-layout {
     display: flex;
     justify-content: center;
-    max-width: 1280px;
+    max-width: 1536px;
     width: 100%;
     margin: 0 auto;
     gap: 20px;
@@ -22,7 +22,7 @@
 }
 
 .tetrone-main-content {
-    width: 70%;
+    width: 50%;
     flex-shrink: 1;
     min-width: 0;
     padding-top: 15px;
@@ -134,9 +134,8 @@
     width: 20%;
     min-width: 200px;
     flex-shrink: 0;
-    padding: 10px 0;
     position: sticky;
-    top: 10px;
+    top: 15px;
     height: max-content;
     display: flex;
     flex-direction: column;
@@ -224,8 +223,6 @@
 .tetrone-player-waveform {
     width: 100%;
     cursor: pointer;
-    background: var(--theme-bg-hover);
-    border: 1px solid var(--theme-border);
 }
 
 .tetrone-player-controls {
@@ -423,6 +420,42 @@
     cursor: pointer;
 }
 
+.tetrone-player-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    padding: 0 5px;
+}
+
+.tetrone-controls-left,
+.tetrone-controls-right {
+    width: 80px;
+    display: flex;
+    align-items: center;
+}
+
+.tetrone-controls-left {
+    justify-content: flex-start;
+}
+
+.tetrone-controls-right {
+    justify-content: flex-end;
+}
+
+.tetrone-controls-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.tetrone-player-time {
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--theme-text-muted);
+}
+
 .tetrone-footer {
     padding: 30px 15px;
     text-align: center;
@@ -582,6 +615,10 @@
     font-size: 11px;
     color: #777;
     text-align: center;
+}
+
+.tetrone-mobile-player {
+    display: none;
 }
 
 @media (max-width: 768px) {
@@ -750,5 +787,23 @@
 
     .tetrone-tabs::-webkit-scrollbar {
         height: 4px;
+    }
+
+    .tetrone-mobile-player {
+        display: block;
+        width: 100%;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+    }
+
+    .tetrone-mobile-player .tetrone-global-player {
+        margin-bottom: 0;
+        border-left: none;
+        border-right: none;
+        background: var(--theme-bg-page);
+    }
+
+    .tetrone-sidebar-left .tetrone-nav-list {
+        margin-top: 5px;
     }
 }
