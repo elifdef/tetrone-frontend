@@ -147,7 +147,9 @@ export default function MessagesOld(props) {
                                 handleEditClick={handleEditClick}
                                 handleDelete={handleDelete}
                                 setReplyingTo={setReplyingTo}
-                                togglePin={togglePin} />
+                                togglePin={togglePin}
+                                chatSlug={activeChat.slug}
+                            />
                         ))}
                     </div>
                 )}

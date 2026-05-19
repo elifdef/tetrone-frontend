@@ -5,6 +5,7 @@ import { APP_NAME, userRole } from "../../config";
 import { AuthContext } from "../../context/AuthContext";
 import { NotificationContext } from "../../context/NotificationContext";
 import GlobalAudioPlayer from "./GlobalAudioPlayer";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 const LeftSidebar = () => {
     const { t } = useTranslation();
@@ -14,6 +15,7 @@ const LeftSidebar = () => {
     const navigate = useNavigate();
 
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const isMobile = useIsMobile();
 
     const isStickersEnabled = import.meta.env.VITE_ENABLE_STICKERS === 'true';
 
@@ -71,9 +73,11 @@ const LeftSidebar = () => {
                     {APP_NAME}
                 </Link>
 
-                <div className="tetrone-mobile-player">
-                    <GlobalAudioPlayer />
-                </div>
+                {isMobile && (
+                    <div className="tetrone-mobile-player">
+                        <GlobalAudioPlayer />
+                    </div>
+                )}
 
                 <nav className="tetrone-nav-list">
                     {user ? (

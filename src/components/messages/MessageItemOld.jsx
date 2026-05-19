@@ -1,12 +1,24 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { extractPreviewText } from '../../utils/editorHelpers';
 import MessageImage from './MessageImage';
+import RichText from '../common/RichText';
 
 export default function MessageItemOld({
     msg, myAvatar, myName, targetUser, formatDate, t,
     handleEditClick, handleDelete, setReplyingTo, togglePin, chatSlug
 }) {
     const isTemp = msg.status === 'sending' || msg.status === 'error';
+
+    const renderMessageText = (textStr) => {
+        if (!textStr) return null;
+        try {
+            const parsed = JSON.parse(textStr);
+            return <RichText text={parsed} />;
+        } catch (e) {
+            return <span className="tetrone-plain-text">{textStr}</span>;
+        }
+    };
 
     return (
         <div id={`message-${msg.id}`} className={`tetrone-messages-old-message-row ${msg.status === 'error' ? 'error-state' : ''}`}>
@@ -35,7 +47,7 @@ export default function MessageItemOld({
                 )}
 
                 <div className="tetrone-messages-old-msg-text">
-                    {extractPreviewText(msg.text, t)}
+                    {renderMessageText(msg.text)}
 
                     {msg.is_edited && <span className="tetrone-edited-mark"> ({t('common.edited')})</span>}
 

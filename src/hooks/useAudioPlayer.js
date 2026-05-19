@@ -8,6 +8,8 @@ export const useAudioPlayer = (waveformRef) => {
     const { currentTrack, isPlaying, setIsPlaying, closePlayer, channelRef } = useContext(AudioContext);
 
     const wavesurferRef = useRef(null);
+    const audioElRef = useRef(null);
+
     const [isReady, setIsReady] = useState(false);
     const [hasError, setHasError] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -42,16 +44,26 @@ export const useAudioPlayer = (waveformRef) => {
         setHasError(false);
         setCurrentTime(0);
         setDuration(0);
-        
+
+        if (audioElRef.current) {
+            audioElRef.current.pause();
+            audioElRef.current.removeAttribute('src');
+            audioElRef.current.load();
+        }
         if (wavesurferRef.current) {
             wavesurferRef.current.destroy();
         }
 
         const relativeUrl = currentTrack.url.replace(/^https?:\/\/[^\/]+/, '');
+        const audio = new Audio();
+        audio.crossOrigin = "anonymous";
+        audio.src = relativeUrl;
+        audio.loop = stateRef.current.isLooping;
+        audioElRef.current = audio;
 
         const ws = WaveSurfer.create({
             container: waveformRef.current,
-            url: relativeUrl,
+            media: audio,
             waveColor: 'rgba(91, 155, 213, 0.4)',
             progressColor: '#0064d1',
             cursorColor: '#1a1a1a',
@@ -126,13 +138,32 @@ export const useAudioPlayer = (waveformRef) => {
                 wavesurferRef.current.destroy();
                 wavesurferRef.current = null;
             }
+            if (audio) {
+                audio.pause();
+                audio.removeAttribute('src'); // Браузер забуває про файл
+                audio.load();                 // Очищує пам'ять
+            }
+            audioElRef.current = null;
         };
-    }, [currentTrack, channelRef, saveStateToStorage, setIsPlaying]);
+    }, [currentTrack]);
+
+    useEffect(() => {
+        if (wavesurferRef.current && isReady) {
+            const ws = wavesurferRef.current;
+            if (isPlaying && !ws.isPlaying()) {
+                const isAtEnd = ws.getDuration() > 0 && Math.abs(ws.getDuration() - ws.getCurrentTime()) < 0.2;
+                if (isAtEnd) {
+                    ws.setTime(0);
+                }
+                ws.play().catch(() => setIsPlaying(false));
+            } else if (!isPlaying && ws.isPlaying()) {
+                ws.pause();
+            }
+        }
+    }, [isPlaying, isReady, setIsPlaying]);
 
     const playPauseClick = () => {
-        if (wavesurferRef.current) {
-            wavesurferRef.current.playPause();
-        }
+        if (wavesurferRef.current) wavesurferRef.current.playPause();
     };
 
     const toggleSpeed = () => {
@@ -179,17 +210,9 @@ export const useAudioPlayer = (waveformRef) => {
     };
 
     return {
-        isReady,
-        hasError,
-        currentTime,
-        duration,
-        playbackRate,
-        isLooping,
-        volume,
-        playPauseClick,
-        toggleSpeed,
-        toggleLoop,
-        handleVolumeChange,
-        handleClose
+        isReady, hasError, currentTime, duration,
+        playbackRate, isLooping, volume,
+        playPauseClick, toggleSpeed, toggleLoop,
+        handleVolumeChange, handleClose
     };
 };
