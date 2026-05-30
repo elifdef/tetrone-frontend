@@ -65,6 +65,13 @@ class AuthService {
             body: { email, code, password, password_confirmation }
         });
     }
+
+    async deleteAccount(data) {
+        return await fetchClient('/user/account', {
+            method: 'DELETE',
+            body: data
+        });
+    }
 }
 
 export default new AuthService();

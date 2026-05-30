@@ -37,6 +37,9 @@ export default function ProfilePage() {
                     } else {
                         if (res.status === 404) {
                             setNotFound(true);
+                        }
+                        else if (res.status === 410) {
+                            setNotFound(false)
                         } else {
                             setServerError(true);
                             // console.error("Failed to load profile:", res.message);

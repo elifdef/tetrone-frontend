@@ -18,13 +18,15 @@ export const useUserProfileLogic = (currentUser, isPreview = false) => {
     const isBlockedByTarget = !isPreview && status === 'blocked_by_target';
     const isFriend = status === 'friends';
     const isBanned = currentUser?.is_banned === true;
+    const isDeleted = currentUser?.is_deleted === true;
     const displayAvatar = currentUser?.avatar;
 
     const getDisplayBio = () => {
         if (isBanned) return t('profile.banned_status');
+        if (isDeleted) return t('profile.deleted_status');
 
         if (isBlockedByTarget) {
-            const genderSuffix = currentUser?.gender === 2 ? "f" : "m";
+            const genderSuffix = currentUser?.gender === 2 ? "female" : "male";
             return t(`profile.restricted_profile_${genderSuffix}`, { name: currentUser.first_name });
         }
 
