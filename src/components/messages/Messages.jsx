@@ -9,6 +9,7 @@ import { extractPreviewText } from '../../utils/messageParser';
 import { BackIcon, CloseIcon, DeleteIcon } from '../ui/Icons';
 import "../../styles/chat-modern.css";
 import Button from '../ui/Button';
+import Avatar from '../ui/Avatar';
 
 export default function Messages(props) {
     const {
@@ -63,7 +64,7 @@ export default function Messages(props) {
                 <div className="tetrone-modern-chat-list">
                     {safeChats.map(chat => (
                         <div key={chat.slug} className={`tetrone-modern-chat-item ${dmSlug === chat.slug ? 'active' : ''}`} onClick={() => handleSelectChat(chat.slug)}>
-                            <img src={chat.target_user?.avatar} className="tetrone-modern-avatar" />
+                            <Avatar user={chat.target_user} className="tetrone-modern-avatar" />
                             <div className="tetrone-modern-chat-info">
                                 <div className="tetrone-modern-chat-top">
                                     <span className="tetrone-modern-chat-name">{chat.target_user?.first_name} {chat.target_user?.last_name}</span>

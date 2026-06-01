@@ -6,6 +6,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { NotificationContext } from "../../context/NotificationContext";
 import GlobalAudioPlayer from "./GlobalAudioPlayer";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import Avatar from "../ui/Avatar";
 
 const LeftSidebar = () => {
     const { t } = useTranslation();
@@ -56,7 +57,10 @@ const LeftSidebar = () => {
 
                 {user ? (
                     <Link to={`/${user.username}`} onClick={closeMenu} className="mobile-top-bar-avatar-link">
-                        <img src={user.avatar} alt="avatar" className="mobile-top-bar-avatar" />
+                        <Avatar
+                            user={user}
+                            className="mobile-top-bar-avatar"
+                        />
                     </Link>
                 ) : (
                     <div style={{ width: '32px' }}></div>
@@ -155,9 +159,8 @@ const LeftSidebar = () => {
                 {user && (
                     <div className="tetrone-sidebar-profile">
                         <Link to={`/${user.username}`} className="tetrone-mini-profile-link" onClick={closeMenu}>
-                            <img
-                                src={user?.avatar}
-                                alt="avatar"
+                            <Avatar
+                                user={user}
                                 className="tetrone-mini-avatar"
                             />
                             <div className="tetrone-mini-name">

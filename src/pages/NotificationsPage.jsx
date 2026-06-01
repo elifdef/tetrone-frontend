@@ -7,6 +7,7 @@ import { usePageTitle } from '../hooks/usePageTitle';
 import { useNotificationText } from '../hooks/useNotificationText';
 import ReportResultModal from '../components/common/ReportResultModal';
 import ShieldIcon from '../assets/shield.svg?react';
+import Avatar from "../components/ui/Avatar";
 
 const ListAvatar = ({ src, isSystem }) => {
     if (isSystem) {
@@ -16,7 +17,7 @@ const ListAvatar = ({ src, isSystem }) => {
             </div>
         );
     }
-    return <img src={src} className="tetrone-notification-avatar" alt="avatar" />;
+    return <Avatar src={src} className="tetrone-notification-avatar"/>;
 };
 
 const NotificationListItem = ({ notif, handleNotificationClick, getNotificationData, formatDate }) => {

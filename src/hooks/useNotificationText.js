@@ -27,11 +27,11 @@ const formatPostSnippet = (snippet, t) => {
 
     switch (snippet) {
         case 'POLL':
-            return `📊 ${t('notifications.poll')}`;
+            return `${t('notifications.poll')}`;
         case 'ATTACHMENT':
-            return `🖼️ ${t('notifications.attachment')}`;
+            return `${t('notifications.attachment')}`;
         case 'AVATAR_UPDATE':
-            return `👤 ${t('notifications.avatar_update')}`;
+            return `${t('notifications.avatar_update')}`;
         default:
             return snippet;
     }

@@ -3,6 +3,7 @@ import PostService from "../../../services/post.service";
 import { notifyError } from "../../common/Notify";
 import { useTranslation } from "react-i18next";
 import PhotoModal from "../../ui/PhotoModal";
+import Avatar from "../../ui/Avatar";
 
 export default function ProfileAvatar({ user, isPreview, isBlocked }) {
     const { t } = useTranslation();
@@ -39,9 +40,8 @@ export default function ProfileAvatar({ user, isPreview, isBlocked }) {
 
     return (
         <div className="tetrone-photo-box">
-            <img
-                src={user.avatar}
-                alt={user.username}
+            <Avatar
+                user={user}
                 className={`tetrone-avatar ${(!isPreview && isBlocked) ? 'tetrone-avatar-blocked' : ''} ${canViewAvatar ? 'tetrone-clickable' : ''} ${isLoading ? 'tetrone-loading' : ''}`}
                 onClick={handleAvatarClick}
             />

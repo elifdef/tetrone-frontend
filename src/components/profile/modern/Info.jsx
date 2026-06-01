@@ -4,7 +4,7 @@ import isoCountries from "i18n-iso-countries";
 
 export default function Info({
     currentUser, displayBio, displayBirth, displayCountry, displayGender,
-    isPreview, isBlockedByTarget, isBanned, isPrivateProfile
+    isPreview, isBlockedByTarget, isBanned, isDeleted, isPrivateProfile
 }) {
     const { t, i18n } = useTranslation();
     const formatDate = useDateFormatter();
@@ -16,7 +16,7 @@ export default function Info({
                 <div className="tetrone-modern-bio">{displayBio}</div>
             )}
 
-            {(isPreview || (!isBlockedByTarget && !isBanned && !isPrivateProfile)) && (
+            {(isPreview || (!isBlockedByTarget && !isBanned && !isPrivateProfile && !isDeleted)) && (
                 <div className="tetrone-modern-info-grid">
                     <div className="tetrone-modern-info-item">
                         <span className="tetrone-modern-info-label">{t('common.birthday')}</span>

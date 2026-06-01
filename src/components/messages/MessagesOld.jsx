@@ -7,6 +7,7 @@ import ChatScrollContainer from '../common/ChatScrollContainer';
 import ChatComposer from './ChatComposer';
 import { extractPreviewText } from '../../utils/messageParser';
 import "../../styles/chat-old.css";
+import Avatar from '../ui/Avatar';
 
 const TrashIcon = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>;
 const CloseIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
@@ -40,9 +41,9 @@ export default function MessagesOld(props) {
         }
     };
 
-    const getPinnedAvatar = () => {
+    const getPinnedUser = () => {
         if (!pinnedMessage) return null;
-        return pinnedMessage.isMine ? currentUser?.avatar : activeChat?.target_user?.avatar;
+        return pinnedMessage.isMine ? currentUser : activeChat?.target_user;
     };
 
     const getPinnedName = () => {
@@ -63,7 +64,7 @@ export default function MessagesOld(props) {
                             className={`tetrone-messages-old-dialog-item ${chat.unread_count > 0 ? 'unread' : ''}`}
                             onClick={() => handleSelectChat(chat.slug)}
                         >
-                            <img src={chat.target_user?.avatar} alt="avatar" className="tetrone-messages-old-avatar" />
+                            <Avatar user={chat.target_user} className="tetrone-messages-old-avatar" />
                             <div className="tetrone-messages-old-dialog-info">
                                 <div className="tetrone-messages-old-dialog-header">
                                     <span className="tetrone-messages-old-link">{chat.target_user?.first_name} {chat.target_user?.last_name}</span>
@@ -117,7 +118,7 @@ export default function MessagesOld(props) {
 
             {pinnedMessage && (
                 <div className="tetrone-pinned-message-bar" onClick={() => handleScrollToMessage(pinnedMessage.id)}>
-                    <img src={getPinnedAvatar()} alt="avatar" className="pinned-quote-avatar" />
+                    <Avatar user={getPinnedUser()} className="pinned-quote-avatar" />
                     <div className="pinned-quote-content">
                         <div className="pinned-author">{t('messages.pinned_message')} {getPinnedName()}</div>
                         <div className="pinned-text">{extractPreviewText(pinnedMessage.text, t)}</div>

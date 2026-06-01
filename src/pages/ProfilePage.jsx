@@ -8,6 +8,7 @@ import UserProfileCard from "../components/profile/UserProfileCard";
 import UserWall from "../components/post/UserWall";
 import { usePageTitle } from "../hooks/usePageTitle";
 import ErrorState from "../components/ui/ErrorState";
+import {avatar} from "../utils/avatar";
 
 export default function ProfilePage() {
     const { t } = useTranslation();
@@ -39,8 +40,19 @@ export default function ProfilePage() {
                             setNotFound(true);
                         }
                         else if (res.status === 410) {
-                            setNotFound(false)
-                        } else {
+                            setNotFound(false);
+                            setProfile({
+                                id: username.startsWith('id'),
+                                username: username.toLowerCase(),
+                                avatar: avatar({isBanned: true}),
+                                is_deleted: true,
+                                is_banned: false,
+                                is_setup_complete: true,
+                                friendship_status: 'none',
+                                role: 0
+                            });
+                        }
+                        else {
                             setServerError(true);
                             // console.error("Failed to load profile:", res.message);
                         }
@@ -87,7 +99,8 @@ export default function ProfilePage() {
     return (
         <>
             <UserProfileCard currentUser={profile} />
-            {(profile.friendship_status !== "blocked_by_target" && !profile.is_banned) && (
+
+            {(profile.friendship_status !== "blocked_by_target" && !profile.is_banned && !profile.is_deleted) && (
                 <UserWall profileUser={profile} isOwnProfile={isOwnProfile} />
             )}
         </>

@@ -8,6 +8,7 @@ import RichText from '../common/RichText';
 import Editor from '../editor/Editor';
 import { isEditorEmpty } from '../../utils/editorHelpers';
 import Button from '../ui/Button';
+import Avatar from '../ui/Avatar';
 
 export default function CommentItem({ comment, currentUser, onDelete, onEdit, onReply }) {
     const { t } = useTranslation();
@@ -58,7 +59,10 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
     return (
         <div ref={commentRef} className={`tetrone-comment-item ${isHighlighted ? 'tetrone-highlight-msg' : ''}`}>
             <Link to={`/${comment.user.username}`} className="tetrone-comment-img-link">
-                <img src={comment.user.avatar} alt={comment.user.username} className="tetrone-comment-avatar" />
+                <Avatar
+                    user={comment.user}
+                    className="tetrone-comment-avatar"
+                />
             </Link>
 
             <div className="tetrone-comment-content">

@@ -17,7 +17,7 @@ export default function ModernProfileCard({ currentUser, isPreview = false }) {
 
     const {
         status, loading, sameUser,
-        isBanned, isBlockedByMe, isBlockedByTarget,
+        isBanned, isDeleted, isBlockedByMe, isBlockedByTarget,
         displayAvatar, displayBio, displayBirth, displayCountry, displayGender,
         handleFriendshipAction, handleBlockAction
     } = useUserProfileLogic(currentUser, isPreview);
@@ -38,8 +38,7 @@ export default function ModernProfileCard({ currentUser, isPreview = false }) {
 
             <Header
                 currentUser={currentUser} isPreview={isPreview} displayAvatar={displayAvatar}
-                isBlockedByTarget={isBlockedByTarget} isBanned={isBanned} authUser={authUser}
-                sameUser={sameUser} loading={loading} status={status} isBlockedByMe={isBlockedByMe}
+                isBlockedByTarget={isBlockedByTarget} isBanned={isBanned} isDeleted={isDeleted} authUser={authUser} sameUser={sameUser} loading={loading} status={status} isBlockedByMe={isBlockedByMe}
                 handleFriendshipAction={handleFriendshipAction} handleBlockAction={handleBlockAction}
                 onReportAction={() => setIsReportModalOpen(true)}
                 customNameColor={customNameColor}
@@ -49,7 +48,7 @@ export default function ModernProfileCard({ currentUser, isPreview = false }) {
             <Info
                 currentUser={currentUser} displayBio={effectiveBio}
                 displayBirth={displayBirth} displayCountry={displayCountry} displayGender={displayGender}
-                isPreview={isPreview} isBlockedByTarget={isBlockedByTarget} isBanned={isBanned}
+                isPreview={isPreview} isBlockedByTarget={isBlockedByTarget} isBanned={isBanned} isDeleted={isDeleted}
                 isPrivateProfile={isPrivateProfile}
             />
 

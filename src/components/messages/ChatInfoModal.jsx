@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { AuthContext } from '../../context/AuthContext';
+import Avatar from '../ui/Avatar';
 
 export default function ChatInfoModal({ chat, messages, onClose, onScrollToMessage, onDeleteChat, onBlockUser }) {
     const { t } = useTranslation();
@@ -38,7 +39,7 @@ export default function ChatInfoModal({ chat, messages, onClose, onScrollToMessa
 
             <div className="tetrone-old-info-profile">
                 <Link to={`/${chat.target_user?.username}`}>
-                    <img src={chat.target_user?.avatar} alt="avatar" />
+                    <Avatar user={chat.target_user} />
                 </Link>
                 <div className="tetrone-old-info-details">
                     <Link to={`/${chat.target_user?.username}`} className="tetrone-messages-old-author">

@@ -135,5 +135,5 @@ export const useUserProfileLogic = (currentUser, isPreview = false) => {
         }
     };
 
-    return { status, loading, sameUser, isBlockedByMe, isBlockedByTarget, isBanned, isFriend, displayAvatar, displayBio, displayBirth, displayCountry, displayGender, handleFriendshipAction, handleBlockAction };
+    return { status, loading, sameUser, isBlockedByMe, isBlockedByTarget, isBanned, isDeleted, isFriend, displayAvatar, displayBio, displayBirth, displayCountry, displayGender, handleFriendshipAction, handleBlockAction };
 };

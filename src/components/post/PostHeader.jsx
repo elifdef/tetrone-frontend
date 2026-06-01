@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { EditIcon, DeleteIcon, ReportIcon, DotsIcon } from '../ui/Icons';
+import Avatar from '../ui/Avatar';
 
 export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, currentUserId }) {
     const { t } = useTranslation();
@@ -41,10 +42,9 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
     return (
         <div className="tetrone-post-header">
             <Link to={`/${post.user.username}`}>
-                <img
-                    src={post.user.avatar}
+                <Avatar
+                    user={post.user}
                     className="tetrone-post-avatar"
-                    alt={post.user.username}
                 />
             </Link>
 

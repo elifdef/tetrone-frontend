@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import Button from "../ui/Button";
+import Avatar from '../ui/Avatar';
 
 export default function PollVotersModal({ isOpen, onClose, pollData, optionsToRender, activeTab, setActiveTab, isLoadingVoters, results }) {
     const { t } = useTranslation();
@@ -31,7 +32,7 @@ export default function PollVotersModal({ isOpen, onClose, pollData, optionsToRe
                             pollData && pollData[activeTab] && pollData[activeTab].length > 0 ? (
                                 pollData[activeTab].map(voter => (
                                     <Link to={`/${voter.username}`} key={voter.id} className="tetrone-poll-voter-row">
-                                        <img src={voter.avatar} alt="avatar" className="tetrone-poll-voter-img" />
+                                        <Avatar user={voter} className="tetrone-poll-voter-img" />
                                         <span className="tetrone-poll-voter-name">{voter.first_name} {voter.last_name}</span>
                                     </Link>
                                 ))

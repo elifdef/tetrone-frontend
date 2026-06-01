@@ -16,6 +16,7 @@ import PostItem from '../post/PostItem';
 import InfiniteScrollList from '../common/InfiniteScrollList';
 import { userRole } from '../../config';
 import { usePageTitle } from "../../hooks/usePageTitle";
+import Avatar from '../ui/Avatar';
 
 const UserSearchForm = ({ search, setSearch, handleSearch }) => {
     const { t } = useTranslation();
@@ -45,7 +46,10 @@ const UserCard = ({ user, handleMute, handleBan, canBan }) => {
 
     return (
         <div className="admin-user-card">
-            <img src={user.avatar} alt={user.username} className="admin-user-avatar" />
+            <Avatar
+                user={user}
+                className="admin-user-avatar"
+            />
             <div className="admin-user-info">
                 <a href={profilePath} className="admin-user-name" target="_blank" rel="noreferrer" style={nameColor ? { color: nameColor } : undefined}>
                     {user.first_name} {user.last_name}
@@ -290,7 +294,10 @@ export const PostsManager = ({ currentUser }) => {
                         <div key={post.id} className="tetrone-post admin-moderation-post">
                             <div className="tetrone-post-header">
                                 <Link to={`/${post.user?.username}`} target="_blank">
-                                    <img src={post.user?.avatar} alt={post.user?.username} className="tetrone-post-avatar" />
+                                    <Avatar
+                                        user={post?.user}
+                                        className="tetrone-post-avatar"
+                                    />
                                 </Link>
                                 <div className="tetrone-post-meta">
                                     <div className="tetrone-post-authors-row">

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
+import Avatar from "../ui/Avatar";
 
 export default function FriendCard({ user, viewMode, onAction }) {
     const { t } = useTranslation();
@@ -123,7 +124,10 @@ export default function FriendCard({ user, viewMode, onAction }) {
     return (
         <div className="friend-card">
             <Link to={`/${user.username}`} className="tetrone-friends-avatar-link">
-                <img src={user.avatar} alt={user.username} className="tetrone-friends-avatar" />
+                <Avatar
+                    user={user}
+                    className="tetrone-friends-avatar"
+                />
             </Link>
 
             <div className="tetrone-friends-info">

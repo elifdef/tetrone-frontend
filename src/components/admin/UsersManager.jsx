@@ -8,6 +8,7 @@ import { useModal } from '../../context/ModalContext';
 import { usePageTitle } from "../../hooks/usePageTitle";
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import Avatar from '../ui/Avatar';
 
 const UserSearchForm = ({ search, setSearch, handleSearch }) => {
     const { t } = useTranslation();
@@ -38,7 +39,10 @@ const UserCard = ({ user, handleMute, handleBan, canBan }) => {
 
     return (
         <div className="admin-user-card">
-            <img src={user.avatar} alt={user.username} className="admin-user-avatar" />
+            <Avatar
+                user={user}
+                className="admin-user-avatar"
+            />
 
             <div className="admin-user-info">
                 <a
@@ -50,7 +54,7 @@ const UserCard = ({ user, handleMute, handleBan, canBan }) => {
                     {user.first_name} {user.last_name}
                 </a>
                 <div className="admin-user-meta">
-                    {`@${user.username} • ${user.email} • ${t('admin.user_info.posts_count', { count: user.posts_count || 0 })}`}
+                    {`@${user.username} • ${user.email} • ${t('admin.user_info.posts_count', { count: user.posts_count})}`}
                 </div>
                 <div className="admin-user-status">
                     {user.is_banned ? (
@@ -61,7 +65,7 @@ const UserCard = ({ user, handleMute, handleBan, canBan }) => {
                 </div>
             </div>
 
-            {user.role <= userRole.Moderator && (
+            {(user.role <= userRole.Moderator) && !user.is_deleted && (
                 <div className="admin-user-actions">
                     <button
                         className={`admin-btn admin-btn-warning ${user.is_muted ? 'active' : ''}`}

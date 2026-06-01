@@ -1,4 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import Avatar from '../ui/Avatar';
 
 const MentionList = forwardRef((props, ref) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -55,7 +56,10 @@ const MentionList = forwardRef((props, ref) => {
                             onClick={() => selectItem(index)}
                         >
                             {item.avatar && (
-                                <img src={item.avatar} alt="avatar" className="tetrone-mention-avatar" />
+                                <Avatar
+                                    user={item}
+                                    className="tetrone-mention-avatar"
+                                />
                             )}
                             <div className="tetrone-mention-info">
                                 <span className="tetrone-mention-name">{fullName}</span>

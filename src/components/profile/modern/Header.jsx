@@ -7,9 +7,10 @@ import MessageService from "../../../services/chat.service";
 import { notifyError } from "../../common/Notify";
 import PhotoModal from "../../../components/ui/PhotoModal";
 import Button from "../../ui/Button";
+import Avatar from "../../ui/Avatar";
 
 export default function Header({
-    currentUser, isPreview, displayAvatar, isBlockedByTarget, isBanned,
+    currentUser, isPreview, displayAvatar, isBlockedByTarget, isBanned, isDeleted,
     authUser, sameUser, loading, status, isBlockedByMe,
     handleFriendshipAction, handleBlockAction, onReportAction,
     customNameColor, isPrivateProfile
@@ -118,9 +119,8 @@ export default function Header({
         <div className="tetrone-modern-header">
             <div className="tetrone-modern-header-main">
                 <div className="tetrone-modern-avatar-wrapper">
-                    <img
-                        src={displayAvatar}
-                        alt="avatar"
+                    <Avatar
+                        user={currentUser}
                         className={`tetrone-modern-avatar ${canViewAvatar ? 'tetrone-clickable' : ''} ${isLoadingAvatar ? 'tetrone-loading' : ''}`}
                         onClick={handleAvatarClick}
                     />
@@ -144,7 +144,7 @@ export default function Header({
                     </Link>
                 )}
 
-                {!sameUser && !isPreview && !isBlockedByTarget && authUser && (
+                {!sameUser && !isPreview && !isBlockedByTarget && authUser && !isDeleted &&(
                     <>
                         {!isBlockedByMe && currentUser.permissions?.can_message && (
                             <Button

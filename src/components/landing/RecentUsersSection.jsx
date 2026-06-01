@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import Avatar from "../ui/Avatar";
 
 export default function RecentUsersSection({ users }) {
     const { t } = useTranslation();
@@ -15,9 +16,8 @@ export default function RecentUsersSection({ users }) {
             <div className="tetrone-landing-recent-list">
                 {users.map(user => (
                     <Link to={`/${user.username}`} key={user.id} className="tetrone-landing-recent-item">
-                        <img 
-                            src={user.avatar} 
-                            alt={user.first_name} 
+                        <Avatar 
+                            user={user} 
                             className="tetrone-landing-recent-avatar"
                         />
                         <span className="tetrone-landing-recent-name" title={`${user.first_name} ${user.last_name}`}>

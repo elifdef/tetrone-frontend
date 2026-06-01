@@ -7,6 +7,7 @@ import {
     EditIcon, ReplyIcon, ImageIcon, VideoIcon, AudioIcon,
     DocumentIcon as FileIcon, CloseIcon, SendIcon, AttachIcon
 } from '../ui/Icons';
+import Avatar from '../ui/Avatar';
 
 const ImagePreview = ({ file, onRemove, theme }) => {
     const [url, setUrl] = useState('');
@@ -116,7 +117,13 @@ export default function ChatComposer({
 
             <div className={theme === 'modern' ? "tetrone-modern-input-capsule" : "tetrone-messages-old-composer-inner"}>
 
-                {theme === 'old' && <img src={myAvatar} alt="avatar" className="tetrone-messages-old-avatar composer-avatar" />}
+                {theme === 'old' &&
+                    <Avatar
+                        src={myAvatar}
+                        alt="avatar"
+                        className="tetrone-messages-old-avatar composer-avatar"
+                    />
+                }
 
                 {theme === 'modern' && (
                     <div className="tetrone-modern-attach-wrapper" ref={attachMenuRef}>
@@ -192,7 +199,12 @@ export default function ChatComposer({
                     </button>
                 )}
 
-                {theme === 'old' && <img src={targetAvatar} alt="avatar" className="tetrone-messages-old-avatar composer-avatar" />}
+                {theme === 'old' &&
+                    <Avatar
+                        src={targetAvatar}
+                        className="tetrone-messages-old-avatar composer-avatar"
+                    />
+                }
 
             </div>
         </div>

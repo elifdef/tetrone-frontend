@@ -3,6 +3,7 @@ import SendIcon from "../../assets/sendComment.svg?react";
 import { ReplyIcon, DeleteIcon } from "../ui/Icons";
 import Editor from '../editor/Editor';
 import { isEditorEmpty } from "../../utils/editorHelpers";
+import Avatar from "../ui/Avatar";
 
 export default function CommentForm({ user, onSubmit, placeholder, replyToUser, onClearReply }) {
     const [content, setContent] = useState('');
@@ -35,7 +36,10 @@ export default function CommentForm({ user, onSubmit, placeholder, replyToUser, 
         <form className="tetrone-comment-form" onSubmit={handleSubmit}>
             {user && (
                 <>
-                    <img src={user.avatar} alt={user.username} className="tetrone-comment-avatar" />
+                    <Avatar
+                        user={user}
+                        className="tetrone-comment-avatar"
+                    />
 
                     <div className="tetrone-comment-input-wrapper">
                         {replyToUser && (

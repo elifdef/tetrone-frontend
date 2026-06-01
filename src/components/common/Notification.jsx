@@ -4,6 +4,7 @@ import { useNotificationText } from '../../hooks/useNotificationText';
 import { extractPreviewText } from '../../utils/editorHelpers';
 import ShieldIcon from '../../assets/shield.svg?react';
 import RichText from './RichText';
+import Avatar from '../ui/Avatar';
 
 const NotificationAvatar = ({ src, isSystem }) => {
     if (isSystem) {
@@ -15,9 +16,8 @@ const NotificationAvatar = ({ src, isSystem }) => {
     }
 
     return (
-        <img
+        <Avatar
             src={src}
-            alt="avatar"
             className="tetrone-toast-avatar toast-avatar-img"
         />
     );

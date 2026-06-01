@@ -6,6 +6,7 @@ import { notifyError } from '../common/Notify';
 import {
     LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import Avatar from '../ui/Avatar';
 
 export default function AdminDashboard() {
     const { t } = useTranslation();
@@ -131,7 +132,10 @@ export default function AdminDashboard() {
 
                                 return (
                                     <Link key={user.id} to={`/${user.username}`} className="admin-online-user">
-                                        <img src={user.avatar} alt={user.username} className="admin-online-avatar" />
+                                        <Avatar
+                                            user={user}
+                                            className="admin-online-avatar"
+                                        />
                                         <div className="admin-online-details">
                                             <span
                                                 className="admin-online-name"
@@ -183,7 +187,7 @@ export default function AdminDashboard() {
                                 <YAxis stroke="var(--theme-text-muted)" fontSize={10} allowDecimals={false} />
                                 <Tooltip contentClassName="admin-chart-tooltip" wrapperClassName="admin-chart-tooltip-wrapper" />
                                 <Legend wrapperClassName="admin-chart-legend" />
-                                <Bar dataKey="posts" name={t('common.posts')} fill="#E67E22"/>
+                                <Bar dataKey="posts" name={t('common.posts')} fill="#E67E22" />
                                 <Bar dataKey="comments" name={t('common.comments')} fill="#F1C40F" />
                                 <Bar dataKey="reposts" name={t('common.reposts')} fill="#E91E63" />
                             </BarChart>

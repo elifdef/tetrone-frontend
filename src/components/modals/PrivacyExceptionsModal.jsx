@@ -5,6 +5,7 @@ import PrivacyService from '../../services/privacy.service';
 import FriendService from '../../services/friend.service';
 import Button from '../ui/Button';
 import { notifyError, notifySuccess } from '../common/Notify';
+import Avatar from '../ui/Avatar';
 
 export default function PrivacyExceptionsModal({ isOpen, onClose, context, initialExceptions, onSaveSuccess }) {
     const { t } = useTranslation();
@@ -136,9 +137,8 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
                                 return (
                                     <div key={friend.id} className="tetrone-friend-select-item">
                                         <div className="tetrone-friend-select-info">
-                                            <img
-                                                src={friend.avatar}
-                                                alt=""
+                                            <Avatar
+                                                user={friend}
                                                 className="tetrone-avatar tetrone-img-cover"
                                             />
                                             <div className="tetrone-friend-select-text">

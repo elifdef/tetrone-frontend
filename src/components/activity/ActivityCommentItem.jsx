@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { DeleteIcon } from "../ui/Icons";
 import RichText from '../common/RichText';
+import Avatar from "../ui/Avatar";
 
 export default function ActivityCommentItem({ comment, onDelete }) {
     const { t } = useTranslation();
@@ -39,9 +40,8 @@ export default function ActivityCommentItem({ comment, onDelete }) {
             {postAuthor && (
                 <div className="tetrone-activity-op">
                     <Link to={`/${postAuthor.username}`}>
-                        <img
-                            src={postAuthor.avatar}
-                            alt={postAuthor.username}
+                        <Avatar
+                            user={postAuthor}
                             className="tetrone-activity-op-avatar"
                             style={opColor ? { color: opColor } : undefined}
                         />
@@ -61,9 +61,8 @@ export default function ActivityCommentItem({ comment, onDelete }) {
 
             <div className="tetrone-activity-reply">
                 {me && (
-                    <img
-                        src={me.avatar}
-                        alt="my avatar"
+                    <Avatar
+                        user={me}
                         className="tetrone-activity-reply-avatar"
                     />
                 )}

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { extractPreviewText } from '../../utils/editorHelpers';
 import MessageImage from './MessageImage';
 import RichText from '../common/RichText';
+import Avatar from "../ui/Avatar";
 
 export default function MessageItemOld({
     msg, myAvatar, myName, targetUser, formatDate, t,
@@ -23,7 +24,7 @@ export default function MessageItemOld({
     return (
         <div id={`message-${msg.id}`} className={`tetrone-messages-old-message-row ${msg.status === 'error' ? 'error-state' : ''}`}>
             <div className="tetrone-messages-old-msg-left">
-                <img src={msg.isMine ? myAvatar : targetUser?.avatar} alt="avatar" className="tetrone-messages-old-avatar" />
+                <Avatar src={msg.isMine ? myAvatar : targetUser?.avatar} className="tetrone-messages-old-avatar" />
             </div>
 
             <div className="tetrone-messages-old-msg-right">
