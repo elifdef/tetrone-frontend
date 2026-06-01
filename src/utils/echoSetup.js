@@ -6,8 +6,6 @@ window.Pusher = Pusher;
 export const createEchoInstance = (token) => {
     if (!token) return null;
 
-    const baseUrl = import.meta.env.VITE_API_URL.replace('/v1', '');
-
     return new Echo({
         broadcaster: 'reverb',
         key: import.meta.env.VITE_REVERB_APP_KEY,
@@ -16,7 +14,7 @@ export const createEchoInstance = (token) => {
         wssPort: import.meta.env.VITE_REVERB_PORT,
         forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
         enabledTransports: ['ws', 'wss'],
-        authEndpoint: `${baseUrl}/broadcasting/auth`,
+        authEndpoint: `${import.meta.env.VITE_API_URL}/broadcasting/auth`,
         auth: {
             headers: {
                 Authorization: `Bearer ${token}`,
