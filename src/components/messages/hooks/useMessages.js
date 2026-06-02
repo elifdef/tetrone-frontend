@@ -2,12 +2,14 @@ import { useState, useCallback, useEffect, useRef, useContext } from 'react';
 import MessageService from '../../../services/chat.service';
 import { notifyError } from "../../common/Notify";
 import { AuthContext } from '../../../context/AuthContext';
+import { useSocket } from '../../../context/SocketContext';
 
-export const useMessages = (slug, echoInstance) => {
+export const useMessages = (slug) => {
     const { user } = useContext(AuthContext);
+    const { socket } = useSocket();
+
     const [messages, setMessages] = useState([]);
     const [chatWasDeletedExternally, setChatWasDeletedExternally] = useState(false);
-
     const [currentChatInfo, setCurrentChatInfo] = useState(null);
 
     const pageRef = useRef(1);
@@ -16,59 +18,92 @@ export const useMessages = (slug, echoInstance) => {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     const [targetIsTyping, setTargetIsTyping] = useState(false);
-    const typingTimeoutRef = useRef(null);
+
+    // Таймери для логіки "друкує"
+    const typingDisplayTimeoutRef = useRef(null);
+    const emitTypingTimeoutRef = useRef(null);
+    const lastTypingEmitRef = useRef(0);
 
     useEffect(() => {
-        if (!slug || !echoInstance || !user) return;
+        if (!slug || !socket || !user) return;
 
         setChatWasDeletedExternally(false);
 
-        const chatChannelName = `chat.${slug}`;
-        const chatChannel = echoInstance.private(chatChannelName);
+        // Слухач: співрозмовник почав друкувати
+        const handleTypingStart = (data) => {
+            if (data.chat_slug === slug) {
+                setTargetIsTyping(true);
+                // Захисний таймер: якщо подія зупинки загубилась, ховаємо через 3 сек
+                if (typingDisplayTimeoutRef.current) clearTimeout(typingDisplayTimeoutRef.current);
+                typingDisplayTimeoutRef.current = setTimeout(() => setTargetIsTyping(false), 3000);
+            }
+        };
 
-        chatChannel.listenForWhisper('typing', () => {
-            setTargetIsTyping(true);
-            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = setTimeout(() => setTargetIsTyping(false), 2000);
-        });
+        // Слухач: співрозмовник перестав друкувати
+        const handleTypingStop = (data) => {
+            if (data.chat_slug === slug) {
+                setTargetIsTyping(false);
+                if (typingDisplayTimeoutRef.current) clearTimeout(typingDisplayTimeoutRef.current);
+            }
+        };
 
-        const userChannelName = `App.Models.User.${user.id}`;
-        const userChannel = echoInstance.private(userChannelName);
-
-        userChannel.listen('.messages_read', (event) => {
-            if (event.chat_slug === slug) {
+        // Слухач: повідомлення прочитані (приходить з мікросервісу від Laravel)
+        const handleMessagesRead = (data) => {
+            if (data.chat_slug === slug) {
                 setMessages(prev => prev.map(msg =>
                     (msg.sender_id === user.id && !msg.read_at)
                         ? { ...msg, read_at: new Date().toISOString() }
                         : msg
                 ));
             }
-        });
+        };
 
-        userChannel.listen('.chat_deleted', (event) => {
-            if (event.chat_slug === slug) {
-                setChatWasDeletedExternally(true);
-            }
-        });
+        const handleChatDeleted = (data) => {
+            if (data.chat_slug === slug) setChatWasDeletedExternally(true);
+        };
 
-        userChannel.listen('.user_blocked', (event) => {
+        const handleUserBlocked = () => {
             setChatWasDeletedExternally(true);
-        });
+        };
+
+        // Підписуємось на події мікросервісу
+        socket.on('typing_start', handleTypingStart);
+        socket.on('typing_stop', handleTypingStop);
+        socket.on('messages_read', handleMessagesRead);
+        socket.on('chat_deleted', handleChatDeleted);
+        socket.on('user_blocked', handleUserBlocked);
 
         return () => {
-            if (chatChannel) chatChannel.stopListeningForWhisper('typing');
-            if (userChannel) {
-                userChannel.stopListening('.messages_read');
-                userChannel.stopListening('.chat_deleted');
-                userChannel.stopListening('.user_blocked');
-            }
+            // Очищуємо слухачів при зміні чату або розмонтуванні
+            socket.off('typing_start', handleTypingStart);
+            socket.off('typing_stop', handleTypingStop);
+            socket.off('messages_read', handleMessagesRead);
+            socket.off('chat_deleted', handleChatDeleted);
+            socket.off('user_blocked', handleUserBlocked);
+            if (typingDisplayTimeoutRef.current) clearTimeout(typingDisplayTimeoutRef.current);
         };
-    }, [slug, echoInstance, user]);
+    }, [slug, socket, user]);
 
-    const emitTyping = useCallback(() => {
-        if (!slug || !echoInstance) return;
-        echoInstance.private(`chat.${slug}`).whisper('typing', { typing: true });
-    }, [slug, echoInstance]);
+    // Відправка події "я друкую" в мікросервіс
+    const emitTyping = useCallback((receiverId) => {
+        if (!slug || !socket || !receiverId) return;
+
+        const now = Date.now();
+
+        // Відправляємо 'typing_start' не частіше ніж раз на 2 секунди
+        // Це постійно підтримує індикатор у співрозмовника, поки ми пишемо довгий текст
+        if (now - lastTypingEmitRef.current > 2000) {
+            socket.emit('typing_start', { chat_slug: slug, receiver_id: receiverId });
+            lastTypingEmitRef.current = now;
+        }
+
+        // Автоматично відправляємо подію зупинки через 1.5 сек після ОСТАННЬОГО натискання
+        if (emitTypingTimeoutRef.current) clearTimeout(emitTypingTimeoutRef.current);
+        emitTypingTimeoutRef.current = setTimeout(() => {
+            socket.emit('typing_stop', { chat_slug: slug, receiver_id: receiverId });
+            lastTypingEmitRef.current = 0; // Скидаємо час
+        }, 1500);
+    }, [slug, socket]);
 
     const fetchMessages = useCallback(async ({ isLoadMore = false, silent = false } = {}) => {
         if (!slug) return;
@@ -105,6 +140,8 @@ export const useMessages = (slug, echoInstance) => {
             }
 
             setHasMore(meta && meta.current_page < meta.last_page);
+
+            // Якщо ми відкрили чат і завантажили повідомлення - позначаємо їх прочитаними.
             if (!isLoadMore) MessageService.markAsRead(slug).catch(e => { });
         } else {
             if (!silent) notifyError(res.message);

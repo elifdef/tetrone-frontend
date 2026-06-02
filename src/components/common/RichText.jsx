@@ -2,7 +2,6 @@ import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import { generateHTML } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Mention from '@tiptap/extension-mention';
-import Underline from '@tiptap/extension-underline';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Extension, Mark, mergeAttributes } from '@tiptap/core';
@@ -37,6 +36,16 @@ const FontSize = Extension.create({
     },
 });
 
+const getRichTextExtensions = () => [
+    StarterKit.configure(),
+    TextStyle.configure(),
+    Color.configure(),
+    FontSize.configure(),
+    SpoilerMark.configure(),
+    CustomStickerNode.configure(),
+    Mention.configure({ HTMLAttributes: { class: 'mention' } })
+];
+
 export default function RichText({ text, className = "tetrone-post-text" }) {
     const containerRef = useRef(null);
     const tooltipRef = useRef(null);
@@ -50,20 +59,12 @@ export default function RichText({ text, className = "tetrone-post-text" }) {
     const htmlContent = useMemo(() => {
         if (!text || typeof text !== 'object') return null;
         try {
-            return generateHTML(text, [
-                StarterKit,
-                Underline,
-                TextStyle,
-                Color,
-                FontSize,
-                SpoilerMark,
-                CustomStickerNode,
-                Mention.configure({ HTMLAttributes: { class: 'mention' } })
-            ]);
+            return generateHTML(text, getRichTextExtensions());
         } catch (error) {
             return null;
         }
     }, [text]);
+
     const showTooltip = (target, pinned = false) => {
         clearTimeout(hideTimeoutRef.current);
 
@@ -81,6 +82,7 @@ export default function RichText({ text, className = "tetrone-post-text" }) {
             if (pinned) setIsPinned(true);
         }
     };
+
     const handleMouseOver = useCallback((e) => {
         if (isPinned) return;
         const target = e.target;

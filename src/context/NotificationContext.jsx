@@ -9,14 +9,13 @@ export const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
     const { user } = useContext(AuthContext);
-    const socket = useSocket();
+    const { socket } = useSocket();
 
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
     const [activeToasts, setActiveToasts] = useState([]);
     const [incomingMessage, setIncomingMessage] = useState(null);
-    const [onlineUsers, setOnlineUsers] = useState([]);
 
     const fetchInitialData = useCallback(async () => {
         if (!user) return;
@@ -49,11 +48,12 @@ export const NotificationProvider = ({ children }) => {
             const isNewMessage = notification.type === 'new_message' || notification.type?.includes('NewMessage');
             const shouldShowToast = notification.show_toast !== false;
 
+            // 1. Логіка для нових повідомлень у чаті
             if (isNewMessage) {
                 setIncomingMessage(notification);
                 const currentParams = new URLSearchParams(window.location.search);
 
-                // Не показуємо тост і не плюсуємо лічильник якщо юзер вже в цьому чаті
+                // Не показуємо тост і не плюсуємо лічильник якщо юзер вже відкрив цей чат
                 if (currentParams.get('dm') === notification.chat_slug) return;
 
                 setUnreadMessagesCount(prev => prev + 1);
@@ -67,7 +67,7 @@ export const NotificationProvider = ({ children }) => {
                 return;
             }
 
-            // Звичайні сповіщення (лайки, друзі і т.д.)
+            // 2. Звичайні сповіщення (лайки, друзі і т.д.)
             const { id, type, ...customData } = notification;
             const normalizedNotif = {
                 id, type, read_at: null, created_at: new Date().toISOString(), data: customData
@@ -84,7 +84,6 @@ export const NotificationProvider = ({ children }) => {
             }
         };
 
-        // 2. Обробник видалених повідомлень
         const handleMessageDeleted = (event) => {
             setIncomingMessage({
                 type: 'message_deleted',
@@ -93,36 +92,13 @@ export const NotificationProvider = ({ children }) => {
             });
         };
 
-        // 3. Статуси Онлайн
-        const handleOnlineList = (usersIds) => setOnlineUsers(usersIds);
-        const handleUserConnected = ({ userId }) => setOnlineUsers(prev => !prev.includes(userId) ? [...prev, userId] : prev);
-        const handleUserDisconnected = ({ userId }) => setOnlineUsers(prev => prev.filter(id => id !== userId));
-
         // ПІДПИСУЄМОСЯ НА ПОДІЇ
         socket.on('notification', handleNotification);
         socket.on('message_deleted', handleMessageDeleted);
-        socket.on('online:list', handleOnlineList);
-        socket.on('user:connected', handleUserConnected);
-        socket.on('user:disconnected', handleUserDisconnected);
-
-        const handleVisibility = () => {
-            if (document.visibilityState === 'visible') {
-                socket.emit('presence:join');
-            } else {
-                socket.emit('presence:leave');
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibility);
-        if (document.visibilityState === 'visible') socket.emit('presence:join');
 
         return () => {
             socket.off('notification', handleNotification);
             socket.off('message_deleted', handleMessageDeleted);
-            socket.off('online:list', handleOnlineList);
-            socket.off('user:connected', handleUserConnected);
-            socket.off('user:disconnected', handleUserDisconnected);
-            document.removeEventListener('visibilitychange', handleVisibility);
         };
     }, [socket, user]);
 
@@ -139,7 +115,7 @@ export const NotificationProvider = ({ children }) => {
     return (
         <NotificationContext.Provider value={{
             notifications, unreadCount, markAsRead, unreadMessagesCount, setUnreadMessagesCount,
-            incomingMessage, onlineUsers
+            incomingMessage
         }}>
             {children}
             <div className="tetrone-toast-container">

@@ -40,7 +40,7 @@ const ImagePreview = ({ file, onRemove, theme }) => {
 export default function ChatComposer({
     theme, text, setText, files, editingMessage, replyingTo, replyingToName,
     handleCancelReplyEdit, handleRemoveFile, handleFileChange, handleSend, onTyping,
-    myAvatar, targetAvatar
+    myself, targetUser
 }) {
     const { t } = useTranslation();
     const [isAttachOpen, setIsAttachOpen] = useState(false);
@@ -119,7 +119,7 @@ export default function ChatComposer({
 
                 {theme === 'old' &&
                     <Avatar
-                        src={myAvatar}
+                        user={myself}
                         alt="avatar"
                         className="tetrone-messages-old-avatar composer-avatar"
                     />
@@ -201,7 +201,7 @@ export default function ChatComposer({
 
                 {theme === 'old' &&
                     <Avatar
-                        src={targetAvatar}
+                        user={targetUser}
                         className="tetrone-messages-old-avatar composer-avatar"
                     />
                 }

@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEditor, EditorContent } from '@tiptap/react';
 
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
-import Underline from '@tiptap/extension-underline';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Mention from '@tiptap/extension-mention';
@@ -16,7 +15,7 @@ import EditorMenu from './EditorMenu';
 import { SpoilerMark, FontSize, EnterHandler, StickerTrigger } from './extensions';
 import mentionSuggestion from './mentionSuggestion';
 
-export default function Editor({
+function Editor({
     value,
     onChange,
     placeholder = "",
@@ -26,28 +25,32 @@ export default function Editor({
     const { t } = useTranslation();
     const [showPicker, setShowPicker] = useState(false);
     const pickerRef = useRef(null);
-    const onEnterRef = useRef(onEnter);
 
-    const isStickersEnabled = import.meta.env.VITE_ENABLE_STICKERS === 'true';
+    const onEnterRef = useRef(onEnter);
+    const onChangeRef = useRef(onChange);
 
     useEffect(() => {
         onEnterRef.current = onEnter;
     }, [onEnter]);
 
-    const editor = useEditor({
-        extensions: [
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    }, [onChange]);
+
+    const isStickersEnabled = import.meta.env.VITE_ENABLE_STICKERS === 'true';
+
+    const extensions = useMemo(() => {
+        return [
             StarterKit.configure({ heading: false }),
             Placeholder.configure({ placeholder }),
-            Underline,
-            TextStyle,
-            Color,
-            FontSize,
-            SpoilerMark,
+            TextStyle.configure(),
+            Color.configure(),
+            FontSize.configure(),
+            SpoilerMark.configure(),
             EnterHandler.configure({ onEnterRef }),
 
-            // Додаємо розширення стікерів ТІЛЬКИ якщо фіча увімкнена
             ...(isStickersEnabled ? [
-                CustomStickerNode,
+                CustomStickerNode.configure(),
                 StickerTrigger.configure({
                     suggestion: stickerSuggestion,
                 })
@@ -57,12 +60,16 @@ export default function Editor({
                 HTMLAttributes: { class: 'tetrone-user-mention' },
                 suggestion: mentionSuggestion
             }),
-        ],
-        content: value,
+        ];
+    }, [placeholder, isStickersEnabled]);
+
+    const editor = useEditor({
+        extensions,
+        content: value, 
         onUpdate: ({ editor }) => {
-            onChange(editor.getJSON());
+            onChangeRef.current(editor.getJSON());
         },
-    });
+    }, []);
 
     useEffect(() => {
         if (editor && (value === '' || value === null || (typeof value === 'object' && Object.keys(value).length === 0)) && !editor.isDestroyed) {
@@ -79,7 +86,6 @@ export default function Editor({
             }
         };
 
-        // Додаємо слухача тільки коли пікер відкритий (для оптимізації)
         if (showPicker) {
             document.addEventListener('mousedown', handleClickOutside);
         }
@@ -102,9 +108,6 @@ export default function Editor({
                     }
                 }
             ]).run();
-
-            // setShowPicker(false);
-            // Тепер меню залишається відкритим для множинного вибору
         }
     };
 
@@ -142,3 +145,14 @@ export default function Editor({
         </div>
     );
 }
+
+export default React.memo(Editor, (prevProps, nextProps) => {
+    if (prevProps.placeholder !== nextProps.placeholder) return false;
+
+    const isPrevEmpty = !prevProps.value || Object.keys(prevProps.value).length === 0;
+    const isNextEmpty = !nextProps.value || Object.keys(nextProps.value).length === 0;
+
+    if (isPrevEmpty !== isNextEmpty) return false;
+
+    return true;
+});

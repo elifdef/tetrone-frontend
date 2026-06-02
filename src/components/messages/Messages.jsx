@@ -1,7 +1,7 @@
 import { useState, useCallback, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
-import { NotificationContext } from '../../context/NotificationContext';
+import { useSocket } from '../../context/SocketContext';
 import MessageItem from './MessageItem';
 import ChatScrollContainer from '../common/ChatScrollContainer';
 import ChatComposer from './ChatComposer';
@@ -18,13 +18,13 @@ export default function Messages(props) {
         handleDelete, handleFileChange, handleRemoveFile,
         isLoadingInitial, isLoadingMore, hasMore, onLoadMore,
         onOpenInfo, setReplyingTo, togglePin, replyingTo, handleCancelReplyEdit,
-        onTyping, isTyping, replyingToName, onDeleteChatClick
+        onTyping, isTyping, replyingToName, onDeleteChatClick, canWrite, cantWriteReason
     } = props;
 
     const { t } = useTranslation();
     const formatDate = useDateFormatter();
     const [sidebarWidth, setSidebarWidth] = useState(350);
-    const { onlineUsers } = useContext(NotificationContext);
+    const { onlineUsers } = useSocket();
 
     const safeMessages = messages || [];
     const safeChats = chats || [];
@@ -146,15 +146,23 @@ export default function Messages(props) {
                             )}
                         </ChatScrollContainer>
 
-                        <ChatComposer
-                            theme="modern"
-                            text={text} setText={setText} files={files}
-                            editingMessage={editingMessage} replyingTo={replyingTo}
-                            replyingToName={replyingToName}
-                            handleCancelReplyEdit={handleCancelReplyEdit} handleRemoveFile={handleRemoveFile}
-                            handleFileChange={handleFileChange} handleSend={handleSend} onTyping={onTyping}
-                            myAvatar={currentUser?.avatar}
-                        />
+                        {canWrite ? (
+                            <ChatComposer
+                                theme="modern"
+                                text={text} setText={setText} files={files}
+                                editingMessage={editingMessage} replyingTo={replyingTo}
+                                replyingToName={replyingToName}
+                                handleCancelReplyEdit={handleCancelReplyEdit} handleRemoveFile={handleRemoveFile}
+                                handleFileChange={handleFileChange} handleSend={handleSend} onTyping={onTyping}
+                                myAvatar={currentUser?.avatar}
+                            />
+                        ) : (
+                            <div className="tetrone-modern-empty-state" style={{ padding: '20px', borderTop: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
+                                <span className="tetrone-modern-empty-badge" style={{ color: 'var(--text-secondary)' }}>
+                                    {cantWriteReason}
+                                </span>
+                            </div>
+                        )}
                     </>
                 )}
             </div>

@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
-import { NotificationContext } from '../../context/NotificationContext';
+import { useSocket } from '../../context/SocketContext';
 import MessageItemOld from './MessageItemOld';
 import ChatScrollContainer from '../common/ChatScrollContainer';
 import ChatComposer from './ChatComposer';
@@ -20,12 +20,12 @@ export default function MessagesOld(props) {
         handleDelete, handleFileChange, handleRemoveFile,
         isLoadingInitial, isLoadingMore, hasMore, onLoadMore, onOpenInfo, onDeleteChatClick,
         setReplyingTo, togglePin, replyingTo, handleCancelReplyEdit,
-        isTyping, onTyping, replyingToName
+        isTyping, onTyping, replyingToName, canWrite, cantWriteReason
     } = props;
 
     const { t } = useTranslation();
     const formatDate = useDateFormatter();
-    const { onlineUsers } = useContext(NotificationContext) || { onlineUsers: [] };
+    const { onlineUsers } = useSocket();
 
     const pinnedMessage = messages.find(m => m.is_pinned);
 
@@ -100,9 +100,9 @@ export default function MessagesOld(props) {
                     <span className="tetrone-im-chat-title">{activeChat.target_user?.first_name} {activeChat.target_user?.last_name}</span>
                     <span className="tetrone-im-offline-text">
                         {isTyping ? (
-                            <span className="tetrone-typing-old">
+                            <span className="tetrone-typing-old" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <PencilIcon />
-                                {t('common.typing')}
+                                <span>{t('common.typing')}</span>
                             </span>
                         ) : targetOnline ? (
                             <span className="tetrone-im-online-indicator">
@@ -141,7 +141,7 @@ export default function MessagesOld(props) {
                                 key={`old-${msg.id}`}
                                 msg={msg}
                                 messages={messages}
-                                myAvatar={currentUser?.avatar}
+                                myself={currentUser}
                                 myName={currentUser?.first_name}
                                 targetUser={activeChat.target_user}
                                 formatDate={formatDate} t={t}
@@ -156,16 +156,28 @@ export default function MessagesOld(props) {
                 )}
             </ChatScrollContainer>
 
-            <ChatComposer
-                theme="old"
-                text={text} setText={setText} files={files}
-                editingMessage={editingMessage} replyingTo={replyingTo}
-                replyingToName={replyingToName}
-                handleCancelReplyEdit={handleCancelReplyEdit} handleRemoveFile={handleRemoveFile}
-                handleFileChange={handleFileChange} handleSend={handleSend} onTyping={onTyping}
-                myAvatar={currentUser?.avatar}
-                targetAvatar={activeChat.target_user?.avatar}
-            />
+            {canWrite ? (
+                <ChatComposer
+                    theme="old"
+                    text={text} 
+                    setText={setText} 
+                    files={files}
+                    editingMessage={editingMessage} 
+                    replyingTo={replyingTo}
+                    replyingToName={replyingToName}
+                    handleCancelReplyEdit={handleCancelReplyEdit} 
+                    handleRemoveFile={handleRemoveFile}
+                    handleFileChange={handleFileChange} 
+                    handleSend={handleSend} 
+                    onTyping={onTyping}
+                    myself={currentUser}
+                    targetUser={activeChat.target_user}
+                />
+            ) : (
+                <div className="tetrone-empty-state" style={{ padding: '20px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+                    {cantWriteReason}
+                </div>
+            )}
         </div>
     );
 }

@@ -1,30 +1,37 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import { extractPreviewText } from '../../utils/editorHelpers';
 import MessageImage from './MessageImage';
 import RichText from '../common/RichText';
 import Avatar from "../ui/Avatar";
 
-export default function MessageItemOld({
-    msg, myAvatar, myName, targetUser, formatDate, t,
+function MessageItemOld({
+    msg, myself, myName, targetUser, formatDate, t,
     handleEditClick, handleDelete, setReplyingTo, togglePin, chatSlug
 }) {
     const isTemp = msg.status === 'sending' || msg.status === 'error';
 
-    const renderMessageText = (textStr) => {
-        if (!textStr) return null;
+    const parsedText = useMemo(() => {
+        if (!msg.text) return null;
         try {
-            const parsed = JSON.parse(textStr);
-            return <RichText text={parsed} />;
+            return JSON.parse(msg.text);
         } catch (e) {
-            return <span className="tetrone-plain-text">{textStr}</span>;
+            return msg.text;
         }
+    }, [msg.text]);
+
+    const renderMessageText = () => {
+        if (!parsedText) return null;
+        if (typeof parsedText === 'object') {
+            return <RichText text={parsedText} />;
+        }
+        return <span className="tetrone-plain-text">{parsedText}</span>;
     };
 
     return (
         <div id={`message-${msg.id}`} className={`tetrone-messages-old-message-row ${msg.status === 'error' ? 'error-state' : ''}`}>
             <div className="tetrone-messages-old-msg-left">
-                <Avatar src={msg.isMine ? myAvatar : targetUser?.avatar} className="tetrone-messages-old-avatar" />
+                <Avatar user={msg.isMine ? myself : targetUser} className="tetrone-messages-old-avatar" />
             </div>
 
             <div className="tetrone-messages-old-msg-right">
@@ -48,7 +55,7 @@ export default function MessageItemOld({
                 )}
 
                 <div className="tetrone-messages-old-msg-text">
-                    {renderMessageText(msg.text)}
+                    {renderMessageText()}
 
                     {msg.is_edited && <span className="tetrone-edited-mark"> ({t('common.edited')})</span>}
 
@@ -109,3 +116,5 @@ export default function MessageItemOld({
         </div>
     );
 }
+
+export default memo(MessageItemOld);

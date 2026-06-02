@@ -14,6 +14,7 @@ import FriendService from '../services/friend.service';
 import ChatInfoModal from '../components/modals/ChatInfoModal';
 import { notifyError, notifySuccess } from '../components/common/Notify';
 import Button from '../components/ui/Button';
+import { useSocket } from '../context/SocketContext';
 
 const CloseIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -26,12 +27,14 @@ export default function MessagesPage() {
     const { t } = useTranslation();
     usePageTitle(t('common.messages'));
 
+    const { onlineUsers } = useSocket();
+
     const [searchParams, setSearchParams] = useSearchParams();
     const dmSlug = searchParams.get('dm');
 
     const { user: currentUser } = useContext(AuthContext);
     const { chats, fetchChats } = useInbox();
-    const { setUnreadMessagesCount, incomingMessage, echoInstance } = useContext(NotificationContext);
+    const { setUnreadMessagesCount, incomingMessage } = useContext(NotificationContext);
     const { openConfirm, openCustom, closeModal } = useModal();
 
     const [text, setText] = useState('');
@@ -39,11 +42,12 @@ export default function MessagesPage() {
     const [editingMessage, setEditingMessage] = useState(null);
     const [replyingTo, setReplyingTo] = useState(null);
 
+    // Більше не передаємо echoInstance
     const {
         messages, fetchMessages, loadMoreMessages, sendMessage, updateMessage, deleteMessage, togglePin,
         isLoadingInitial, isLoadingMore, hasMore, targetIsTyping, emitTyping, chatWasDeletedExternally,
         currentChatInfo
-    } = useMessages(dmSlug, echoInstance);
+    } = useMessages(dmSlug);
 
     const refreshInbox = useCallback(() => {
         fetchChats();
@@ -134,6 +138,20 @@ export default function MessagesPage() {
         if (!replyingTo) return '';
         return replyingTo.isMine ? currentUser?.first_name : activeChatObj?.target_user?.first_name;
     }, [replyingTo, currentUser, activeChatObj]);
+
+    const getCantWriteReason = () => {
+        if (!activeChatObj || !activeChatObj.target_user) return null;
+        const target = activeChatObj.target_user;
+
+        if (target.is_deleted || target.deleted_at) return t('messages.user_deleted');
+        if (target.is_banned) return t('messages.user_banned');
+        if (activeChatObj.is_blocked || activeChatObj.am_i_blocked) return t('messages.chat_blocked');
+
+        return null;
+    };
+
+    const cantWriteReason = getCantWriteReason();
+    const canWrite = !cantWriteReason;
 
     const handleSelectChat = useCallback((slug) => {
         setSearchParams({ dm: slug });
@@ -248,33 +266,6 @@ export default function MessagesPage() {
         );
     }, [closeModal, openCustom, t, dmSlug, setSearchParams, refreshInbox]);
 
-    const handleBlockUser = useCallback(async () => {
-        closeModal();
-        const targetUser = activeChatObj?.target_user?.username;
-        if (!targetUser) return;
-
-        const confirmed = await openConfirm(t('action.are_u_sure'), t('action.block'));
-        if (confirmed) {
-            const res = await FriendService.blockUser(targetUser);
-            if (res.success) {
-                notifySuccess(res.message);
-                setSearchParams({});
-                refreshInbox();
-            } else {
-                notifyError(res.message);
-            }
-        }
-    }, [closeModal, activeChatObj, openConfirm, t, setSearchParams, refreshInbox]);
-
-    const handleScrollToMessage = useCallback((msgId) => {
-        const el = document.getElementById(`message-${msgId}`);
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.classList.add('tetrone-modern-highlight-msg');
-            setTimeout(() => el.classList.remove('tetrone-modern-highlight-msg'), 2000);
-        }
-    }, []);
-
     const handleOpenInfo = useCallback(() => {
         openCustom(<ChatInfoModal chat={activeChatObj} messages={messages} onClose={closeModal} />);
     }, [openCustom, activeChatObj, messages, closeModal]);
@@ -288,7 +279,10 @@ export default function MessagesPage() {
         handleSend, handleSelectChat, handleBackToInbox,
         handleEditClick, handleDelete: handleDeleteClick,
         replyingTo, setReplyingTo, togglePin, handleCancelReplyEdit,
-        handleFileChange, handleRemoveFile, isTyping: targetIsTyping, onTyping: emitTyping,
+        handleFileChange, handleRemoveFile,
+        isTyping: targetIsTyping,
+        onTyping: () => emitTyping(activeChatObj?.target_user?.id),
+        canWrite, cantWriteReason
     };
 
     return (
