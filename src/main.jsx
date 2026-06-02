@@ -5,6 +5,7 @@ import App from './App.jsx';
 import { NotificationProvider } from './context/NotificationContext.jsx';
 import { AuthProvider } from './context/AuthContext';
 import { ModalProvider } from './context/ModalContext';
+import { SocketProvider } from './context/SocketContext.jsx';
 import './i18n'
 
 import "./styles/admin.css";
@@ -38,11 +39,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
-        <NotificationProvider>
-          <ModalProvider>
-            <App />
-          </ModalProvider>
-        </NotificationProvider>
+        <SocketProvider>
+          <NotificationProvider>
+            <ModalProvider>
+              <App />
+            </ModalProvider>
+          </NotificationProvider>
+        </SocketProvider>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>

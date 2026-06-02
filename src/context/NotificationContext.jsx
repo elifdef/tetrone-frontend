@@ -1,21 +1,21 @@
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { AuthContext } from './AuthContext';
+import { useSocket } from './SocketContext';
 import fetchClient from '../api/client';
 import Notification from '../components/common/Notification';
 import { audioManager } from '../utils/audioManager';
-import { createEchoInstance } from '../utils/echoSetup';
 
 export const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
-    const { user, token } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
+    const socket = useSocket();
+
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
     const [activeToasts, setActiveToasts] = useState([]);
     const [incomingMessage, setIncomingMessage] = useState(null);
-
-    const [echoInstance, setEchoInstance] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
 
     const fetchInitialData = useCallback(async () => {
@@ -41,17 +41,10 @@ export const NotificationProvider = ({ children }) => {
     }, [fetchInitialData]);
 
     useEffect(() => {
-        if (!user || !token) return;
+        // Якщо сокет ще не підключився або юзера немає - чекаємо
+        if (!socket || !user) return;
 
-        const echo = createEchoInstance(token);
-        if (!echo) return;
-
-        setEchoInstance(echo);
-
-        const channelName = `App.Models.User.${user.id}`;
-        const channel = echo.private(channelName);
-
-        channel.notification((notification) => {
+        const handleNotification = (notification) => {
             const toastId = Date.now();
             const isNewMessage = notification.type === 'new_message' || notification.type?.includes('NewMessage');
             const shouldShowToast = notification.show_toast !== false;
@@ -60,6 +53,7 @@ export const NotificationProvider = ({ children }) => {
                 setIncomingMessage(notification);
                 const currentParams = new URLSearchParams(window.location.search);
 
+                // Не показуємо тост і не плюсуємо лічильник якщо юзер вже в цьому чаті
                 if (currentParams.get('dm') === notification.chat_slug) return;
 
                 setUnreadMessagesCount(prev => prev + 1);
@@ -73,6 +67,7 @@ export const NotificationProvider = ({ children }) => {
                 return;
             }
 
+            // Звичайні сповіщення (лайки, друзі і т.д.)
             const { id, type, ...customData } = notification;
             const normalizedNotif = {
                 id, type, read_at: null, created_at: new Date().toISOString(), data: customData
@@ -87,56 +82,49 @@ export const NotificationProvider = ({ children }) => {
                 }
                 setActiveToasts(prev => [...prev, { ...notification, toastId }].slice(-3));
             }
-        });
+        };
 
-        channel.listen('.message_deleted', (event) => {
+        // 2. Обробник видалених повідомлень
+        const handleMessageDeleted = (event) => {
             setIncomingMessage({
                 type: 'message_deleted',
                 chat_slug: event.chat_slug,
                 message_id: event.message_id
             });
-        });
-
-        let isOnlineJoined = false;
-
-        const joinPresence = () => {
-            if (!isOnlineJoined) {
-                echo.join('online')
-                    .here((users) => setOnlineUsers(users.map(u => u.id)))
-                    .joining((joiningUser) => {
-                        setOnlineUsers(prev => !prev.includes(joiningUser.id) ? [...prev, joiningUser.id] : prev);
-                    })
-                    .leaving((leavingUser) => {
-                        setOnlineUsers(prev => prev.filter(id => id !== leavingUser.id));
-                    });
-                isOnlineJoined = true;
-            }
         };
 
-        const leavePresence = () => {
-            if (isOnlineJoined) {
-                echo.leave('online');
-                isOnlineJoined = false;
-            }
-        };
+        // 3. Статуси Онлайн
+        const handleOnlineList = (usersIds) => setOnlineUsers(usersIds);
+        const handleUserConnected = ({ userId }) => setOnlineUsers(prev => !prev.includes(userId) ? [...prev, userId] : prev);
+        const handleUserDisconnected = ({ userId }) => setOnlineUsers(prev => prev.filter(id => id !== userId));
 
-        if (document.visibilityState === 'visible') joinPresence();
+        // ПІДПИСУЄМОСЯ НА ПОДІЇ
+        socket.on('notification', handleNotification);
+        socket.on('message_deleted', handleMessageDeleted);
+        socket.on('online:list', handleOnlineList);
+        socket.on('user:connected', handleUserConnected);
+        socket.on('user:disconnected', handleUserDisconnected);
 
         const handleVisibility = () => {
-            if (document.visibilityState === 'visible') joinPresence();
-            else leavePresence();
+            if (document.visibilityState === 'visible') {
+                socket.emit('presence:join');
+            } else {
+                socket.emit('presence:leave');
+            }
         };
 
         document.addEventListener('visibilitychange', handleVisibility);
+        if (document.visibilityState === 'visible') socket.emit('presence:join');
 
         return () => {
+            socket.off('notification', handleNotification);
+            socket.off('message_deleted', handleMessageDeleted);
+            socket.off('online:list', handleOnlineList);
+            socket.off('user:connected', handleUserConnected);
+            socket.off('user:disconnected', handleUserDisconnected);
             document.removeEventListener('visibilitychange', handleVisibility);
-            leavePresence();
-            echo.leaveChannel(channelName);
-            echo.disconnect();
-            setEchoInstance(null);
         };
-    }, [user, token]);
+    }, [socket, user]);
 
     const markAsRead = async (id) => {
         const res = await fetchClient(`/notifications/${id}/read`, { method: 'POST' });
@@ -151,7 +139,7 @@ export const NotificationProvider = ({ children }) => {
     return (
         <NotificationContext.Provider value={{
             notifications, unreadCount, markAsRead, unreadMessagesCount, setUnreadMessagesCount,
-            incomingMessage, echoInstance, onlineUsers
+            incomingMessage, onlineUsers
         }}>
             {children}
             <div className="tetrone-toast-container">
