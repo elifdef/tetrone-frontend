@@ -7,14 +7,19 @@ import { isEditorEmpty } from "../../../utils/editorHelpers";
 
 export const useEditPost = (post, saveEdit) => {
     const { t } = useTranslation();
-    const [editContent, setEditContent] = useState(post.content || '');
-    const [existingMedia, setExistingMedia] = useState(post.attachments || []);
+
+    const safePost = post || {};
+    const [editContent, setEditContent] = useState(safePost.content || '');
+    const [existingMedia, setExistingMedia] = useState(safePost.attachments || []);
     const [deletedMediaIds, setDeletedMediaIds] = useState([]);
     const [removedPreviews, setRemovedPreviews] = useState([]);
 
     useEffect(() => {
-        if (post?.youtube_settings?.removed_previews) {
-            setRemovedPreviews(post.youtube_settings.removed_previews);
+        if (post) {
+            setEditContent(post.content || '');
+            setExistingMedia(post.attachments || []);
+            setRemovedPreviews(post.youtube_settings?.removed_previews || []);
+            setDeletedMediaIds([]);
         }
     }, [post]);
 
@@ -32,7 +37,7 @@ export const useEditPost = (post, saveEdit) => {
 
     const handleSave = () => {
         const emptyEditor = isEditorEmpty(editContent);
-        const hasPoll = !!post?.poll;
+        const hasPoll = !!safePost.poll;
 
         if (emptyEditor && existingMedia.length === 0 && formTools.files.length === 0 && !hasPoll) {
             notifyError(t('api.error.ERR_POST_EMPTY'));
@@ -43,7 +48,7 @@ export const useEditPost = (post, saveEdit) => {
         payload.text = emptyEditor ? null : editContent;
         if (removedPreviews.length > 0) payload.youtube = { removed_previews: removedPreviews };
 
-        saveEdit(post.id, {
+        saveEdit(safePost.id, {
             payload,
             images: formTools.files,
             deletedMedia: deletedMediaIds

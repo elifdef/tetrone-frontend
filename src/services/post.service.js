@@ -65,6 +65,20 @@ class PostService {
     async getUserAvatars(username) {
         return await fetchClient(`/users/${username}/avatars`);
     }
+
+    async toggleReaction(postId, stickerId) {
+        return await fetchClient(`/posts/${postId}/reactions`, {
+            method: 'POST',
+            body: { sticker_id: stickerId }
+        });
+    }
+
+    async updateReactionConfig(postId, configData) {
+        return await fetchClient(`/posts/${postId}/reaction-config`, {
+            method: 'PUT',
+            body: configData
+        });
+    }
 }
 
 export default new PostService();

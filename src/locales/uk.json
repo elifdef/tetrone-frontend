@@ -58,7 +58,8 @@
       "ERR_FORBIDDEN": "У вас немає прав для цієї дії",
       "ERR_ALREADY_INSTALLED": "Цей пак вже додано на вашу клавіатуру",
       "ERR_PACK_FULL": "Пак переповнено.",
-      "ERR_USERNAME_INVALID_FORMAT": "Юзернейм містить неправильний формат або ржака-символ."
+      "ERR_USERNAME_INVALID_FORMAT": "Юзернейм містить неправильний формат або ржака-символ.",
+      "ERR_REACTION": "Ви не можете добавити ще одну реакцію"
     },
     "success": {
       "LOGIN_SUCCESS": "Ви успішно увійшли в систему.",
@@ -493,7 +494,16 @@
     "add_repost_comment": "Додати коментар до репосту...",
     "anonymous_poll": "Анонімне опитування",
     "updated_avatar_male": "оновив аватар",
-    "updated_avatar_female": "оновила аватар"
+    "updated_avatar_female": "оновила аватар",
+    "disable_reactions": "Повністю вимкнути реакції для цього поста",
+    "max_unique_stickers": "Максимальна кількість різних стікерів",
+    "pack_selection_title": "Управління стікерпаками",
+    "pack_neutral": "За замовчуванням",
+    "pack_allowed": "Тільки дозволені",
+    "pack_blocked": "Заблоковані",
+    "search_packs": "Пошук стікерпаків...",
+    "settings_saved": "Налаштування успішно збережено",
+    "max_unique_stickers_hint": "Встановіть ліміт"
   },
   "editor": {
     "toolbar_bold": "Жирний (Ctrl+B)",

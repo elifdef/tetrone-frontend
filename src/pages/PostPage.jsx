@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PostItem from "../components/post/PostItem";
-import EditPostForm from "../components/post/EditPostForm";
+import EditPostModal from "../components/modals/EditPostModal";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { AuthContext } from "../context/AuthContext";
 import CommentsSection from "../components/comments/CommentsSection";
@@ -22,7 +22,7 @@ export default function PostPage() {
 
     usePageTitle(t('common.post'));
 
-    useEffect(() => {
+    const loadPost = () => {
         setLoading(true);
         setError(null);
 
@@ -38,6 +38,10 @@ export default function PostPage() {
             .finally(() => {
                 setLoading(false);
             });
+    };
+
+    useEffect(() => {
+        loadPost();
     }, [id, t]);
 
     const handleCommentCountChange = (amount) => {
@@ -48,6 +52,18 @@ export default function PostPage() {
                 comments_count: prev.comments_count + amount
             };
         });
+    };
+
+    const handleSaveEdit = async (postId, editData) => {
+        try {
+            const res = await postService.update(postId, editData);
+            if (res.success && res.data) {
+                setPost(res.data); // Оновлюємо дані на сторінці
+            }
+        } catch (err) {
+            console.error('Помилка збереження:', err);
+            loadPost();
+        }
     };
 
     if (loading) {
@@ -65,31 +81,6 @@ export default function PostPage() {
     }
 
     const isOwner = user && post && user.id === post.user_id;
-
-    const handleSaveEdit = async (postId, editData) => {
-        try {
-            const res = await postService.update(postId, editData);
-
-            if (res.success && res.data) {
-                setPost(res.data);
-                setIsEditing(false);
-            }
-        } catch (err) {
-            console.error('Помилка збереження:', err);
-        }
-    };
-
-    if (isEditing) {
-        return (
-            <div className="tetrone-post-page-wrapper">
-                <EditPostForm
-                    post={post}
-                    saveEdit={handleSaveEdit}
-                    cancelEditing={() => setIsEditing(false)}
-                />
-            </div>
-        );
-    }
 
     return (
         <div className="tetrone-post-page-wrapper">
@@ -119,6 +110,13 @@ export default function PostPage() {
                     onCountChange={handleCommentCountChange}
                 />
             </div>
+
+            <EditPostModal
+                isOpen={isEditing}
+                post={post}
+                onClose={() => setIsEditing(false)}
+                onSaveSuccess={handleSaveEdit}
+            />
         </div>
     );
 }

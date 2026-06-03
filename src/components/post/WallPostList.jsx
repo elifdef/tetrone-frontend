@@ -1,5 +1,5 @@
 import PostItem from '../post/PostItem';
-import EditPostForm from './EditPostForm';
+import EditPostModal from '../modals/EditPostModal';
 
 export default function WallPostList({
     posts, authUser, profileUser,
@@ -8,6 +8,7 @@ export default function WallPostList({
     startEditing, handleDelete, handleRepostSuccess
 }) {
     const isWallOwner = authUser && profileUser && authUser.id === profileUser.id;
+    const editingPost = posts.find(post => post.id === editingPostId);
 
     return (
         <div className="tetrone-post-list">
@@ -15,26 +16,26 @@ export default function WallPostList({
                 const isAuthor = authUser && post.user && authUser.id === post.user.id;
 
                 return (
-                    <div key={post.id}>
-                        {editingPostId === post.id ? (
-                            <EditPostForm
-                                post={post}
-                                saveEdit={saveEdit}
-                                cancelEditing={cancelEditing}
-                            />
-                        ) : (
-                            <PostItem
-                                post={post}
-                                isOwner={isAuthor || isWallOwner}
-                                onEdit={isAuthor ? startEditing : null}
-                                currentUserId={authUser?.id}
-                                onDelete={handleDelete}
-                                onRepostSuccess={handleRepostSuccess}
-                            />
-                        )}
-                    </div>
+                    <PostItem
+                        key={post.id}
+                        post={post}
+                        isOwner={isAuthor || isWallOwner}
+                        onEdit={isAuthor ? startEditing : null}
+                        currentUserId={authUser?.id}
+                        onDelete={handleDelete}
+                        onRepostSuccess={handleRepostSuccess}
+                    />
                 );
             })}
+
+            {editingPost && (
+                <EditPostModal
+                    isOpen={!!editingPostId}
+                    post={editingPost}
+                    onClose={cancelEditing}
+                    onSaveSuccess={saveEdit}
+                />
+            )}
         </div>
     );
 }
