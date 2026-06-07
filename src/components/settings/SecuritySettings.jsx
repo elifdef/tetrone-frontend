@@ -1,11 +1,12 @@
 import { useSecuritySettings } from './hooks/useSecuritySettings';
 import EmailChangeForm from './EmailChangeForm';
 import PasswordChangeForm from './PasswordChangeForm';
+import UsernameManager from './UsernameManager';
 import DangerZone from './DangerZone';
 
 const SecuritySettings = () => {
     const {
-        user,
+        user, fetchUserData,
         email, setEmail,
         passwordForEmail, setPasswordForEmail,
         loadingEmail, handleUpdateEmail,
@@ -17,6 +18,12 @@ const SecuritySettings = () => {
 
     return (
         <>
+            <UsernameManager
+                user={user}
+                t={t}
+                onUserUpdate={fetchUserData} 
+            />
+
             <EmailChangeForm
                 user={user}
                 email={email}

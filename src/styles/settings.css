@@ -540,3 +540,150 @@
     color: var(--theme-text-muted);
     margin-top: 2px;
 }
+
+.tetrone-settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tetrone-settings-section h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--theme-text-main);
+}
+
+.tetrone-text-muted {
+    margin: 0 0 15px 0;
+    font-size: 13px;
+    color: var(--theme-text-muted);
+    line-height: 1.4;
+}
+
+.tetrone-username-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tetrone-username-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--theme-bg-hover);
+    border: 1px solid var(--theme-border);
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.tetrone-username-item:hover {
+    background: var(--theme-bg-box);
+    border-color: var(--theme-link);
+}
+
+.tetrone-username-item.primary {
+    background: var(--theme-bg-box);
+    border: 1px solid var(--theme-link);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tetrone-username-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--theme-text-main);
+}
+
+.tetrone-username-info strong {
+    font-size: 15px;
+}
+
+.tetrone-badge-primary {
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: var(--theme-link);
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.tetrone-badge-secondary {
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: var(--theme-border);
+    color: var(--theme-text-muted);
+    letter-spacing: 0.5px;
+}
+
+.tetrone-input-with-icon-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.tetrone-input-indicator {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+}
+
+.tetrone-form-input.error {
+    border-color: var(--theme-error);
+}
+
+.tetrone-form-input.success {
+    border-color: var(--theme-success, #28a745);
+}
+
+.tetrone-icon-success {
+    color: var(--theme-success, #28a745);
+    font-weight: bold;
+}
+
+.tetrone-icon-error {
+    color: var(--theme-error);
+    font-weight: bold;
+}
+
+.tetrone-form-error {
+    color: var(--theme-error);
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.tetrone-mini-alias-list {
+    background: var(--theme-bg-hover);
+    padding: 10px;
+    border: 1px dashed var(--theme-border);
+}
+
+.tetrone-wrap {
+    flex-wrap: wrap;
+}
+
+.tetrone-mt-8 {
+    margin-top: 8px;
+}
+
+.tetrone-mt-15 {
+    margin-top: 15px;
+}
+
+@media (max-width: 576px) {
+    .tetrone-username-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .tetrone-username-item button {
+        width: 100%;
+        justify-content: center;
+    }
+}

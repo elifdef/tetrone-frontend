@@ -421,7 +421,6 @@
     border: 1px solid var(--theme-input-border);
     background: var(--theme-input-bg);
     color: var(--theme-text-main);
-    border-radius: 4px;
     outline: none;
     transition: border-color 0.2s;
 }

@@ -34,6 +34,37 @@ class UserService {
     async searchUsers(query) {
         return this.getUsers({ search: query });
     }
+
+    async addAlias(alias) {
+        return await fetchClient('/user/aliases', {
+            method: 'POST',
+            body: { alias }
+        });
+    }
+
+    async changePrimaryUsername(username) {
+        return await fetchClient('/user/username', {
+            method: 'PUT',
+            body: { username }
+        });
+    }
+
+    async swapAlias(alias) {
+        return await fetchClient('/user/aliases/swap', {
+            method: 'POST',
+            body: { alias }
+        });
+    }
+
+    async checkUsernameAvailability(username) {
+        return await fetchClient(`/user/check-username?username=${encodeURIComponent(username)}`);
+    }
+
+    async deleteAlias(alias) {
+        return await fetchClient(`/user/aliases/${alias}`, {
+            method: 'DELETE'
+        });
+    }
 }
 
 export default new UserService();

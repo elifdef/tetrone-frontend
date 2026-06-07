@@ -77,7 +77,7 @@ export default function App() {
             background: 'var(--theme-bg-box)',
             color: 'var(--theme-text-main)',
             border: '1px solid var(--theme-border)',
-            borderRadius: '4px',
+            borderRadius: '0px',
             fontSize: '12px'
           },
         }}

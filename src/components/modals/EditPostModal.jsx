@@ -128,14 +128,14 @@ export default function EditPostModal({ isOpen, onClose, post, onSaveSuccess }) 
                             onClick={() => setActiveTab('content')}
                         >
                             <EditIcon width={14} height={14} className="tetrone-tab-icon" />
-                            {t('action.edit_content')}
+                            {t('action.edit')}
                         </button>
                         <button
                             className={`tetrone-tab ${activeTab === 'settings' ? 'active' : ''}`}
                             onClick={() => setActiveTab('settings')}
                         >
                             <SettingsIcon width={14} height={14} className="tetrone-tab-icon" />
-                            {t('post.settings')}
+                            {t('common.settings')}
                         </button>
                     </div>
 

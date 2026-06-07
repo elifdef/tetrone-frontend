@@ -22,7 +22,7 @@ const formatPostSnippet = (snippet, t) => {
 
     if (snippet.startsWith('POLL:')) {
         const question = snippet.replace('POLL:', '');
-        return `📊 ${t('notifications.poll')}: ${question}`;
+        return `${t('notifications.poll')}: ${question}`;
     }
 
     switch (snippet) {
@@ -30,8 +30,6 @@ const formatPostSnippet = (snippet, t) => {
             return `${t('notifications.poll')}`;
         case 'ATTACHMENT':
             return `${t('notifications.attachment')}`;
-        case 'AVATAR_UPDATE':
-            return `${t('notifications.avatar_update')}`;
         default:
             return snippet;
     }
