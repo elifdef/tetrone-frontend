@@ -4,6 +4,7 @@ import PostService from '../../../services/post.service';
 import { notifyError } from '../../common/Notify';
 import { useModal } from '../../../context/ModalContext';
 import PollVotersModal from '../../modals/PollVotersModal';
+import Button from '../../ui/Button';
 
 export default function PostPoll({ poll, postId, isOwner }) {
     const { t } = useTranslation();
@@ -162,7 +163,10 @@ export default function PostPoll({ poll, postId, isOwner }) {
 
             {poll.is_multiple_choice && hasDraftChanges && !isClosed && (
                 <div className="tetrone-poll-actions tetrone-poll-actions-start">
-                    <button className="tetrone-btn" onClick={() => submitVote(draftOptionIds)} disabled={isLoading || draftOptionIds.length === 0}>{t('action.vote')}</button>
+                    <Button
+                        onClick={() => submitVote(draftOptionIds)} disabled={isLoading || draftOptionIds.length === 0}>
+                        {t('action.vote')}
+                    </Button>
                     {votedOptionIds.length > 0 && <button className="tetrone-btn tetrone-btn-cancel" onClick={cancelDraft} disabled={isLoading}>{t('action.cancel')}</button>}
                 </div>
             )}

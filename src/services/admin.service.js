@@ -75,6 +75,29 @@ class AdminService {
             method: 'POST'
         });
     }
+
+    async getDatabaseTables() {
+        return await fetchClient(`/admin/database/tables`);
+    }
+
+    async executeDbQuery(query) {
+        return await fetchClient(`/admin/database/query`, {
+            method: 'POST',
+            body: { query }
+        });
+    }
+
+    async getStaffLogs(page = 1) {
+        return await fetchClient(`/admin/staff-logs?page=${page}`);
+    }
+
+    async getStaffLogsSummary() {
+        return await fetchClient(`/admin/staff-logs/summary`);
+    }
+
+    async getStaffLogsCharts() {
+        return await fetchClient(`/admin/staff-logs/charts`);
+    }
 }
 
 export default new AdminService();

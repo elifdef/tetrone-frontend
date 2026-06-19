@@ -72,6 +72,13 @@ class AuthService {
             body: data
         });
     }
+
+    async verifyPassword(password) {
+        return await fetchClient('/verify-password', {
+            method: 'POST',
+            body: { password }
+        });
+    }
 }
 
 export default new AuthService();

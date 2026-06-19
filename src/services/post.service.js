@@ -4,7 +4,18 @@ class PostService {
     async create(data) {
         const formData = new FormData();
 
-        if (data.payload) formData.append('payload', JSON.stringify(data.payload));
+        if (data.payload) {
+            if (data.payload.text) {
+                formData.append('payload[text]', typeof data.payload.text === 'object' ? JSON.stringify(data.payload.text) : data.payload.text);
+            }
+            if (data.payload.poll) {
+                formData.append('payload[poll]', JSON.stringify(data.payload.poll));
+            }
+            if (data.payload.youtube) {
+                formData.append('payload[youtube]', JSON.stringify(data.payload.youtube));
+            }
+        }
+
         if (data.target_user_id) formData.append('target_user_id', data.target_user_id);
         if (data.original_post_id) formData.append('original_post_id', data.original_post_id);
 
@@ -19,7 +30,17 @@ class PostService {
         const formData = new FormData();
         formData.append('_method', 'PUT');
 
-        if (data.payload) formData.append('payload', JSON.stringify(data.payload));
+        if (data.payload) {
+            if (data.payload.text) {
+                formData.append('payload[text]', typeof data.payload.text === 'object' ? JSON.stringify(data.payload.text) : data.payload.text);
+            }
+            if (data.payload.poll) {
+                formData.append('payload[poll]', JSON.stringify(data.payload.poll));
+            }
+            if (data.payload.youtube) {
+                formData.append('payload[youtube]', JSON.stringify(data.payload.youtube));
+            }
+        }
 
         if (data.images && data.images.length > 0) {
             data.images.forEach((file, index) => formData.append(`media[${index}]`, file));

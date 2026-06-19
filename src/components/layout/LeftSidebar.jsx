@@ -135,7 +135,7 @@ const LeftSidebar = () => {
                                 </>
                             )}
 
-                            {user.role === userRole.Admin && (
+                            {user.role >= userRole.Admin && (
                                 <>
                                     <hr />
                                     <Link to="/control-panel" className={`${getLinkClass("/control-panel")} nav-link-admin`} onClick={closeMenu}>

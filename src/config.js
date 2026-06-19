@@ -6,5 +6,6 @@ export const userRole = {
     User: 0,
     Support: 1,
     Moderator: 2,
-    Admin: 3
+    Admin: 3,
+    Creator: 4
 };

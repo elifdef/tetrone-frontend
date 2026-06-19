@@ -12,7 +12,6 @@ import ProfilePage from "../pages/ProfilePage";
 import FriendsPage from "../pages/FriendsPage";
 import PostPage from "../pages/PostPage";
 import NotFoundPage from "../pages/NotFoundPage";
-import AdminPage from '../pages/AdminPage';
 import SupportPage from "../pages/SupportPage";
 import SupportPanelPage from "../pages/SupportPanelPage";
 import RulesPage from "../pages/RulesPage";
@@ -24,8 +23,8 @@ import NotificationsPage from "../pages/NotificationsPage";
 import ActivityPage from "../pages/ActivityPage";
 import MessagesPage from "../pages/MessagesPage";
 import StickerShopPage from '../pages/StickerShopPage';
+import AdminPage from '../pages/AdminPage';
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
-
 export default function AppRoutes() {
     const { user } = useContext(AuthContext);
 
@@ -75,13 +74,13 @@ export default function AppRoutes() {
                     } />
 
                     <Route path="/control-panel" element={
-                        <RoleGuard allowedRoles={[userRole.Admin]}>
+                        <RoleGuard allowedRoles={[userRole.Admin, userRole.Creator]}>
                             <AdminPage />
                         </RoleGuard>
                     } />
 
                     <Route path="/control-panel/users/:username" element={
-                        <RoleGuard allowedRoles={[userRole.Admin]}>
+                        <RoleGuard allowedRoles={[userRole.Admin, userRole.Creator]}>
                             <AdminUserInfo />
                         </RoleGuard>
                     } />

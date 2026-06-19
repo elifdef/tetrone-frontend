@@ -26,7 +26,7 @@ export default function ActivityPage() {
             case 'reposts': return `${baseTitle} | ${t('common.reposts')}`;
             case 'voted-polls': return `${baseTitle} | ${t('common.poll')}`;
             case 'stats': return `${baseTitle} | ${t('activity.stats.title')}`;
-            case 'likes': default: return `${baseTitle} | ${t('common.likes')}`;
+            default: return `${baseTitle} | ${t('common.likes')}`;
 
         }
     };
