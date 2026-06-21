@@ -10,6 +10,16 @@ export default defineConfig({
       '/storage': {
         target: 'http://localhost:8000',
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes, req) => {
+            // підкидаємо правильні заголовки для HLS-стріму
+            if (req.url.endsWith('.m3u8')) {
+              proxyRes.headers['Content-Type'] = 'application/vnd.apple.mpegurl';
+            } else if (req.url.endsWith('.ts')) {
+              proxyRes.headers['Content-Type'] = 'video/MP2T';
+            }
+          });
+        }
       }
     }
   }

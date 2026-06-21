@@ -1,14 +1,14 @@
 import { useEffect, useRef, useContext, useState, useCallback } from "react";
-import WaveSurfer from "wavesurfer.js";
+import Hls from "hls.js";
 import { AudioContext } from "../context/AudioContext";
 
 const STORAGE_KEY = 'tetrone_audio_state';
 
-export const useAudioPlayer = (waveformRef) => {
+export const useAudioPlayer = () => {
     const { currentTrack, isPlaying, setIsPlaying, closePlayer, channelRef } = useContext(AudioContext);
 
-    const wavesurferRef = useRef(null);
-    const audioElRef = useRef(null);
+    const audioElRef = useRef(new Audio());
+    const hlsRef = useRef(null);
 
     const [isReady, setIsReady] = useState(false);
     const [hasError, setHasError] = useState(false);
@@ -38,167 +38,139 @@ export const useAudioPlayer = (waveformRef) => {
     }, []);
 
     useEffect(() => {
-        if (!currentTrack || !waveformRef.current) return;
+        if (!currentTrack) return;
 
+        const audio = audioElRef.current;
         setIsReady(false);
         setHasError(false);
         setCurrentTime(0);
         setDuration(0);
 
-        if (audioElRef.current) {
-            audioElRef.current.pause();
-            audioElRef.current.removeAttribute('src');
-            audioElRef.current.load();
-        }
-        if (wavesurferRef.current) {
-            wavesurferRef.current.destroy();
+        audio.pause();
+        audio.removeAttribute('src');
+        if (hlsRef.current) {
+            hlsRef.current.destroy();
+            hlsRef.current = null;
         }
 
         const relativeUrl = currentTrack.url.replace(/^https?:\/\/[^\/]+/, '');
-        const audio = new Audio();
         audio.crossOrigin = "anonymous";
-        audio.src = relativeUrl;
         audio.loop = stateRef.current.isLooping;
-        audioElRef.current = audio;
+        audio.volume = stateRef.current.volume;
+        audio.playbackRate = stateRef.current.playbackRate;
 
-        const ws = WaveSurfer.create({
-            container: waveformRef.current,
-            media: audio,
-            waveColor: 'rgba(91, 155, 213, 0.4)',
-            progressColor: '#0064d1',
-            cursorColor: '#1a1a1a',
-            barWidth: 2,
-            barGap: 2,
-            height: 40,
-            normalize: true,
-            interactivity: true,
-            dragToSeek: true,
-        });
-        wavesurferRef.current = ws;
+        // Ініціалізація HLS
+        if (relativeUrl.includes('.m3u8') && Hls.isSupported()) {
+            const hls = new Hls();
+            hlsRef.current = hls;
+            hls.loadSource(relativeUrl);
+            hls.attachMedia(audio);
 
-        ws.on('ready', () => {
-            setIsReady(true);
-            setHasError(false);
-            setDuration(ws.getDuration());
-
-            ws.setPlaybackRate(stateRef.current.playbackRate);
-            ws.setVolume(stateRef.current.volume);
-
-            const mediaEl = ws.getMediaElement();
-            if (mediaEl) mediaEl.loop = stateRef.current.isLooping;
-
-            try {
-                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-                if (saved && saved.track && saved.track.id === currentTrack.id && saved.time) {
-                    if (ws.getDuration() > 0 && Math.abs(ws.getDuration() - saved.time) < 0.2) {
-                        ws.setTime(0);
-                        setCurrentTime(0);
-                    } else {
-                        ws.setTime(saved.time);
-                        setCurrentTime(saved.time);
-                    }
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                setIsReady(true);
+                if (isPlaying) audio.play().catch(() => setIsPlaying(false));
+            });
+            hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
+                setDuration(data.details.totalduration);
+            });
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    setHasError(true);
+                    setIsReady(false);
                 }
-            } catch (e) { }
+            });
+        } else {
+            audio.src = relativeUrl;
+            audio.onloadedmetadata = () => {
+                setIsReady(true);
+                setDuration(audio.duration);
+                if (isPlaying) audio.play().catch(() => setIsPlaying(false));
+            };
+        }
 
-            if (isPlaying) ws.play().catch(() => setIsPlaying(false));
-        });
-
-        ws.on('play', () => {
+        // Обробники подій
+        const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+        const onPlay = () => {
             setIsPlaying(true);
             if (channelRef?.current) channelRef.current.postMessage('PAUSE_AUDIO');
-        });
-
-        ws.on('pause', () => {
+        };
+        const onPause = () => {
             setIsPlaying(false);
-            saveStateToStorage(ws.getCurrentTime());
-        });
+            saveStateToStorage(audio.currentTime);
+        };
+        const onEnded = () => setIsPlaying(false);
+        const onError = () => setHasError(true);
 
-        ws.on('finish', () => setIsPlaying(false));
-        ws.on('interaction', () => saveStateToStorage(ws.getCurrentTime()));
+        audio.addEventListener('timeupdate', onTimeUpdate);
+        audio.addEventListener('play', onPlay);
+        audio.addEventListener('pause', onPause);
+        audio.addEventListener('ended', onEnded);
+        audio.addEventListener('error', onError);
 
-        ws.on('error', () => {
-            setHasError(true);
-            setIsReady(false);
-        });
-
-        let lastSave = 0;
-        ws.on('timeupdate', (time) => {
-            setCurrentTime(time);
-            const now = Date.now();
-            if (now - lastSave > 1000) {
-                saveStateToStorage(time);
-                lastSave = now;
+        // Відновлення часу
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved && saved.track && saved.track.id === currentTrack.id && saved.time) {
+                audio.currentTime = saved.time;
+                setCurrentTime(saved.time);
             }
-        });
+        } catch (e) { }
 
         return () => {
-            if (wavesurferRef.current) {
-                wavesurferRef.current.pause();
-                saveStateToStorage(wavesurferRef.current.getCurrentTime());
-                wavesurferRef.current.destroy();
-                wavesurferRef.current = null;
+            audio.removeEventListener('timeupdate', onTimeUpdate);
+            audio.removeEventListener('play', onPlay);
+            audio.removeEventListener('pause', onPause);
+            audio.removeEventListener('ended', onEnded);
+            audio.removeEventListener('error', onError);
+            saveStateToStorage(audio.currentTime);
+            audio.pause();
+            if (hlsRef.current) {
+                hlsRef.current.destroy();
             }
-            if (audio) {
-                audio.pause();
-                audio.removeAttribute('src'); // Браузер забуває про файл
-                audio.load();                 // Очищує пам'ять
-            }
-            audioElRef.current = null;
         };
     }, [currentTrack]);
 
     useEffect(() => {
-        if (wavesurferRef.current && isReady) {
-            const ws = wavesurferRef.current;
-            if (isPlaying && !ws.isPlaying()) {
-                const isAtEnd = ws.getDuration() > 0 && Math.abs(ws.getDuration() - ws.getCurrentTime()) < 0.2;
-                if (isAtEnd) {
-                    ws.setTime(0);
-                }
-                ws.play().catch(() => setIsPlaying(false));
-            } else if (!isPlaying && ws.isPlaying()) {
-                ws.pause();
+        const audio = audioElRef.current;
+        if (isReady) {
+            if (isPlaying && audio.paused) {
+                audio.play().catch(() => setIsPlaying(false));
+            } else if (!isPlaying && !audio.paused) {
+                audio.pause();
             }
         }
     }, [isPlaying, isReady, setIsPlaying]);
 
-    const playPauseClick = () => {
-        if (wavesurferRef.current) wavesurferRef.current.playPause();
-    };
+    const playPauseClick = () => setIsPlaying(!isPlaying);
 
     const toggleSpeed = () => {
-        if (!wavesurferRef.current) return;
         const nextSpeed = playbackRate === 1 ? 1.5 : playbackRate === 1.5 ? 2 : 1;
         setPlaybackRate(nextSpeed);
         stateRef.current.playbackRate = nextSpeed;
-        wavesurferRef.current.setPlaybackRate(nextSpeed);
-        saveStateToStorage(wavesurferRef.current.getCurrentTime());
+        audioElRef.current.playbackRate = nextSpeed;
     };
 
     const toggleLoop = () => {
         const nextLoop = !isLooping;
         setIsLooping(nextLoop);
         stateRef.current.isLooping = nextLoop;
-
-        const mediaEl = wavesurferRef.current?.getMediaElement();
-        if (mediaEl) mediaEl.loop = nextLoop;
-
-        saveStateToStorage(wavesurferRef.current?.getCurrentTime() || 0);
+        audioElRef.current.loop = nextLoop;
     };
 
     const handleVolumeChange = (e) => {
         const newVolume = parseFloat(e.target.value);
         setVolume(newVolume);
         stateRef.current.volume = newVolume;
-        if (wavesurferRef.current) {
-            wavesurferRef.current.setVolume(newVolume);
-        }
-        saveStateToStorage(wavesurferRef.current?.getCurrentTime() || 0);
+        audioElRef.current.volume = newVolume;
+    };
+
+    const handleSeek = (time) => {
+        setCurrentTime(time);
+        audioElRef.current.currentTime = time;
     };
 
     const handleClose = () => {
-        if (wavesurferRef.current) wavesurferRef.current.pause();
-
+        audioElRef.current.pause();
         stateRef.current.currentTrack = null;
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
             speed: playbackRate,
@@ -213,6 +185,6 @@ export const useAudioPlayer = (waveformRef) => {
         isReady, hasError, currentTime, duration,
         playbackRate, isLooping, volume,
         playPauseClick, toggleSpeed, toggleLoop,
-        handleVolumeChange, handleClose
+        handleVolumeChange, handleSeek, handleClose
     };
 };
