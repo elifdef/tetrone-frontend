@@ -9,7 +9,7 @@ class AuthService {
     }
 
     async signIn(login, password) {
-        return await fetchClient('/sign-in', {
+        return await fetchClient('/auth/sign-in', {
             method: 'POST',
             body: { login, password }
         });

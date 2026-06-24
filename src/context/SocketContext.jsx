@@ -46,7 +46,20 @@ export const SocketProvider = ({ children }) => {
 
         setSocket(newSocket);
 
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                // Вкладка неактивна (перемкнули або згорнули браузер)
+                newSocket.disconnect();
+            } else if (document.visibilityState === 'visible') {
+                // Юзер повернувся на вкладку
+                newSocket.connect();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
             newSocket.disconnect();
         };
     }, []);

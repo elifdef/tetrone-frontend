@@ -2,11 +2,8 @@ import i18n from '../i18n';
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default async function fetchClient(endpoint, { method = 'GET', body, ...customConfig } = {}) {
-    const token = localStorage.getItem('token');
-
     const headers = {
         'Accept': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
     };
 
     if (!(body instanceof FormData)) {
@@ -16,8 +13,13 @@ export default async function fetchClient(endpoint, { method = 'GET', body, ...c
     const config = {
         method,
         headers: { ...headers, ...customConfig.headers },
+        credentials: 'include', // дозволяє браузеру надсилати HttpOnly куки
         ...customConfig
     };
+
+    // Витягуємо наш кастомний прапорець (і видаляємо його, щоб не передавати у fetch)
+    const skipAuthRedirect = config.skipAuthRedirect || false;
+    delete config.skipAuthRedirect;
 
     if (body && !(body instanceof FormData)) {
         config.body = JSON.stringify(body);
@@ -40,7 +42,8 @@ export default async function fetchClient(endpoint, { method = 'GET', body, ...c
         if (!response.ok) {
             const errorCode = data?.code || 'ERR_UNKNOWN';
 
-            if (response.status === 401 && errorCode !== 'ERR_INVALID_CREDENTIALS') {
+            // ДОДАНО: Перевіряємо skipAuthRedirect. Якщо він true, не викидаємо івент.
+            if (response.status === 401 && errorCode !== 'ERR_INVALID_CREDENTIALS' && !skipAuthRedirect) {
                 window.dispatchEvent(new CustomEvent('session-expired'));
                 return {
                     success: false,

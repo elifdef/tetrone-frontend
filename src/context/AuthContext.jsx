@@ -9,14 +9,20 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
     const [initError, setInitError] = useState(false);
+    const [checkSession, setCheckSession] = useState(true);
+
     const { t } = useTranslation();
     const navigate = useNavigate();
 
+    const logoutLocally = () => {
+        setUser(null);
+        setCheckSession(false);
+    };
+
     useEffect(() => {
-        if (!token) {
+        if (!checkSession) {
             setLoading(false);
             return;
         }
@@ -26,43 +32,31 @@ export const AuthProvider = ({ children }) => {
 
         const controller = new AbortController();
 
-        fetchClient('/me', { signal: controller.signal })
+        // skipAuthRedirect: true, щоб 401 не викидало на логін
+        fetchClient('/me', { signal: controller.signal, skipAuthRedirect: true })
             .then(res => {
                 if (controller.signal.aborted) return;
 
                 if (res.success) {
                     setUser(res.data);
                 } else {
-                    if (res.status === 401) {
-                        logoutLocally();
-                    } else {
-                        setInitError(true);
-                    }
+                    // Якщо 401, це просто гість. Ніякого редіректу.
+                    setUser(null);
+                    // Якщо це 500 або інша серверна помилка
+                    if (res.status !== 401) setInitError(true);
                 }
             })
             .catch(err => {
                 if (controller.signal.aborted) return;
-
-                if (err.status === 401) {
-                    logoutLocally();
-                } else {
-                    setInitError(true);
-                }
+                setUser(null);
+                if (err.status !== 401) setInitError(true);
             })
             .finally(() => {
-                if (!controller.signal.aborted) {
-                    setLoading(false);
-                }
+                if (!controller.signal.aborted) setLoading(false);
             });
 
         return () => controller.abort();
-    }, [token]);
-
-    const logoutLocally = () => {
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
-    };
+    }, [checkSession]);
 
     useEffect(() => {
         const handleSessionExpired = () => {
@@ -77,45 +71,6 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (!user) return;
-
-        let isOfflineSent = false;
-
-        const pingServer = () => {
-            if (document.visibilityState === 'visible') {
-                isOfflineSent = false;
-                fetchClient('/user/ping', { method: 'POST', body: { active: true } });
-            }
-        };
-
-        const sendOfflineStatus = () => {
-            if (isOfflineSent) return;
-            isOfflineSent = true;
-            fetchClient('/user/offline', { method: 'POST', keepalive: true });
-        };
-
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'hidden') {
-                sendOfflineStatus();
-            } else if (document.visibilityState === 'visible') {
-                pingServer();
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('beforeunload', sendOfflineStatus);
-
-        pingServer();
-        const interval = setInterval(pingServer, 60000);
-
-        return () => {
-            clearInterval(interval);
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('beforeunload', sendOfflineStatus);
-        };
-    }, [user]);
-
-    useEffect(() => {
-        if (!user) return;
         const channel = new BroadcastChannel('auth_channel');
         channel.onmessage = (event) => {
             if (event.data.type === 'EMAIL_VERIFIED') {
@@ -125,24 +80,23 @@ export const AuthProvider = ({ children }) => {
         return () => channel.close();
     }, [user]);
 
-    const login = (newToken, newUser) => {
-        localStorage.setItem('token', newToken);
+    const login = (newUser) => {
         if (!localStorage.getItem('lang')) {
             localStorage.setItem('lang', getSystemLanguage());
         }
         localStorage.setItem('dark_theme', 'true');
         setUser(newUser);
-        setToken(newToken);
         setInitError(false);
+        setCheckSession(false);
     };
 
     const logout = async () => {
-        await fetchClient('/sign-out', { method: 'POST' }).catch(() => { });
+        await fetchClient('/auth/sign-out', { method: 'POST' }).catch(() => { });
         logoutLocally();
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, token, login, logout, loading, initError, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, setUser, login, logout, loading, initError, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );
