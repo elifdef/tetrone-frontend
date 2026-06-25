@@ -46,21 +46,21 @@ class AuthService {
     }
 
     async verifyResetCode(email, code) {
-        return await fetchClient('/verify-reset-code', {
+        return await fetchClient('/email/verify-reset-code', {
             method: 'POST',
             body: { email, code }
         });
     }
 
     async forgotPassword(email) {
-        return await fetchClient('/forgot-password', {
+        return await fetchClient('/email/forgot-password', {
             method: 'POST',
             body: { email }
         });
     }
 
     async resetPassword(email, code, password, password_confirmation) {
-        return await fetchClient('/reset-password', {
+        return await fetchClient('/email/reset-password', {
             method: 'POST',
             body: { email, code, password, password_confirmation }
         });

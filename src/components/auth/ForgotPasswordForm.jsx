@@ -56,7 +56,7 @@ export default function ForgotPasswordForm() {
 
         if (res.success) {
             setSavedEmail(data.email);
-            setSuccessMsg(res.message || t('auth.code_sent_success'));
+            setSuccessMsg(t('auth.code_sent_success'));
             setStep(2);
             setTimeout(() => inputRefs.current[0]?.focus(), 100);
         } else {
@@ -147,7 +147,6 @@ export default function ForgotPasswordForm() {
     if (step === 4) {
         return (
             <div className="tetrone-auth-success-wrapper">
-                <div className="tetrone-auth-success-icon">✅</div>
                 <div className="tetrone-auth-msg success">
                     {t('auth.password_reset_success')}
                 </div>

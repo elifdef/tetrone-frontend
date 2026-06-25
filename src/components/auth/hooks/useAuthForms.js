@@ -15,21 +15,21 @@ export function useAuthForms() {
     const loginUser = async (loginParam, password) => {
         setLoading(true);
         setError(null);
-        
+
         try {
             const res = await AuthService.signIn(loginParam, password);
-            
+
             if (res.success) {
-                if (res.data?.token) {
-                    login(res.data.token, res.data.user);
-                    
+                if (res.data?.user) {
+                    login(res.data.user);
+
                     const from = location.state?.from?.pathname || '/';
                     navigate(from, { replace: true });
                 }
             } else {
                 setError(res.message || t('api.error.ERR_UNKNOWN'));
             }
-            
+
         } catch (err) {
             let errorMessage = err.message || t('api.error.ERR_UNKNOWN');
             if (typeof errorMessage === 'object') {

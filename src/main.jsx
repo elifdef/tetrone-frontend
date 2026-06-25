@@ -30,7 +30,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false, // Не робити запит, коли юзер згорнув/розгорнув браузер
-      staleTime: 1000 * 60 * 2,    // Дані вважаються "свіжими" 2 хвилини
+      staleTime: 1000 * 60,    // Дані вважаються "свіжими" 1 хвилину
     },
   },
 });
