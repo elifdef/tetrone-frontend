@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import notificationService from '../../services/notification.service';
+import notificationService from '../../services/notification.settings.service';
 import { notifySuccess, notifyError } from '../common/Notify';
 import Button from '../ui/Button';
 

@@ -62,19 +62,42 @@
     margin-top: 4px;
 }
 
+.tetrone-notification-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--theme-link);
+    margin-top: 15px;
+}
+
+.tetrone-notification-snippet-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.tetrone-notification-media img {
+    height: 64px;
+    object-fit: cover;
+    border: 1px solid var(--theme-border);
+}
+
 .tetrone-notification-snippet {
     color: var(--theme-text-muted);
     font-style: italic;
     margin-top: 5px;
     border-left: 2px solid var(--theme-border);
     padding-left: 8px;
+    max-height: 48px;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
 }
 
-.tetrone-notification-dot {
-    width: 8px;
-    height: 8px;
-    background-color: var(--theme-link);
-    margin-top: 15px;
+.tetrone-notification-richtext p {
+    margin: 0;
+    font-size: 11px;/
 }
 
 .tetrone-toast-container {
@@ -92,10 +115,11 @@
     border: 1px solid var(--theme-border);
     padding: 10px;
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: center;
+    gap: 12px;
     width: 250px;
     animation: slideInLeft 0.3s ease-out forwards;
+    min-width: 0;
 }
 
 .tetrone-toast-avatar {
@@ -120,6 +144,8 @@
     flex-direction: column;
     font-size: 11px;
     line-height: 1.3;
+    flex: 1;
+    min-width: 0;
 }
 
 .tetrone-toast-name {
@@ -129,12 +155,21 @@
 
 .tetrone-toast-text {
     color: var(--theme-text-main);
+    white-space: normal;
+    word-break: break-word;
 }
 
 .tetrone-toast-snippet {
     color: #777;
     font-style: italic;
     margin-top: 3px;
+    max-height: 48px;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    white-space: normal;
+    word-break: break-word;
 }
 
 .tetrone-toast-wrapper {
@@ -149,4 +184,46 @@
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+/* Контейнер, який об'єднує текст і картинку */
+.tetrone-notification-snippet-container {
+    display: flex;
+    align-items: flex-start;
+    /* Вирівнювання по верхньому краю */
+    gap: 12px;
+    margin-top: 6px;
+    /* Додали трохи відступу зверху */
+}
+
+/* Сам сніпет (текст у лапках) */
+.tetrone-notification-snippet {
+    color: var(--theme-text-muted);
+    font-style: italic;
+    border-left: 2px solid var(--theme-border);
+    padding-left: 8px;
+    max-height: 48px;
+    overflow: hidden;
+    position: relative;
+    /* Видаляємо марджин зверху, бо він вже є у контейнері */
+    margin-top: 0;
+    flex: 1;
+    /* Дозволяємо тексту займати вільне місце */
+}
+
+/* Картинка (прев'ю) */
+.tetrone-notification-media {
+    flex-shrink: 0;
+    /* Забороняємо картинці стискатися */
+}
+
+.tetrone-notification-media img {
+    height: 48px;
+    /* Робимо картинку одного розміру з висотою сніпету для симетрії */
+    width: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+    /* Додаємо невеликі скруглення для естетики */
+    border: 1px solid var(--theme-border);
+    display: block;
 }

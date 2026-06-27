@@ -1,25 +1,17 @@
 import fetchClient from "../api/client";
 
-class NotificationSettingsService {
-    async getSettings() {
-        return await fetchClient('/settings/notifications');
+class NotificationService {
+    async read(id) {
+        return await fetchClient(`/notifications/${id}/read`, { method: 'POST' });;
     }
 
-    async updateSettings(formData) {
-        return await fetchClient('/settings/notifications', { method: 'POST', body: formData });
+    async readAll() {
+        return await fetchClient('/notifications', { method: 'POST' });
     }
 
-    async getOverrides() {
-        return await fetchClient('/settings/notifications/overrides');
-    }
-
-    async updateOverride(targetUserId, data) {
-        return await fetchClient(`/settings/notifications/overrides/${targetUserId}`, { method: 'PUT', body: data });
-    }
-
-    async deleteOverride(targetUserId) {
-        return await fetchClient(`/settings/notifications/overrides/${targetUserId}`, { method: 'DELETE' });
+    async deleteAll() {
+        return await fetchClient('/notifications', { method: 'DELETE' });
     }
 }
 
-export default new NotificationSettingsService();
+export default new NotificationService();

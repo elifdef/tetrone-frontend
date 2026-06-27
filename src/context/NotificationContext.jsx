@@ -3,7 +3,7 @@ import { AuthContext } from './AuthContext';
 import { useSocket } from './SocketContext';
 import fetchClient from '../api/client';
 import Notification from '../components/common/Notification';
-import { audioManager } from '../utils/audioManager';
+import NotificationService from '../services/notification.service';
 
 export const NotificationContext = createContext();
 
@@ -40,46 +40,48 @@ export const NotificationProvider = ({ children }) => {
     }, [fetchInitialData]);
 
     useEffect(() => {
-        // Якщо сокет ще не підключився або юзера немає - чекаємо
         if (!socket || !user) return;
 
         const handleNotification = (notification) => {
             const toastId = Date.now();
-            const isNewMessage = notification.type === 'new_message' || notification.type?.includes('NewMessage');
-            const shouldShowToast = notification.show_toast !== false;
+
+            const payload = notification.data || {};
+            const type = payload.type || notification.type;
+            const target = payload.target || {};
+
+            const isNewMessage = type === 'new_message';
+            const shouldShowToast = notification.show_toast !== false && payload.show_toast !== false;
 
             // 1. Логіка для нових повідомлень у чаті
             if (isNewMessage) {
                 setIncomingMessage(notification);
                 const currentParams = new URLSearchParams(window.location.search);
 
-                // Не показуємо тост і не плюсуємо лічильник якщо юзер вже відкрив цей чат
-                if (currentParams.get('dm') === notification.chat_slug) return;
+                if (currentParams.get('dm') === target.target_id) return;
 
                 setUnreadMessagesCount(prev => prev + 1);
 
                 if (shouldShowToast) {
-                    if (notification.sound && notification.sound !== 'none') {
-                        audioManager.playMessageSound(notification.sound);
-                    }
                     setActiveToasts(prev => [...prev, { ...notification, toastId }].slice(-3));
                 }
                 return;
             }
 
             // 2. Звичайні сповіщення (лайки, друзі і т.д.)
-            const { id, type, ...customData } = notification;
+            const { id, read_at, created_at, ...customData } = notification;
+
             const normalizedNotif = {
-                id, type, read_at: null, created_at: new Date().toISOString(), data: customData
+                id: id || Date.now(),
+                type: type,
+                read_at: null,
+                created_at: created_at || new Date().toISOString(),
+                data: customData.data || customData
             };
 
             setNotifications(prev => [normalizedNotif, ...prev]);
             setUnreadCount(prev => prev + 1);
 
             if (shouldShowToast) {
-                if (notification.sound && notification.sound !== 'none') {
-                    audioManager.playMessageSound(notification.sound);
-                }
                 setActiveToasts(prev => [...prev, { ...notification, toastId }].slice(-3));
             }
         };
@@ -92,7 +94,6 @@ export const NotificationProvider = ({ children }) => {
             });
         };
 
-        // ПІДПИСУЄМОСЯ НА ПОДІЇ
         socket.on('notification', handleNotification);
         socket.on('message_deleted', handleMessageDeleted);
 
@@ -103,10 +104,36 @@ export const NotificationProvider = ({ children }) => {
     }, [socket, user]);
 
     const markAsRead = async (id) => {
-        const res = await fetchClient(`/notifications/${id}/read`, { method: 'POST' });
+        const res = await NotificationService.read(id)
         if (res.success) {
             setUnreadCount(prev => Math.max(0, prev - 1));
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
+        }
+    };
+
+    // Зробити всі прочитаними
+    const readAllNotifications = async () => {
+        try {
+            await NotificationService.readAll();
+
+            setNotifications(prev => prev.map(notif => ({
+                ...notif,
+                read_at: notif.read_at || new Date().toISOString()
+            })));
+            setUnreadCount(0);
+        } catch (error) {
+            console.error("Failed to read all notifications", error);
+        }
+    };
+
+    // Очистити всі сповіщення
+    const deleteAllNotifications = async () => {
+        try {
+            await NotificationService.deleteAll();
+            setNotifications([]);
+            setUnreadCount(0);
+        } catch (error) {
+            console.error("Failed to delete all notifications", error);
         }
     };
 
@@ -115,7 +142,7 @@ export const NotificationProvider = ({ children }) => {
     return (
         <NotificationContext.Provider value={{
             notifications, unreadCount, markAsRead, unreadMessagesCount, setUnreadMessagesCount,
-            incomingMessage
+            incomingMessage, readAllNotifications, deleteAllNotifications
         }}>
             {children}
             <div className="tetrone-toast-container">

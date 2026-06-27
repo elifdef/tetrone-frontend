@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNotificationText } from '../../hooks/useNotificationText';
-import { extractPreviewText } from '../../utils/editorHelpers';
+import { useNotificationConfig } from '../../hooks/useNotificationConfig';
 import ShieldIcon from '../../assets/shield.svg?react';
-import RichText from './RichText';
 import Avatar from '../ui/Avatar';
+import RichText from './RichText';
 
-const NotificationAvatar = ({ src, isSystem }) => {
+const NotificationAvatar = ({ user, isSystem }) => {
     if (isSystem) {
         return (
             <div className="tetrone-toast-avatar system-toast-avatar">
@@ -17,29 +16,13 @@ const NotificationAvatar = ({ src, isSystem }) => {
 
     return (
         <Avatar
-            src={src}
+            user={user}
             className="tetrone-toast-avatar toast-avatar-img"
         />
     );
 };
 
-const NotificationContent = ({ name, text, snippet, t }) => {
-    let renderedSnippet = null;
-
-    if (snippet) {
-        if (typeof snippet === 'object') {
-            renderedSnippet = (
-                <div className="tetrone-toast-richtext-wrapper">
-                    <RichText text={snippet} />
-                </div>
-            );
-        } else if (typeof snippet === 'string') {
-            if (snippet === 'POLL') renderedSnippet = `📊 ${t('common.poll')}`;
-            else if (snippet === 'ATTACHMENT') renderedSnippet = `📎 ${t('post.attachment')}`;
-            else renderedSnippet = `"${snippet}"`;
-        }
-    }
-
+const NotificationContent = ({ name, text, snippet }) => {
     return (
         <div className="tetrone-toast-content">
             <span className="tetrone-toast-name">
@@ -48,17 +31,20 @@ const NotificationContent = ({ name, text, snippet, t }) => {
             <span className="tetrone-toast-text">
                 {text}
             </span>
-            {renderedSnippet && (
-                <span className="tetrone-toast-snippet">
-                    {renderedSnippet}
-                </span>
+            {snippet && (
+                <div className="tetrone-toast-snippet">
+                    {typeof snippet === 'object' ? (
+                        <RichText text={snippet} className="tetrone-notification-richtext" />
+                    ) : (
+                        <span>"{snippet}"</span>
+                    )}
+                </div>
             )}
         </div>
     );
 };
-
 export default function Notification({ notification, onClose }) {
-    const { getNotificationData } = useNotificationText();
+    const { getConfig } = useNotificationConfig();
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -66,40 +52,25 @@ export default function Notification({ notification, onClose }) {
         return () => clearTimeout(timer);
     }, [onClose]);
 
-    // 1. Беремо оригінальні дані
-    const originalPayload = notification.data || notification;
+    const payload = notification.data || notification;
+    const type = payload.type || notification.type;
+    const actor = payload.actor || {};
+    const target = payload.target || {};
 
-    // 2. Парсимо текст повідомлення
-    let parsedMessageText = originalPayload.message_text
-        ? extractPreviewText(originalPayload.message_text, t)
-        : null;
-
-    // 3. Якщо тексту немає, але є файл — ставимо маркер прикріплення
-    if (originalPayload.file_type) {
-        parsedMessageText = 'ATTACHMENT';
-    }
-
-    // 4. Створюємо безпечні об'єкти без сирого JSON
-    const safePayload = { ...originalPayload, message_text: parsedMessageText };
-    const safeNotification = { ...notification, data: safePayload, message_text: parsedMessageText };
-
-    // 5. Отримуємо переклади
-    const { actionText, linkText } = getNotificationData(safeNotification.type, safeNotification);
-    const fullText = `${actionText} ${linkText || ''}`.trim();
-
-    const isSystem = safeNotification.type?.includes('ReportReviewed') || safePayload.type === 'report_reviewed';
+    const isSystem = actor.id === 0;
 
     const senderName = isSystem
         ? t('common.moderation')
-        : `${safeNotification.user_first_name || ''} ${safeNotification.user_last_name || ''}`.trim();
+        : `${actor.first_name || ''} ${actor.last_name || ''}`.trim();
 
-    // 6. Формуємо сніпет
-    const snippetText = safePayload.admin_response || safePayload.post_snippet || parsedMessageText;
+    const { actionText, linkText, snippetText } = getConfig(type, actor, target);
+
+    const fullText = `${actionText} ${linkText || ''}`.trim();
 
     return (
         <div className="tetrone-toast">
             <NotificationAvatar
-                src={safeNotification.user_avatar}
+                user={actor}
                 isSystem={isSystem}
             />
 
@@ -107,7 +78,6 @@ export default function Notification({ notification, onClose }) {
                 name={senderName}
                 text={fullText}
                 snippet={snippetText}
-                t={t}
             />
         </div>
     );

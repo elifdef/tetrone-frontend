@@ -55,12 +55,10 @@ const MentionList = forwardRef((props, ref) => {
                             key={index}
                             onClick={() => selectItem(index)}
                         >
-                            {item.avatar && (
-                                <Avatar
-                                    user={item}
-                                    className="tetrone-mention-avatar"
-                                />
-                            )}
+                            <Avatar
+                                user={item}
+                                className="tetrone-mention-avatar"
+                            />
                             <div className="tetrone-mention-info">
                                 <span className="tetrone-mention-name">{fullName}</span>
                                 <span className="tetrone-mention-username">@{item.username}</span>

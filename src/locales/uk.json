@@ -863,7 +863,22 @@
     "mentioned_male": "згадав вас",
     "mentioned_female": "згадала вас",
     "in_comment": "у коментарі.",
-    "in_post": "у пості."
+    "in_post": "у пості.",
+    "left_video_male": "залишив відео на вашій стіні",
+    "left_video_female": "залишила відео на вашій стіні",
+    "left_image_male": "залишив фотографію на вашій стіні",
+    "left_image_female": "залишила фотографію на вашій стіні",
+    "left_audio_male": "залишив аудіозапис на вашій стіні",
+    "left_audio_female": "залишила аудіозапис на вашій стіні",
+    "left_poll_male": "залишив опитування",
+    "left_poll_female": "залишила опитування",
+    "left_file_male": "залишив файл на вашій стіні",
+    "left_file_female": "залишила файл на вашій стіні",
+    "left_post_male": "залишив запис на вашій стіні",
+    "left_post_female": "залишила запис на вашій стіні",
+    "confirm_delete_all": "Ви дійсно хочете видалити всі сповіщення?",
+    "read_all": "Прочитати всі",
+    "delete_all": "Очистити всі"
   },
   "activity": {
     "likes": {
