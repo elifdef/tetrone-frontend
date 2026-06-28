@@ -29,6 +29,8 @@ export const useGender = (genderValue) => {
             left_poll: t('notifications.left_poll_male'),
             left_file: t('notifications.left_file_male'),
             left_post: t('notifications.left_post_male'),
+            reacted: t('gender.male.reacted'),
+            accepted_friend: t('gender.male.accepted_friend'),
         },
         2: {
             gender: t('common.female'),
@@ -51,6 +53,8 @@ export const useGender = (genderValue) => {
             left_poll: t('notifications.left_poll_female'),
             left_file: t('notifications.left_file_female'),
             left_post: t('notifications.left_post_female'),
+            reacted: t('gender.female.reacted'),
+            accepted_friend: t('gender.female.accepted_friend'),
         }
     });
 

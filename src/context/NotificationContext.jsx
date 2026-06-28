@@ -42,47 +42,41 @@ export const NotificationProvider = ({ children }) => {
     useEffect(() => {
         if (!socket || !user) return;
 
-        const handleNotification = (notification) => {
+        const handleNotification = (payload) => {
             const toastId = Date.now();
-
-            const payload = notification.data || {};
-            const type = payload.type || notification.type;
-            const target = payload.target || {};
-
+            const type = payload.type;
             const isNewMessage = type === 'new_message';
-            const shouldShowToast = notification.show_toast !== false && payload.show_toast !== false;
+            const shouldShowToast = payload.show_toast !== false;
 
-            // 1. Логіка для нових повідомлень у чаті
             if (isNewMessage) {
-                setIncomingMessage(notification);
+                setIncomingMessage(payload);
                 const currentParams = new URLSearchParams(window.location.search);
 
-                if (currentParams.get('dm') === target.target_id) return;
+                if (currentParams.get('dm') === payload.target?.target_id) return;
 
                 setUnreadMessagesCount(prev => prev + 1);
 
                 if (shouldShowToast) {
-                    setActiveToasts(prev => [...prev, { ...notification, toastId }].slice(-3));
+                    setActiveToasts(prev => [...prev, { ...payload, toastId }].slice(-3));
                 }
                 return;
             }
 
-            // 2. Звичайні сповіщення (лайки, друзі і т.д.)
-            const { id, read_at, created_at, ...customData } = notification;
+            const { id, read_at, created_at, ...customData } = payload;
 
             const normalizedNotif = {
                 id: id || Date.now(),
                 type: type,
                 read_at: null,
                 created_at: created_at || new Date().toISOString(),
-                data: customData.data || customData
+                data: payload
             };
 
             setNotifications(prev => [normalizedNotif, ...prev]);
             setUnreadCount(prev => prev + 1);
 
             if (shouldShowToast) {
-                setActiveToasts(prev => [...prev, { ...notification, toastId }].slice(-3));
+                setActiveToasts(prev => [...prev, { ...normalizedNotif, toastId }].slice(-3));
             }
         };
 
@@ -111,7 +105,6 @@ export const NotificationProvider = ({ children }) => {
         }
     };
 
-    // Зробити всі прочитаними
     const readAllNotifications = async () => {
         try {
             await NotificationService.readAll();
@@ -126,7 +119,6 @@ export const NotificationProvider = ({ children }) => {
         }
     };
 
-    // Очистити всі сповіщення
     const deleteAllNotifications = async () => {
         try {
             await NotificationService.deleteAll();
