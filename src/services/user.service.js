@@ -1,10 +1,6 @@
 import fetchClient from "../api/client";
 
 class UserService {
-    async getProfile(username) {
-        return await fetchClient(`/users/${username}`);
-    }
-
     async updateProfile(username, data) {
         return await fetchClient(`/users/${username}`, {
             method: 'POST',

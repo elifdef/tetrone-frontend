@@ -25,6 +25,7 @@ import "./styles/profile-modern.css";
 import "./styles/settings.css";
 import "./styles/ui.css";
 import "./styles/video.css";
+import "./styles/space.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {

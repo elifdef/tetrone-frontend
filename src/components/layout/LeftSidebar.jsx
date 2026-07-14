@@ -113,6 +113,10 @@ const LeftSidebar = () => {
                                 </Link>
                             )}
 
+                            <Link to="/spaces" className={getLinkClass("/spaces")} onClick={closeMenu}>
+                                {t('common.spaces')}
+                            </Link>
+
                             <Link to="/settings" className={getLinkClass("/settings")} onClick={closeMenu}>
                                 {t('common.settings')}
                             </Link>

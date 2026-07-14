@@ -2,7 +2,7 @@ import fetchClient from '../api/client';
 
 class AuthService {
     async signUp(formData) {
-        return await fetchClient('/sign-up', {
+        return await fetchClient('/auth/sign-up', {
             method: 'POST',
             body: formData
         });

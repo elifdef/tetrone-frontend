@@ -8,7 +8,7 @@ import PollCreatorModal from '../modals/PollCreatorModal';
 import { PollIcon } from '../ui/Icons';
 import Button from '../ui/Button';
 
-export default function CreatePostForm({ onSubmitSuccess }) {
+export default function CreatePostForm({ onSubmitSuccess, spaceId = null}) {
     const { t } = useTranslation();
 
     const {
@@ -20,7 +20,7 @@ export default function CreatePostForm({ onSubmitSuccess }) {
         files, previews, isDragging,
         handleDragOver, handleDragLeave, handleDrop,
         handleFileSelect, handlePaste, removeFile
-    } = useCreatePost(onSubmitSuccess);
+    } = useCreatePost(onSubmitSuccess, spaceId);
 
     return (
         <div

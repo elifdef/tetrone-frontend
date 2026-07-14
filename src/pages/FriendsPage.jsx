@@ -1,4 +1,5 @@
 import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 import FriendCard from "../components/friends/FriendCard";
 import { useFriendsLogic } from "../components/friends/hooks/useFriendsLogic";
 
@@ -31,7 +32,7 @@ export default function FriendsPage() {
                 ))}
             </div>
 
-            <div className="tetrone-friends-search-wrapper">
+            <div className="tetrone-search-wrapper">
                 <Input
                     placeholder={activeTab === 'all' ? t('friends.search_people') : t('friends.list_filter')}
                     value={searchQuery}
@@ -40,9 +41,9 @@ export default function FriendsPage() {
                     className="tetrone-form-input"
                 />
                 {activeTab === 'all' && (
-                    <button className="tetrone-friends-search-btn" onClick={handleSearchSubmit}>
+                    <Button onClick={handleSearchSubmit}>
                         {t('action.find')}
-                    </button>
+                    </Button>
                 )}
             </div>
 

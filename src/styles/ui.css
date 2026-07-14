@@ -457,6 +457,22 @@ input:-webkit-autofill:active {
     opacity: 0.85;
 }
 
+.tetrone-search-wrapper {
+    background-color: var(--theme-bg-box);
+    padding: 10px;
+    border: 1px solid var(--theme-border);
+    display: flex;
+    gap: 10px;
+}
+
+[data-theme="light"] .tetrone-search-wrapper {
+    background-color: #F7F7F7;
+}
+
+.tetrone-form-group-wrapper {
+    width: 100%;
+}
+
 @media (max-width: 480px) {
     .tetrone-btn-dropdown-trigger {
         padding: 12px;

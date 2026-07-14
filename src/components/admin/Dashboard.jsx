@@ -18,7 +18,6 @@ export default function AdminDashboard() {
     const fetchStats = useCallback(async () => {
         setLoading(true);
         const res = await AdminService.getDashboardStats();
-        console.log(res.data);
 
 
         if (res.success) {

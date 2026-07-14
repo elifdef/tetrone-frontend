@@ -51,11 +51,9 @@ export const NotificationProvider = ({ children }) => {
             if (isNewMessage) {
                 setIncomingMessage(payload);
                 const currentParams = new URLSearchParams(window.location.search);
-
                 if (currentParams.get('dm') === payload.target?.target_id) return;
 
                 setUnreadMessagesCount(prev => prev + 1);
-
                 if (shouldShowToast) {
                     setActiveToasts(prev => [...prev, { ...payload, toastId }].slice(-3));
                 }
@@ -63,7 +61,6 @@ export const NotificationProvider = ({ children }) => {
             }
 
             const { id, read_at, created_at, ...customData } = payload;
-
             const normalizedNotif = {
                 id: id || Date.now(),
                 type: type,
@@ -108,7 +105,6 @@ export const NotificationProvider = ({ children }) => {
     const readAllNotifications = async () => {
         try {
             await NotificationService.readAll();
-
             setNotifications(prev => prev.map(notif => ({
                 ...notif,
                 read_at: notif.read_at || new Date().toISOString()

@@ -25,6 +25,9 @@ import MessagesPage from "../pages/MessagesPage";
 import StickerShopPage from '../pages/StickerShopPage';
 import AdminPage from '../pages/AdminPage';
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import SpacePage from "../pages/SpacePage";
+import EntityResolverPage from "../pages/EntityResolverPage";
+import SpacesPage from "../pages/SpacesPage";
 export default function AppRoutes() {
     const { user } = useContext(AuthContext);
 
@@ -44,7 +47,7 @@ export default function AppRoutes() {
             </Route>
 
             <Route element={<MainLayout />}>
-            
+
                 <Route path="/post/:id" element={<PostPage />} />
                 {/* правила */}
                 <Route path="/rules" element={<RulesPage />} />
@@ -60,6 +63,7 @@ export default function AppRoutes() {
                     <Route path="/activity" element={<ActivityPage />} />
                     <Route path="/stickers-shop" element={<StickerShopPage />} />
                     <Route path="/support" element={<SupportPage />} />
+                    <Route path="/spaces" element={<SpacesPage />} />
 
                     <Route path="/support-panel" element={
                         <RoleGuard allowedRoles={[userRole.Support]}>
@@ -86,7 +90,7 @@ export default function AppRoutes() {
                     } />
                 </Route>
 
-                <Route path="/:username" element={<ProfilePage />} />
+                <Route path="/:handle" element={<EntityResolverPage />} />
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

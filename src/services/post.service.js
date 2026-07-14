@@ -4,6 +4,7 @@ class PostService {
     async create(data) {
         const formData = new FormData();
 
+        // 1. Payload (текст, опитування, youtube)
         if (data.payload) {
             if (data.payload.text) {
                 formData.append('payload[text]', typeof data.payload.text === 'object' ? JSON.stringify(data.payload.text) : data.payload.text);
@@ -16,9 +17,19 @@ class PostService {
             }
         }
 
+        // 2. ДОДАЄМО ВІДСУТНІ ПОЛЯ
+        if (data.payload && data.payload.space_id) {
+            formData.append('space_id', data.payload.space_id);
+        }
+        if (data.payload && data.payload.is_posted_as_space) {
+            formData.append('is_posted_as_space', data.payload.is_posted_as_space ? '1' : '0');
+        }
+
+        // 3. Інші системні поля
         if (data.target_user_id) formData.append('target_user_id', data.target_user_id);
         if (data.original_post_id) formData.append('original_post_id', data.original_post_id);
 
+        // 4. Файли
         if (data.images && data.images.length > 0) {
             data.images.forEach((file, index) => formData.append(`media[${index}]`, file));
         }

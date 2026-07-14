@@ -29,34 +29,6 @@
     color: #36638E;
 }
 
-.tetrone-friends-search-wrapper {
-    background-color: var(--theme-bg-box);
-    padding: 10px;
-    border: 1px solid var(--theme-border);
-    margin-bottom: 15px;
-    display: flex;
-    align-items: end;
-    gap: 10px;
-}
-
-[data-theme="light"] .tetrone-friends-search-wrapper {
-    background-color: #F7F7F7;
-}
-
-.tetrone-friends-search-btn {
-    background: var(--theme-btn-bg);
-    border: 2px solid var(--theme-border);
-    color: #fff;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 4px 10px;
-    cursor: pointer;
-}
-
-.tetrone-friends-search-btn:hover {
-    background: var(--theme-btn-hover);
-}
-
 .tetrone-friends-list {
     display: flex;
     flex-direction: column;

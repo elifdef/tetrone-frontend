@@ -5,7 +5,7 @@ import { usePostMedia } from "./usePostMedia";
 import { usePostForm } from "./usePostForm";
 import { isEditorEmpty } from "../../../utils/editorHelpers";
 
-export const useCreatePost = (onSubmitSuccess) => {
+export const useCreatePost = (onSubmitSuccess, spaceId = null) => {
     const { t } = useTranslation();
     const [content, setContent] = useState('');
     const [removedPreviews, setRemovedPreviews] = useState([]);
@@ -31,6 +31,7 @@ export const useCreatePost = (onSubmitSuccess) => {
         if (!emptyEditor) payload.text = content;
         if (pollData) payload.poll = pollData;
         if (removedPreviews.length > 0) payload.youtube = { removed_previews: removedPreviews };
+        if (spaceId) payload.space_id = spaceId;
 
         const success = await onSubmitSuccess(payload, formTools.files);
 
