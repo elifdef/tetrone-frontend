@@ -13,7 +13,7 @@ export default async function fetchClient(endpoint, { method = 'GET', body, ...c
     const config = {
         method,
         headers: { ...headers, ...customConfig.headers },
-        credentials: 'include', // дозволяє браузеру надсилати HttpOnly куки
+        credentials: 'include',
         ...customConfig
     };
 

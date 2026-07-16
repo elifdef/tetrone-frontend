@@ -1,52 +1,88 @@
-class AudioManager {
-    constructor() {
-        this.messageSound = new Audio();
-        this.messageSound.volume = 1;
+class AudioManager
+{
+    constructor()
+    {
+        this.audio = new Audio();
+        this.audio.volume = 1;
         this.isUnlocked = false;
         this.playTimeout = null;
     }
 
-    unlock() {
-        if (this.isUnlocked) return;
-        this.messageSound.src = '/sounds/faaah.mp3';
-        this.messageSound.play().then(() => {
-            this.messageSound.pause();
-            this.messageSound.currentTime = 0;
-            this.isUnlocked = true;
-        }).catch(err => {
-            // console.warn('Аудіо ще заблоковано:', err);
-        });
-    }
-
-    playMessageSound(customUrl = null) {
-        if (customUrl === 'none') return;
-
-        if (customUrl && typeof customUrl !== 'string') {
-            // console.warn("audioManager отримав не рядок, а:", customUrl);
+    unlock()
+    {
+        if (this.isUnlocked)
+        {
             return;
         }
 
-        let urlToPlay = customUrl ? customUrl : '/sounds/faaah.mp3';
+        // 1. М'ютимо звук, щоб юзер абсолютно нічого не почув під час розблокування
+        this.audio.muted = true;
 
-        if (!urlToPlay.startsWith('http') && !urlToPlay.startsWith('/') && !urlToPlay.startsWith('blob:')) {
-            urlToPlay = `/sounds/${urlToPlay}`;
-        }
+        // Використовуємо існуючий файл для "холостого" запуску
+        this.audio.src = '/sounds/notification_sound_1.mp3';
 
-        if (!this.messageSound.src.endsWith(urlToPlay)) {
-            this.messageSound.src = urlToPlay;
-        }
+        this.audio.play().then(() =>
+        {
+            this.audio.pause();
+            this.audio.currentTime = 0;
 
-        this.messageSound.pause();
-        this.messageSound.currentTime = 0;
-
-        this.messageSound.play().then(() => {
-            if (this.playTimeout) clearTimeout(this.playTimeout);
-            this.playTimeout = setTimeout(() => {
-                this.messageSound.pause();
-                this.messageSound.currentTime = 0;
-            }, 5000); // 5000 мілісекунд = 5 секунд
-        }).catch(e => {//console.warn('Автоплей аудіо заблоковано:', e)
+            // 2. Повертаємо звук назад для майбутніх реальних сповіщень
+            this.audio.muted = false;
+            this.isUnlocked = true;
+        }).catch(err =>
+        {
+            // Якщо сталася помилка (наприклад, кліку ще не було),
+            // обов'язково знімаємо м'ют, щоб наступна спроба спрацювала
+            this.audio.muted = false;
         });
+    }
+
+    play(soundId)
+    {
+        // Додано soundId === 0, бо ти казав, що 0 - це "без звуку"
+        if (!soundId || soundId === 'none' || soundId === 0)
+        {
+            return;
+        }
+
+        // ЗУПИНЯЄМО попередній звук
+        this.audio.pause();
+        this.audio.currentTime = 0;
+        if (this.playTimeout)
+        {
+            clearTimeout(this.playTimeout);
+        }
+
+        // ВМИКАЄМО новий
+        // ВАЖЛИВО: слово /public/ в URL не пишеться! React бере файли з public напряму.
+        // Я додав підкреслення _, якщо в тебе файли називаються notification_sound_1.mp3
+        this.audio.src = `/sounds/notification_sound_${soundId}.mp3`;
+
+        // На всякий випадок переконуємося, що звук не вимкнений
+        this.audio.muted = false;
+
+        this.audio.play().then(() =>
+        {
+            // Ставимо запобіжник: через 5 секунд жорстко вимикаємо
+            this.playTimeout = setTimeout(() =>
+            {
+                this.audio.pause();
+                this.audio.currentTime = 0;
+            }, 5000);
+        }).catch(e =>
+        {
+            // console.warn('Автоплей заблоковано:', e);
+        });
+    }
+
+    stop()
+    {
+        this.audio.pause();
+        this.audio.currentTime = 0;
+        if (this.playTimeout)
+        {
+            clearTimeout(this.playTimeout);
+        }
     }
 }
 

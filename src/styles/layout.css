@@ -361,6 +361,78 @@
     display: none;
 }
 
+.tetrone-cookie-card {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--theme-bg-box);
+    box-shadow: inset 0px 1px 0px #bbb, inset 0px 2px 0px #ddd;
+    z-index: 2048;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 12px 5%;
+    box-sizing: border-box;
+}
+
+.tetrone-cookie-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.tetrone-cookie-text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--theme-text-main);
+    flex-grow: 1;
+    text-align: left;
+}
+
+.tetrone-cookie-actions {
+    width: auto;
+    flex-shrink: 0;
+}
+
+.tetrone-cookie-actions button {
+    width: auto;
+    white-space: nowrap;
+    padding: 8px 24px;
+}
+
+@media (max-width: 768px) {
+    .tetrone-cookie-card {
+        padding: 15px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .tetrone-cookie-img {
+        display: none;
+    }
+
+    .tetrone-cookie-text {
+        font-size: 13px;
+        text-align: center;
+        width: 100%;
+    }
+
+    .tetrone-cookie-actions {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .tetrone-cookie-actions button {
+        width: 100%;
+    }
+}
+
 @media (max-width: 768px) {
     .tetrone-sidebar-profile {
         display: flex;
