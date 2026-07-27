@@ -5,7 +5,8 @@ import { notifyError, notifySuccess } from "../../common/Notify";
 import { useModal } from "../../../context/ModalContext";
 import PostService from '../../../services/post.service';
 
-export const useUserWall = (profileUser) => {
+export const useUserWall = (profileUser) =>
+{
     const { t } = useTranslation();
     const { openConfirm } = useModal();
     const queryClient = useQueryClient();
@@ -15,87 +16,143 @@ export const useUserWall = (profileUser) => {
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey,
         queryFn: ({ pageParam = 1 }) => PostService.getUserPosts(profileUser?.username, pageParam),
-        getNextPageParam: (lastPage) => {
-            const meta = lastPage?.meta || lastPage?.data?.meta;
+        getNextPageParam: (lastPage) =>
+        {
+            // Новий fetchClient кладе meta прямо в корінь
+            const meta = lastPage?.meta;
             return meta && meta.current_page < meta.last_page ? meta.current_page + 1 : undefined;
         },
+        initialPageParam: 1, // React Query v5 вимагає це поле
         enabled: !!profileUser?.username
     });
 
-    const posts = data?.pages.flatMap(page => page.data?.data || page.data || []) || [];
-    const firstPageMeta = data?.pages[0]?.meta || data?.pages[0]?.data?.meta;
-    const countPosts = firstPageMeta?.total || 0;
+    // Витягуємо пости з кожної сторінки
+    const posts = data?.pages.flatMap(page => page.posts || []) || [];
+    const countPosts = data?.pages[0]?.meta?.total || 0;
 
     const createMutation = useMutation({
         mutationFn: ({ payload, images }) => PostService.create({ payload, images, target_user_id: profileUser.id }),
-        onSuccess: (res) => {
-            if (res.success) {
-                queryClient.setQueryData(queryKey, (oldData) => {
-                    if (!oldData) return oldData;
+        onSuccess: (res) =>
+        {
+            if (res.success)
+            {
+                queryClient.setQueryData(queryKey, (oldData) =>
+                {
+                    if (!oldData)
+                    {
+                        return oldData;
+                    }
                     const newPages = [...oldData.pages];
-                    if (newPages.length > 0) newPages[0] = { ...newPages[0], data: [res.data, ...newPages[0].data] };
+                    // Новий fetchClient дістане post з відповіді бекенда { code: 'POST_CREATED', post: {...} }
+                    const createdPost = res.post || res.data;
+
+                    if (newPages.length > 0 && createdPost)
+                    {
+                        newPages[0] = { ...newPages[0], posts: [createdPost, ...(newPages[0].posts || [])] };
+                    }
                     return { ...oldData, pages: newPages };
                 });
-            } else notifyError(res.message || t('error.save_failed'));
+            }
+            else
+            {
+                notifyError(res.message || t('error.save_failed'));
+            }
         }
     });
 
     const editMutation = useMutation({
         mutationFn: ({ postId, updateData }) => PostService.update(postId, updateData),
-        onSuccess: (res, variables) => {
-            if (res.success) {
-                queryClient.setQueryData(queryKey, (oldData) => {
-                    if (!oldData) return oldData;
+        onSuccess: (res, variables) =>
+        {
+            if (res.success)
+            {
+                queryClient.setQueryData(queryKey, (oldData) =>
+                {
+                    if (!oldData)
+                    {
+                        return oldData;
+                    }
+                    const updatedPost = res.post || res.data;
+
                     return {
                         ...oldData,
                         pages: oldData.pages.map(page => ({
                             ...page,
-                            data: page.data.map(p => p.id === variables.postId ? res.data : p)
+                            // Шукаємо і замінюємо пост у масиві posts
+                            posts: (page.posts || []).map(p => p.id === variables.postId ? updatedPost : p)
                         }))
                     };
                 });
                 notifySuccess(res.message || t('success.changes_saved'));
                 setEditingPostId(null);
-            } else notifyError(res.message);
+            }
+            else
+            {
+                notifyError(res.message);
+            }
         }
     });
 
     const deleteMutation = useMutation({
         mutationFn: (postId) => PostService.delete(postId),
-        onSuccess: (res, deletedId) => {
-            if (res.success) {
-                queryClient.setQueryData(queryKey, (oldData) => {
-                    if (!oldData) return oldData;
+        onSuccess: (res, deletedId) =>
+        {
+            if (res.success)
+            {
+                queryClient.setQueryData(queryKey, (oldData) =>
+                {
+                    if (!oldData)
+                    {
+                        return oldData;
+                    }
                     return {
                         ...oldData,
                         pages: oldData.pages.map(page => ({
                             ...page,
-                            data: page.data.filter(p => p.id !== deletedId)
+                            // Фільтруємо масив posts
+                            posts: (page.posts || []).filter(p => p.id !== deletedId)
                         }))
                     };
                 });
-            } else notifyError(res.message || t('error.delete_failed'));
+            }
+            else
+            {
+                notifyError(res.message || t('error.delete_failed'));
+            }
         }
     });
 
-    const createPost = async (payload, images) => {
+    const createPost = async (payload, images) =>
+    {
         await createMutation.mutateAsync({ payload, images });
         return true;
     };
 
     const saveEdit = async (postId, updateData) => await editMutation.mutateAsync({ postId, updateData });
 
-    const handleDelete = async (postId) => {
+    const handleDelete = async (postId) =>
+    {
         const isConfirmed = await openConfirm(t('action.delete'));
-        if (!isConfirmed) return;
+        if (!isConfirmed)
+        {
+            return;
+        }
         await deleteMutation.mutateAsync(postId);
     };
 
-    const handleRepostSuccess = (newPost) => {
-        queryClient.setQueryData(queryKey, (oldData) => {
-            if (!oldData) return oldData;
+    const handleRepostSuccess = (newPost) =>
+    {
+        queryClient.setQueryData(queryKey, (oldData) =>
+        {
+            if (!oldData)
+            {
+                return oldData;
+            }
             const newPages = [...oldData.pages];
-            if (newPages.length > 0) newPages[0] = { ...newPages[0], data: [newPost, ...newPages[0].data] };
+            if (newPages.length > 0)
+            {
+                newPages[0] = { ...newPages[0], posts: [newPost, ...(newPages[0].posts || [])] };
+            }
             return { ...oldData, pages: newPages };
         });
     };

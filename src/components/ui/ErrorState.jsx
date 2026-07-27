@@ -12,7 +12,7 @@ export default function ErrorState({ title, description, onRetry, buttonText, sh
             {description && <p>{description}</p>}
 
             {showButton && (
-                <div className="tetrone-feed-actions tetrone-mt-10">
+                <div className="tetrone-mt-8">
                     <Button
                         onClick={handleRetry}
                     >

@@ -14,6 +14,7 @@ import stickerSuggestion from './StickerSuggestion';
 import EditorMenu from './EditorMenu';
 import { SpoilerMark, FontSize, EnterHandler, StickerTrigger } from './extensions';
 import mentionSuggestion from './mentionSuggestion';
+import { EmojiIcon } from "../ui/Icons.jsx";
 
 function Editor({
     value,
@@ -21,7 +22,8 @@ function Editor({
     placeholder = "",
     className = "",
     onEnter = null
-}) {
+})
+{
     const { t } = useTranslation();
     const [showPicker, setShowPicker] = useState(false);
     const pickerRef = useRef(null);
@@ -29,17 +31,18 @@ function Editor({
     const onEnterRef = useRef(onEnter);
     const onChangeRef = useRef(onChange);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         onEnterRef.current = onEnter;
     }, [onEnter]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         onChangeRef.current = onChange;
     }, [onChange]);
 
-    const isStickersEnabled = import.meta.env.VITE_ENABLE_STICKERS === 'true';
-
-    const extensions = useMemo(() => {
+    const extensions = useMemo(() =>
+    {
         return [
             StarterKit.configure({ heading: false }),
             Placeholder.configure({ placeholder }),
@@ -48,55 +51,62 @@ function Editor({
             FontSize.configure(),
             SpoilerMark.configure(),
             EnterHandler.configure({ onEnterRef }),
-
-            ...(isStickersEnabled ? [
-                CustomStickerNode.configure(),
-                StickerTrigger.configure({
-                    suggestion: stickerSuggestion,
-                })
-            ] : []),
-
+            CustomStickerNode.configure(),
+            StickerTrigger.configure({
+                suggestion: stickerSuggestion,
+            }),
             Mention.configure({
                 HTMLAttributes: { class: 'tetrone-user-mention' },
                 suggestion: mentionSuggestion
             }),
         ];
-    }, [placeholder, isStickersEnabled]);
+    }, [placeholder]);
 
     const editor = useEditor({
         extensions,
-        content: value, 
-        onUpdate: ({ editor }) => {
+        content: value,
+        onUpdate: ({ editor }) =>
+        {
             onChangeRef.current(editor.getJSON());
         },
     }, []);
 
-    useEffect(() => {
-        if (editor && (value === '' || value === null || (typeof value === 'object' && Object.keys(value).length === 0)) && !editor.isDestroyed) {
+    useEffect(() =>
+    {
+        if (editor && (value === '' || value === null || (typeof value === 'object' && Object.keys(value).length === 0)) && !editor.isDestroyed)
+        {
             editor.commands.clearContent();
         }
     }, [value, editor]);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (showPicker && pickerRef.current && !pickerRef.current.contains(event.target)) {
-                if (!event.target.closest('.tetrone-sticker-trigger-side')) {
+    useEffect(() =>
+    {
+        const handleClickOutside = (event) =>
+        {
+            if (showPicker && pickerRef.current && !pickerRef.current.contains(event.target))
+            {
+                if (!event.target.closest('.tetrone-sticker-trigger-side'))
+                {
                     setShowPicker(false);
                 }
             }
         };
 
-        if (showPicker) {
+        if (showPicker)
+        {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
-        return () => {
+        return () =>
+        {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [showPicker]);
 
-    const handleStickerSelect = (sticker) => {
-        if (editor) {
+    const handleStickerSelect = (sticker) =>
+    {
+        if (editor)
+        {
             editor.chain().focus().insertContent([
                 {
                     type: 'customSticker',
@@ -111,48 +121,56 @@ function Editor({
         }
     };
 
-    if (!editor) return null;
+    if (!editor)
+    {
+        return null;
+    }
 
     return (
         <div className="tetrone-editor-outer-container">
-            <EditorMenu editor={editor} />
+            <EditorMenu editor={ editor }/>
 
-            <div className={`tetrone-editor-row-wrapper ${className}`}>
+            <div className={ `tetrone-editor-row-wrapper ${ className }` }>
                 <div className="tetrone-editor-input-area">
-                    <EditorContent editor={editor} />
+                    <EditorContent editor={ editor }/>
                 </div>
 
-                {isStickersEnabled && (
-                    <button
-                        type="button"
-                        className="tetrone-sticker-trigger-side"
-                        onClick={() => setShowPicker(!showPicker)}
-                        title={t('editor.toolbar_stickers')}
-                    >
-                        🙂
-                    </button>
-                )}
+                <button
+                    type="button"
+                    className="tetrone-sticker-trigger-side"
+                    onClick={ () => setShowPicker(!showPicker) }
+                    title={ t('editor.toolbar_stickers') }
+                >
+                    <EmojiIcon/>
+                </button>
             </div>
 
-            {showPicker && isStickersEnabled && (
-                <div className="tetrone-sticker-picker-container" ref={pickerRef}>
+            { showPicker && (
+                <div className="tetrone-sticker-picker-container" ref={ pickerRef }>
                     <StickerPicker
-                        onSelect={handleStickerSelect}
-                        onClose={() => setShowPicker(false)}
+                        onSelect={ handleStickerSelect }
+                        onClose={ () => setShowPicker(false) }
                     />
                 </div>
-            )}
+            ) }
         </div>
     );
 }
 
-export default React.memo(Editor, (prevProps, nextProps) => {
-    if (prevProps.placeholder !== nextProps.placeholder) return false;
+export default React.memo(Editor, (prevProps, nextProps) =>
+{
+    if (prevProps.placeholder !== nextProps.placeholder)
+    {
+        return false;
+    }
 
     const isPrevEmpty = !prevProps.value || Object.keys(prevProps.value).length === 0;
     const isNextEmpty = !nextProps.value || Object.keys(nextProps.value).length === 0;
 
-    if (isPrevEmpty !== isNextEmpty) return false;
+    if (isPrevEmpty !== isNextEmpty)
+    {
+        return false;
+    }
 
     return true;
 });

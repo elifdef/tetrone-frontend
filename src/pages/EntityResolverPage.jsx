@@ -6,61 +6,84 @@ import ProfilePage from './ProfilePage';
 import SpacePage from './SpacePage';
 import NotFoundPage from './NotFoundPage';
 
-const EntityResolverPage = () => {
+const EntityResolverPage = () =>
+{
     const { handle } = useParams();
     const { t } = useTranslation();
-    
-    const [entityInfo, setEntityInfo] = useState(null); 
+
+    const [entityInfo, setEntityInfo] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchEntity = async () => {
-            try {
+    useEffect(() =>
+    {
+        const fetchEntity = async () =>
+        {
+            try
+            {
                 setLoading(true);
                 const res = await EntityService.resolveHandle(handle);
-                
-                if (res.success) {
-                    setEntityInfo({
-                        type: res.data.type,
-                        data: res.data.entity
-                    });
-                } else {
+
+                if (res)
+                {
+                    if (Object.hasOwn(res, 'user'))
+                    {
+                        setEntityInfo({
+                            type: 'user',
+                            data: res.user,
+                        })
+                    }
+                    else if (Object.hasOwn(res, 'space'))
+                    {
+                        setEntityInfo({
+                            type: 'space',
+                            data: res.space,
+                        })
+                    }
+                }
+                else
+                {
                     setEntityInfo('not_found');
                 }
-            } catch (error) {
+            } catch (error)
+            {
+                console.log(error);
                 setEntityInfo('not_found');
-            } finally {
+            } finally
+            {
                 setLoading(false);
             }
         };
-        
+
         fetchEntity();
     }, [handle]);
 
-    if (loading) {
+    if (loading)
+    {
         return (
             <div className="tetrone-fullscreen-center">
-                <div className="tetrone-loading">{t('common.loading')}</div>
+                <div className="tetrone-loading">{ t('common.loading') }</div>
             </div>
         );
-    };
+    }
 
-    if (entityInfo === 'not_found' || !entityInfo) {
-        return <NotFoundPage />;
+    if (entityInfo === 'not_found' || !entityInfo)
+    {
+        return <NotFoundPage/>;
     }
 
     // Якщо це юзер - віддаємо дані в ProfilePage
-    if (entityInfo.type === 'user') {
-        
-        return <ProfilePage profile={entityInfo.data} />; 
+    if (entityInfo.type === 'user')
+    {
+        return <ProfilePage profile={ entityInfo.data }/>;
     }
 
     // Якщо це простір - віддаємо дані в SpacePage
-    if (entityInfo.type === 'space') {
-        return <SpacePage initialSpaceData={entityInfo.data} />;
+    if (entityInfo.type === 'space')
+    {
+        return <SpacePage initialSpaceData={ entityInfo.data }/>;
     }
 
-    return <NotFoundPage />;
+    return <NotFoundPage/>;
 };
 
 export default EntityResolverPage;

@@ -14,7 +14,8 @@ export default function Header({
     authUser, sameUser, loading, status, isBlockedByMe,
     handleFriendshipAction, handleBlockAction, onReportAction,
     customNameColor, isPrivateProfile
-}) {
+})
+{
     const { t } = useTranslation();
     const navigate = useNavigate();
     const formatDate = useDateFormatter();
@@ -28,61 +29,105 @@ export default function Header({
     const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
     const [isLoadingAvatar, setIsLoadingAvatar] = useState(false);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) setIsMenuOpen(false);
+    useEffect(() =>
+    {
+        const handleClickOutside = (event) =>
+        {
+            if (menuRef.current && !menuRef.current.contains(event.target))
+            {
+                setIsMenuOpen(false);
+            }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const getStatusText = () => {
-        if (currentUser.is_online) return t('common.online');
-        if (!currentUser.last_seen) return t('common.offline');
+    const getStatusText = () =>
+    {
+        if (currentUser.is_online)
+        {
+            return t('common.online');
+        }
+        if (!currentUser.last_seen)
+        {
+            return t('common.offline');
+        }
 
         const dateStr = formatDate(currentUser.last_seen);
-        if (currentUser.gender === 1) return t('profile.status.last_seen_m', { time: dateStr });
-        if (currentUser.gender === 2) return t('profile.status.last_seen_f', { time: dateStr });
+        if (currentUser.gender === 1)
+        {
+            return t('profile.status.last_seen_m', { time: dateStr });
+        }
+        if (currentUser.gender === 2)
+        {
+            return t('profile.status.last_seen_f', { time: dateStr });
+        }
     };
 
-    const getStatusBlock = () => {
-        if (isPreview || isPrivateProfile) return null;
+    const getStatusBlock = () =>
+    {
+        if (isPreview || isPrivateProfile)
+        {
+            return null;
+        }
 
         return (
-            <span className={`tetrone-modern-status ${currentUser.is_online ? 'online' : 'offline'}`}>
-                {currentUser.is_online && <span className="tetrone-modern-online-dot"></span>}
-                {getStatusText()}
+            <span className={ `tetrone-modern-status ${ currentUser.is_online ? 'online' : 'offline' }` }>
+                { currentUser.is_online && <span className="tetrone-modern-online-dot"></span> }
+                { getStatusText() }
             </span>
         );
     };
 
-    const getActionBtnLabel = () => {
-        if (loading) return "...";
-        if (isBlockedByMe) return t('profile.menu.you_have_blocked');
-        switch (status) {
-            case 'friends': return t('friends.your_contacts');
-            case 'pending_sent': return t('friends.request_sent');
-            case 'pending_received': return t('profile.menu.request_received');
-            default: return t('profile.menu.add_friends');
+    const getActionBtnLabel = () =>
+    {
+        if (loading)
+        {
+            return "...";
+        }
+        if (isBlockedByMe)
+        {
+            return t('profile.menu.you_have_blocked');
+        }
+        switch (status)
+        {
+            case 'friends':
+                return t('friends.your_contacts');
+            case 'pending_sent':
+                return t('friends.request_sent');
+            case 'pending_received':
+                return t('profile.menu.request_received');
+            default:
+                return t('profile.menu.add_friends');
         }
     };
 
-    const getFriendMenuLabel = () => {
-        switch (status) {
-            case 'friends': return t('action.remove');
-            case 'pending_sent': return t('profile.menu.cancel_request');
-            case 'pending_received': return t('action.accept');
-            default: return t('profile.menu.add_friends');
+    const getFriendMenuLabel = () =>
+    {
+        switch (status)
+        {
+            case 'friends':
+                return t('action.remove');
+            case 'pending_sent':
+                return t('profile.menu.cancel_request');
+            case 'pending_received':
+                return t('action.accept');
+            default:
+                return t('profile.menu.add_friends');
         }
     };
 
-    const handleSendMessage = async () => {
+    const handleSendMessage = async () =>
+    {
         setIsChatLoading(true);
         const res = await MessageService.initChat(currentUser.id);
 
-        if (res.success && res.data?.chat_slug) {
-            navigate(`/messages?dm=${res.data.chat_slug}`);
-        } else {
+        if (res.success && res.data?.chat_slug)
+        {
+            navigate(`/messages?dm=${ res.data.chat_slug }`);
+        }
+        else
+        {
             notifyError(res.message);
         }
         setIsChatLoading(false);
@@ -93,20 +138,28 @@ export default function Header({
     const canViewAvatar = !isPreview && !(isBlockedByTarget || isBanned || isPrivateProfile) && hasCustomAvatar;
     const nameStyle = { color: customNameColor };
 
-    const handleAvatarClick = async () => {
-        if (!canViewAvatar || isLoadingAvatar) return;
+    const handleAvatarClick = async () =>
+    {
+        if (!canViewAvatar || isLoadingAvatar)
+        {
+            return;
+        }
 
         setIsLoadingAvatar(true);
         const res = await PostService.getUserAvatars(currentUser.username);
 
-        if (res.success) {
-            const posts = res.data || [];
-            if (posts.length > 0) {
+        if (res)
+        {
+            const posts = res.avatars;
+            if (posts.length > 0)
+            {
                 setAvatarPosts(posts);
                 setCurrentIndex(0);
                 setIsPhotoModalOpen(true);
             }
-        } else {
+        }
+        else
+        {
             notifyError(res.message);
         }
         setIsLoadingAvatar(false);
@@ -120,87 +173,99 @@ export default function Header({
             <div className="tetrone-modern-header-main">
                 <div className="tetrone-modern-avatar-wrapper">
                     <Avatar
-                        user={currentUser}
-                        className={`tetrone-modern-avatar ${canViewAvatar ? 'tetrone-clickable' : ''} ${isLoadingAvatar ? 'tetrone-loading' : ''}`}
-                        onClick={handleAvatarClick}
+                        user={ currentUser }
+                        className={ `tetrone-modern-avatar ${ canViewAvatar ? 'tetrone-clickable' : '' } ${ isLoadingAvatar ? 'tetrone-loading' : '' }` }
+                        onClick={ handleAvatarClick }
                     />
                 </div>
 
                 <div className="tetrone-modern-name-row">
-                    <h1 className="tetrone-modern-name" style={nameStyle}>
-                        {currentUser.first_name} {currentUser.last_name}
+                    <h1 className="tetrone-modern-name" style={ nameStyle }>
+                        { currentUser.first_name } { currentUser.last_name }
                     </h1>
                     <div className="tetrone-modern-nick-row">
-                        <span className="tetrone-modern-nick" style={nameStyle}>@{currentUser.username}</span>
-                        {getStatusBlock()}
+                        <span className="tetrone-modern-nick" style={ nameStyle }>@{ currentUser.username }</span>
+                        { getStatusBlock() }
                     </div>
                 </div>
             </div>
 
             <div className="tetrone-modern-actions-group">
-                {sameUser && !isPreview && (
+                { sameUser && !isPreview && (
                     <Link to="/settings" className="tetrone-btn tetrone-btn-primary">
-                        {t('action.edit')}
+                        { t('action.edit') }
                     </Link>
-                )}
+                ) }
 
-                {!sameUser && !isPreview && !isBlockedByTarget && authUser && !isDeleted &&(
+                { !sameUser && !isPreview && !isBlockedByTarget && authUser && !isDeleted && (
                     <>
-                        {!isBlockedByMe && currentUser.permissions?.can_message && (
+                        { !isBlockedByMe && currentUser.permissions?.can_message && (
                             <Button
                                 className="tetrone-btn modern-action-btn"
-                                onClick={handleSendMessage}
-                                disabled={isChatLoading || loading}
+                                onClick={ handleSendMessage }
+                                disabled={ isChatLoading || loading }
                             >
-                                {isChatLoading ? '...' : t('messages.send_message')}
+                                { isChatLoading ? '...' : t('messages.send_message') }
                             </Button>
-                        )}
+                        ) }
 
-                        <div className="tetrone-dropdown-wrapper" ref={menuRef}>
+                        <div className="tetrone-dropdown-wrapper" ref={ menuRef }>
                             <Button
                                 className="tetrone-btn tetrone-btn-dropdown-trigger modern-trigger"
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                disabled={loading}
+                                onClick={ () => setIsMenuOpen(!isMenuOpen) }
+                                disabled={ loading }
                             >
-                                {getActionBtnLabel()}
+                                { getActionBtnLabel() }
                             </Button>
 
-                            {isMenuOpen && (
+                            { isMenuOpen && (
                                 <div className="tetrone-menu-list modern-menu-list">
-                                    {!isBlockedByMe && (
-                                        <button className="tetrone-menu-item" onClick={() => { handleFriendshipAction(); setIsMenuOpen(false); }}>
-                                            {getFriendMenuLabel()}
+                                    { !isBlockedByMe && (
+                                        <button className="tetrone-menu-item" onClick={ () =>
+                                        {
+                                            handleFriendshipAction();
+                                            setIsMenuOpen(false);
+                                        } }>
+                                            { getFriendMenuLabel() }
                                         </button>
-                                    )}
+                                    ) }
 
-                                    <button className="tetrone-menu-item modern-menu-item" onClick={() => { onReportAction(); setIsMenuOpen(false); }}>
-                                        {t('reports.title')}
+                                    <button className="tetrone-menu-item modern-menu-item" onClick={ () =>
+                                    {
+                                        onReportAction();
+                                        setIsMenuOpen(false);
+                                    } }>
+                                        { t('reports.title') }
                                     </button>
 
                                     <button
-                                        className={`tetrone-menu-item ${!isBlockedByMe ? 'danger' : ''}`}
-                                        onClick={() => { handleBlockAction(); setIsMenuOpen(false); }}
+                                        className={ `tetrone-menu-item ${ !isBlockedByMe ? 'danger' : '' }` }
+                                        onClick={ () =>
+                                        {
+                                            handleBlockAction();
+                                            setIsMenuOpen(false);
+                                        } }
                                     >
-                                        {isBlockedByMe ? t('action.unblock') : t('action.block')}
+                                        { isBlockedByMe ? t('action.unblock') : t('action.block') }
                                     </button>
                                 </div>
-                            )}
+                            ) }
                         </div>
                     </>
-                )}
+                ) }
             </div>
 
-            {avatarPosts.length > 0 && (
+            { avatarPosts.length > 0 && (
                 <PhotoModal
-                    isOpen={isPhotoModalOpen}
-                    post={avatarPosts[currentIndex]}
-                    onClose={() => setIsPhotoModalOpen(false)}
-                    onNext={avatarPosts.length > 1 ? nextAvatar : null}
-                    onPrev={avatarPosts.length > 1 ? prevAvatar : null}
-                    listCurrent={currentIndex + 1}
-                    listTotal={avatarPosts.length}
+                    isOpen={ isPhotoModalOpen }
+                    post={ avatarPosts[currentIndex] }
+                    onClose={ () => setIsPhotoModalOpen(false) }
+                    onNext={ avatarPosts.length > 1 ? nextAvatar : null }
+                    onPrev={ avatarPosts.length > 1 ? prevAvatar : null }
+                    listCurrent={ currentIndex + 1 }
+                    listTotal={ avatarPosts.length }
                 />
-            )}
+            ) }
         </div>
     );
 }

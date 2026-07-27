@@ -2,39 +2,37 @@ import fetchClient from "../api/client";
 
 class PostService {
     async create(data) {
-        const formData = new FormData();
+        const hasFiles = data.images && data.images.length > 0;
 
-        // 1. Payload (текст, опитування, youtube)
-        if (data.payload) {
-            if (data.payload.text) {
-                formData.append('payload[text]', typeof data.payload.text === 'object' ? JSON.stringify(data.payload.text) : data.payload.text);
+        const requestData = {
+            payload: data.payload || null,
+            space_id: data.space_id || (data.payload && data.payload.space_id) || null,
+            is_posted_as_space: data.is_posted_as_space || (data.payload && data.payload.is_posted_as_space) || false,
+            target_user_id: data.target_user_id || null,
+            original_post_id: data.original_post_id || null,
+        };
+
+        if (hasFiles) {
+            const formData = new FormData();
+
+            if (requestData.payload) {
+                formData.append('payload', JSON.stringify(requestData.payload));
             }
-            if (data.payload.poll) {
-                formData.append('payload[poll]', JSON.stringify(data.payload.poll));
-            }
-            if (data.payload.youtube) {
-                formData.append('payload[youtube]', JSON.stringify(data.payload.youtube));
-            }
-        }
 
-        // 2. ДОДАЄМО ВІДСУТНІ ПОЛЯ
-        if (data.payload && data.payload.space_id) {
-            formData.append('space_id', data.payload.space_id);
-        }
-        if (data.payload && data.payload.is_posted_as_space) {
-            formData.append('is_posted_as_space', data.payload.is_posted_as_space ? '1' : '0');
-        }
+            if (requestData.space_id) formData.append('space_id', requestData.space_id);
+            if (requestData.is_posted_as_space) formData.append('is_posted_as_space', '1');
+            if (requestData.target_user_id) formData.append('target_user_id', requestData.target_user_id);
+            if (requestData.original_post_id) formData.append('original_post_id', requestData.original_post_id);
 
-        // 3. Інші системні поля
-        if (data.target_user_id) formData.append('target_user_id', data.target_user_id);
-        if (data.original_post_id) formData.append('original_post_id', data.original_post_id);
-
-        // 4. Файли
-        if (data.images && data.images.length > 0) {
             data.images.forEach((file, index) => formData.append(`media[${index}]`, file));
+
+            return await fetchClient('/v1/posts', { method: 'POST', body: formData });
         }
 
-        return await fetchClient('/posts', { method: 'POST', body: formData });
+        return await fetchClient('/posts', {
+            method: 'POST',
+            body: requestData
+        });
     }
 
     async update(id, data) {

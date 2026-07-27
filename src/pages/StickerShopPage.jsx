@@ -1,119 +1,134 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import StickerService from '../services/sticker.service';
 import { usePageTitle } from '../hooks/usePageTitle';
-import { notifyError } from '../components/common/Notify';
 import { useTranslation } from 'react-i18next';
 import StickerPackModal from '../components/modals/StickerPackModal';
-
+import StickerSearchBar from '../components/stickers/StickerSearchBar.jsx';
 import CatalogTab from '../components/stickers/CatalogTab';
 import MyPacksTab from '../components/stickers/MyPacksTab';
 
-const StickerShopPage = () => {
+const StickerShopPage = () =>
+{
     const { t } = useTranslation();
     usePageTitle(t('stickers.shop_title'));
 
     const [searchParams, setSearchParams] = useSearchParams();
     const currentTab = searchParams.get('tab') || 'catalog';
-
-    const [myPacks, setMyPacks] = useState([]);
-    const [isLoadingMy, setIsLoadingMy] = useState(true);
-
-    const [catalogPacks, setCatalogPacks] = useState([]);
-    const [catalogPage, setCatalogPage] = useState(1);
-    const [hasMoreCatalog, setHasMoreCatalog] = useState(true);
-    const [isLoadingCatalog, setIsLoadingCatalog] = useState(false);
-
     const [selectedPack, setSelectedPack] = useState(null);
 
-    const fetchCatalog = useCallback(async (pageNumber) => {
-        try {
-            setIsLoadingCatalog(true);
-            const response = await StickerService.getCatalog(pageNumber);
-            if (response.success) {
-                const newPacks = response.data || [];
-                setCatalogPacks(prev => pageNumber === 1 ? newPacks : [...prev, ...newPacks]);
-                setHasMoreCatalog(newPacks.length === 15);
-                setCatalogPage(pageNumber);
-            }
-        } catch (error) {
-            notifyError(t('api.error.ERR_NETWORK'));
-        } finally {
-            setIsLoadingCatalog(false);
-        }
-    }, [t]);
+    const {
+        data: catalogData,
+        isLoading: isLoadingCatalog,
+        fetchNextPage,
+        hasNextPage
+    } = useInfiniteQuery({
+        queryKey: ['sticker-catalog', searchParams.toString()],
+        queryFn: async ({ pageParam = 1 }) =>
+        {
+            const params = new URLSearchParams(searchParams);
+            params.set('page', pageParam);
+            return await StickerService.getCatalog(params.toString());
+        },
+        getNextPageParam: (lastPage) =>
+        {
+            const meta = lastPage?.meta;
+            return meta && meta.current_page < meta.last_page ? meta.current_page + 1 : undefined;
+        },
+        initialPageParam: 1,
+        // Робимо запит тільки якщо ми на вкладці каталогу
+        enabled: currentTab === 'catalog',
+    });
 
-    const fetchMyPacks = useCallback(async () => {
-        try {
-            setIsLoadingMy(true);
-            const response = await StickerService.getMyPacks();
-            if (response.success) {
-                setMyPacks(response.data || []);
-            }
-        } catch (error) {
-            // console.error("My Packs error:", error);
-        } finally {
-            setIsLoadingMy(false);
-        }
-    }, [t]);
+    const catalogPacks = catalogData?.pages.flatMap(page => page.packs || []) || [];
+    const currentSearchQuery = searchParams.get('filter[search]') || '';
 
-    useEffect(() => {
-        if (currentTab === 'my') {
-            fetchMyPacks();
-        } else if (currentTab === 'catalog') {
-            if (catalogPacks.length === 0) fetchCatalog(1);
-        }
-    }, [currentTab, fetchMyPacks, fetchCatalog, catalogPacks.length]);
+    const {
+        data: myPacksData,
+        isLoading: isLoadingMy,
+        refetch: refetchMyPacks
+    } = useQuery({
+        queryKey: ['my-sticker-packs'],
+        queryFn: async () => await StickerService.getMyPacks(),
+        enabled: currentTab === 'my',
+    });
 
-    const handleTabChange = (tab) => {
-        setSearchParams({ tab });
+    const myPacks = myPacksData?.packs || [];
+
+    // Зміна вкладки без втрати інших фільтрів (якщо вони є)
+    const handleTabChange = (tab) =>
+    {
+        searchParams.set('tab', tab);
+        setSearchParams(searchParams);
+    };
+
+    const handleSearch = (newQuery) =>
+    {
+        if (newQuery)
+        {
+            searchParams.set('filter[search]', newQuery);
+        }
+        else
+        {
+            // Якщо поле порожнє, видаляємо фільтр з URL
+            searchParams.delete('filter[search]');
+        }
+        // Скидаємо сторінку на першу при новому пошуку
+        searchParams.delete('page');
+        setSearchParams(searchParams);
     };
 
     return (
         <>
             <div className="tetrone-card-wrapper">
-                <h2 className="tetrone-section-title">{t('stickers.shop_title')}</h2>
+                <h2 className="tetrone-section-title">{ t('stickers.shop_title') }</h2>
 
                 <div className="tetrone-tabs">
-                    {['catalog', 'my'].map(tab => (
+                    { ['catalog', 'my'].map(tab => (
                         <button
-                            key={tab}
-                            className={`tetrone-tab ${currentTab === tab ? 'active' : ''}`}
-                            onClick={() => handleTabChange(tab)}
+                            key={ tab }
+                            className={ `tetrone-tab ${ currentTab === tab ? 'active' : '' }` }
+                            onClick={ () => handleTabChange(tab) }
                         >
-                            {t(`stickers.tab_${tab}`)}
+                            { t(`stickers.tab_${ tab }`) }
                         </button>
-                    ))}
+                    )) }
                 </div>
 
-                {currentTab === 'catalog' && (
-                    <CatalogTab
-                        packs={catalogPacks}
-                        isLoading={isLoadingCatalog}
-                        page={catalogPage}
-                        hasMore={hasMoreCatalog}
-                        onLoadMore={() => fetchCatalog(catalogPage + 1)}
-                        onSelectPack={setSelectedPack}
-                    />
-                )}
+                { currentTab === 'catalog' && (
+                    <>
+                        <StickerSearchBar
+                            initialValue={ currentSearchQuery }
+                            onSearch={ handleSearch }
+                        />
+                        <CatalogTab
+                            packs={ catalogPacks }
+                            isLoading={ isLoadingCatalog }
+                            hasMore={ !!hasNextPage }
+                            onLoadMore={ fetchNextPage }
+                            onSelectPack={ setSelectedPack }
+                        />
+                    </>
+                ) }
 
-                {currentTab === 'my' && (
+                { currentTab === 'my' && (
                     <MyPacksTab
-                        packs={myPacks}
-                        isLoading={isLoadingMy}
-                        onSelectPack={setSelectedPack}
-                        onRefresh={fetchMyPacks}
+                        packs={ myPacks }
+                        isLoading={ isLoadingMy }
+                        onSelectPack={ setSelectedPack }
+                        onRefresh={ refetchMyPacks }
                     />
-                )}
+                ) }
             </div>
 
-            {selectedPack && (
+            { selectedPack && (
                 <StickerPackModal
-                    pack={selectedPack}
-                    onClose={() => setSelectedPack(null)}
-                    onRefresh={fetchMyPacks}
+                    pack={ selectedPack }
+                    onClose={ () => setSelectedPack(null) }
+                    onRefresh={ refetchMyPacks }
                 />
-            )}
+            ) }
         </>
     );
 };

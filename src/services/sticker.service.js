@@ -1,8 +1,9 @@
 import fetchClient from '../api/client';
 
 class StickerService {
-    async getCatalog(page = 1) {
-        return await fetchClient(`/stickers/catalog?page=${page}`);
+    async getCatalog(queryString = '') {
+        const prefix = queryString && !queryString.startsWith('?') ? '?' : '';
+        return await fetchClient(`/stickers/catalog${prefix}${queryString}`);
     }
 
     async getMyPacks() {
@@ -52,10 +53,6 @@ class StickerService {
             method: 'PUT',
             body: { packShortNames }
         });
-    }
-
-    async search(query) {
-        return await fetchClient(`/stickers/search?q=${query}`);
     }
 
     async addSticker(shortName, data) {

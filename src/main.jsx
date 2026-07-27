@@ -26,28 +26,29 @@ import "./styles/settings.css";
 import "./styles/ui.css";
 import "./styles/video.css";
 import "./styles/space.css";
+import "./styles/landing.css";
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false, // Не робити запит, коли юзер згорнув/розгорнув браузер
-      staleTime: 1000 * 60,    // Дані вважаються "свіжими" 1 хвилину
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false, // Не робити запит, коли юзер згорнув/розгорнув браузер
+            staleTime: 1000 * 60,    // Дані вважаються "свіжими" 1 хвилину
+        },
     },
-  },
 });
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <AuthProvider>
-        <SocketProvider>
-          <NotificationProvider>
-            <ModalProvider>
-              <App />
-            </ModalProvider>
-          </NotificationProvider>
-        </SocketProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+    <QueryClientProvider client={ queryClient }>
+        <BrowserRouter>
+            <AuthProvider>
+                <SocketProvider>
+                    <NotificationProvider>
+                        <ModalProvider>
+                            <App/>
+                        </ModalProvider>
+                    </NotificationProvider>
+                </SocketProvider>
+            </AuthProvider>
+        </BrowserRouter>
+    </QueryClientProvider>
 );

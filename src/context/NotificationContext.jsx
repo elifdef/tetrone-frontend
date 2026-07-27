@@ -21,14 +21,14 @@ export const NotificationProvider = ({ children }) => {
         if (!user) return;
         const [notifRes, chatRes] = await Promise.all([
             fetchClient('/notifications'),
-            fetchClient('/chat')
+            // fetchClient('/chat')
         ]);
 
-        if (notifRes.success) {
+        if (notifRes) {
             setNotifications(notifRes.data?.notifications || []);
             setUnreadCount(notifRes.data?.unread_count || 0);
         }
-        if (chatRes.success) {
+        if (chatRes) {
             const chats = chatRes.data || [];
             const totalUnreadMsg = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
             setUnreadMessagesCount(totalUnreadMsg);

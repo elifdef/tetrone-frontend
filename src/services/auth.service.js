@@ -15,12 +15,14 @@ class AuthService {
         });
     }
 
-    async getMe(token = null) {
-        const headers = {};
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-        return await fetchClient('/me', { headers });
+    async me(signal = null) {
+        return fetchClient('/me', {
+            signal,
+            silentAuth: true
+        });
+    }
+    async logout() {
+        return fetchClient('/auth/sign-out', { method: 'POST' });
     }
 
     async verifyEmail(id, hash, query) {

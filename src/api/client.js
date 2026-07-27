@@ -1,111 +1,101 @@
-import i18n from '../i18n';
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { API_URL, APP_ENV } from "../config.js";
 
-export default async function fetchClient(endpoint, { method = 'GET', body, ...customConfig } = {}) {
-    const headers = {
-        'Accept': 'application/json',
-    };
+export default async function fetchClient(endpoint, {
+    method = 'GET', body, headers: customHeaders, ...customConfig
+} = {})
+{
+    const headers = { 'Accept': 'application/json' };
 
-    if (!(body instanceof FormData)) {
+    if (body && !(body instanceof FormData))
+    {
         headers['Content-Type'] = 'application/json';
     }
 
+    const silentAuth = customConfig.silentAuth || false;
+    delete customConfig.silentAuth;
+
     const config = {
-        method,
-        headers: { ...headers, ...customConfig.headers },
-        credentials: 'include',
-        ...customConfig
+        method, headers: { ...headers, ...customHeaders }, credentials: 'include', ...customConfig
     };
 
-    // Витягуємо наш кастомний прапорець (і видаляємо його, щоб не передавати у fetch)
-    const skipAuthRedirect = config.skipAuthRedirect || false;
-    delete config.skipAuthRedirect;
-
-    if (body && !(body instanceof FormData)) {
+    if (body && !(body instanceof FormData))
+    {
         config.body = JSON.stringify(body);
-    } else if (body) {
+    }
+    else if (body)
+    {
         config.body = body;
     }
 
-    try {
-        const response = await fetch(`${BASE_URL}${endpoint}`, config);
+    try
+    {
+        const response = await fetch(`${ API_URL }${ endpoint }`, config);
+        let data = {};
 
-        let data = null;
-        if (response.status !== 204) {
-            try {
+        if (response.status !== 204)
+        {
+            try
+            {
                 data = await response.json();
-            } catch (e) {
-                data = { code: 'ERR_SERVER', message: 'Internal Server Error' };
-            }
-        }
-
-        if (!response.ok) {
-            const errorCode = data?.code || 'ERR_UNKNOWN';
-
-            // ДОДАНО: Перевіряємо skipAuthRedirect. Якщо він true, не викидаємо івент.
-            if (response.status === 401 && errorCode !== 'ERR_INVALID_CREDENTIALS' && !skipAuthRedirect) {
-                window.dispatchEvent(new CustomEvent('session-expired'));
-                return {
-                    success: false,
-                    status: response.status,
-                    code: 'ERR_UNAUTHENTICATED',
-                    message: i18n.t('api.error.ERR_UNAUTHENTICATED')
-                };
-            }
-
-            const translatedMessage = i18n.t(`api.error.${errorCode}`);
-
-            return {
-                success: false,
-                status: response.status,
-                code: errorCode,
-                message: translatedMessage,
-                data
-            };
-        }
-
-        const successCode = data?.code;
-        const successMessage = (successCode && i18n.exists(`api.success.${successCode}`))
-            ? i18n.t(`api.success.${successCode}`)
-            : data?.message;
-
-        let payload = data?.data !== undefined ? data.data : data;
-        let meta = data?.meta || null;
-        let extraParams = {};
-
-        if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-            if ('data' in payload) {
-                if ('meta' in payload && !meta) {
-                    meta = payload.meta;
+            } catch (error)
+            {
+                if (APP_ENV === 'dev')
+                {
+                    console.log("Error JSON parse", error);
                 }
-
-                const { data: _d, meta: _m, ...rest } = payload;
-                extraParams = rest;
-
-                payload = payload.data;
+                data = { code: 'CRITICAL_SERVER_ERROR' };
             }
         }
 
-        return {
-            success: true,
-            status: response.status,
-            code: successCode,
-            message: successMessage,
-            data: payload,
-            meta: meta,
-            ...extraParams
-        };
+        const Data = { ...data, status: response.status };
 
-    } catch (error) {
-        if (error.success === false) return error;
+        if (!silentAuth)
+        {
+            if (response.status === 401 && data.code !== 'ERR_INVALID_CREDENTIALS')
+            {
+                window.dispatchEvent(new CustomEvent('session-expired'));
+            }
+            else if (response.status === 503)
+            {
+                // Сервер на обслуговуванні
+                window.dispatchEvent(new CustomEvent('server-maintenance'));
+            }
+            else if (response.status >= 500 || data.code === 'CRITICAL_SERVER_ERROR')
+            {
+                // Фатальна помилка бекенда
+                window.dispatchEvent(new CustomEvent('server-error'));
+            }
+        }
 
-        return {
-            success: false,
-            status: 0,
-            code: 'ERR_NETWORK',
-            message: i18n.t('api.error.ERR_NETWORK'),
-            data: null,
-            meta: null
-        };
+        if (APP_ENV === 'dev')
+        {
+            if (response.ok)
+            {
+                console.log(`API Success [${ method } ${ endpoint }]`, Data);
+            }
+            else
+            {
+                console.error(`API Error [${ method } ${ endpoint }] Status: ${ response.status }`, Data);
+            }
+        }
+
+        return Data;
+
+    } catch (error)
+    {
+        const errorData = { status: 0, code: 'ERR_NETWORK' };
+
+        if (APP_ENV === 'dev')
+        {
+            console.error(`Network/CORS Error [${ method } ${ endpoint }]`, error);
+        }
+
+        // Помилка мережі (бекенд вимкнений / впав інтернет)
+        if (!silentAuth)
+        {
+            window.dispatchEvent(new CustomEvent('server-offline'));
+        }
+
+        return errorData;
     }
 }

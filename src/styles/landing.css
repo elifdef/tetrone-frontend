@@ -360,6 +360,42 @@
     margin-right: 0;
     margin-left: 15px;
 }
+.tetrone-sticker-search-form {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.tetrone-sticker-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.tetrone-sticker-search-icon {
+    position: absolute;
+    left: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--theme-text-muted);
+    pointer-events: none;
+}
+
+.tetrone-sticker-search-input {
+    width: 100%;
+    padding-left: 40px !important;
+    padding-right: 15px !important;
+    background-color: var(--theme-bg-secondary);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    height: 40px;
+}
+
+.tetrone-sticker-search-input:focus {
+    background-color: var(--theme-bg-box);
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 2px rgba(91, 155, 213, 0.2);
+}
 
 @media (max-width: 820px) {
     .tetrone-landing-container {

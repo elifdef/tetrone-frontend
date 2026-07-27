@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import PhotoModal from "../../ui/PhotoModal";
 import Avatar from "../../ui/Avatar";
 
-export default function ProfileAvatar({ user, isPreview, isBlocked }) {
+export default function ProfileAvatar({ user, isPreview, isBlocked })
+{
     const { t } = useTranslation();
 
     const [avatarPosts, setAvatarPosts] = useState([]);
@@ -16,20 +17,28 @@ export default function ProfileAvatar({ user, isPreview, isBlocked }) {
     const hasCustomAvatar = user?.avatar && !user.avatar.includes('defaultAvatar');
     const canViewAvatar = !isPreview && !isBlocked && hasCustomAvatar;
 
-    const handleAvatarClick = async () => {
-        if (!canViewAvatar || isLoading) return;
+    const handleAvatarClick = async () =>
+    {
+        if (!canViewAvatar || isLoading)
+        {
+            return;
+        }
 
         setIsLoading(true);
         const res = await PostService.getUserAvatars(user.username);
 
-        if (res.success) {
-            const posts = res.data || [];
-            if (posts.length > 0) {
+        if (res)
+        {
+            const posts = res.avatars;
+            if (posts.length > 0)
+            {
                 setAvatarPosts(posts);
                 setCurrentIndex(0);
                 setIsPhotoModalOpen(true);
             }
-        } else {
+        }
+        else
+        {
             notifyError(res.message);
         }
         setIsLoading(false);
@@ -41,22 +50,22 @@ export default function ProfileAvatar({ user, isPreview, isBlocked }) {
     return (
         <div className="tetrone-photo-box">
             <Avatar
-                user={user}
-                className={`tetrone-avatar ${(!isPreview && isBlocked) ? 'tetrone-avatar-blocked' : ''} ${canViewAvatar ? 'tetrone-clickable' : ''} ${isLoading ? 'tetrone-loading' : ''}`}
-                onClick={handleAvatarClick}
+                user={ user }
+                className={ `tetrone-avatar ${ (!isPreview && isBlocked) ? 'tetrone-avatar-blocked' : '' } ${ canViewAvatar ? 'tetrone-clickable' : '' } ${ isLoading ? 'tetrone-loading' : '' }` }
+                onClick={ handleAvatarClick }
             />
 
-            {avatarPosts.length > 0 && (
+            { avatarPosts.length > 0 && (
                 <PhotoModal
-                    isOpen={isPhotoModalOpen}
-                    post={avatarPosts[currentIndex]}
-                    onClose={() => setIsPhotoModalOpen(false)}
-                    onNext={avatarPosts.length > 1 ? nextAvatar : null}
-                    onPrev={avatarPosts.length > 1 ? prevAvatar : null}
-                    listCurrent={currentIndex + 1}
-                    listTotal={avatarPosts.length}
+                    isOpen={ isPhotoModalOpen }
+                    post={ avatarPosts[currentIndex] }
+                    onClose={ () => setIsPhotoModalOpen(false) }
+                    onNext={ avatarPosts.length > 1 ? nextAvatar : null }
+                    onPrev={ avatarPosts.length > 1 ? prevAvatar : null }
+                    listCurrent={ currentIndex + 1 }
+                    listTotal={ avatarPosts.length }
                 />
-            )}
+            ) }
         </div>
     );
 }

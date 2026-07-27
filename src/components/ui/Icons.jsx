@@ -480,3 +480,7 @@ export const WaitIcon = () => (
         <rect className="spinner_7uc5 spinner_ZAxd" x="20.2" y="6" width="2.8" height="12" />
     </svg>
 );
+
+export const EmojiIcon = () => {
+
+}

@@ -8,7 +8,8 @@ import GlobalAudioPlayer from "./GlobalAudioPlayer";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import Avatar from "../ui/Avatar";
 
-const LeftSidebar = () => {
+const LeftSidebar = () =>
+{
     const { t } = useTranslation();
     const { logout, user } = useContext(AuthContext);
     const { unreadCount, unreadMessagesCount } = useContext(NotificationContext);
@@ -18,20 +19,21 @@ const LeftSidebar = () => {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const isMobile = useIsMobile();
 
-    const isStickersEnabled = import.meta.env.VITE_ENABLE_STICKERS === 'true';
-
-    useEffect(() => {
+    useEffect(() =>
+    {
         setIsMobileOpen(false);
     }, [location.pathname]);
 
     const closeMenu = () => setIsMobileOpen(false);
 
-    const getLinkClass = (path) => {
+    const getLinkClass = (path) =>
+    {
         const isActive = location.pathname === path;
-        return `tetrone-nav-item ${isActive ? "active" : ""}`;
+        return `tetrone-nav-item ${ isActive ? "active" : "" }`;
     };
 
-    const handleLogout = () => {
+    const handleLogout = () =>
+    {
         closeMenu();
         logout();
         navigate('/');
@@ -45,143 +47,151 @@ const LeftSidebar = () => {
             <div className="mobile-top-bar">
                 <button
                     className="mobile-menu-btn-inline"
-                    onClick={() => setIsMobileOpen(!isMobileOpen)}
+                    onClick={ () => setIsMobileOpen(!isMobileOpen) }
                     aria-label="Toggle menu"
                 >
-                    {isMobileOpen ? '✕' : '☰'}
+                    { isMobileOpen ? '✕' : '☰' }
                 </button>
 
-                <Link to="/" className="mobile-top-bar-logo" onClick={closeMenu}>
-                    {APP_NAME}
+                <Link to="/" className="mobile-top-bar-logo" onClick={ closeMenu }>
+                    { APP_NAME }
                 </Link>
 
-                {user ? (
-                    <Link to={`/${user.username}`} onClick={closeMenu} className="mobile-top-bar-avatar-link">
+                { user ? (
+                    <Link to={ `/${ user.username }` } onClick={ closeMenu } className="mobile-top-bar-avatar-link">
                         <Avatar
-                            user={user}
+                            user={ user }
                             className="mobile-top-bar-avatar"
                         />
                     </Link>
                 ) : (
-                    <div style={{ width: '32px' }}></div>
-                )}
+                    <div style={ { width: '32px' } }></div>
+                ) }
             </div>
 
             <div
-                className={`mobile-menu-overlay ${isMobileOpen ? 'active' : ''}`}
-                onClick={closeMenu}
+                className={ `mobile-menu-overlay ${ isMobileOpen ? 'active' : '' }` }
+                onClick={ closeMenu }
             />
 
-            <aside className={`tetrone-sidebar-left ${isMobileOpen ? 'mobile-open' : ''}`}>
-                <Link to="/" className="tetrone-logo" onClick={closeMenu}>
-                    {APP_NAME}
+            <aside className={ `tetrone-sidebar-left ${ isMobileOpen ? 'mobile-open' : '' }` }>
+                <Link to="/" className="tetrone-logo" onClick={ closeMenu }>
+                    { APP_NAME }
                 </Link>
 
-                {isMobile && (
+                { isMobile && (
                     <div className="tetrone-mobile-player">
-                        <GlobalAudioPlayer />
+                        <GlobalAudioPlayer/>
                     </div>
-                )}
+                ) }
 
                 <nav className="tetrone-nav-list">
-                    {user ? (
+                    { user ? (
                         <>
-                            <Link to="/" className={getLinkClass("/")} onClick={closeMenu}>
-                                {t('common.home')}
+                            <Link to="/" className={ getLinkClass("/") } onClick={ closeMenu }>
+                                { t('common.home') }
                             </Link>
-                            <Link to={`/${user.username}`} className={getLinkClass(`/${user.username}`)} onClick={closeMenu}>
-                                {t('common.profile')}
+                            <Link to={ `/${ user.username }` } className={ getLinkClass(`/${ user.username }`) }
+                                  onClick={ closeMenu }>
+                                { t('common.profile') }
                             </Link>
-                            <Link to="/messages" className={getLinkClass("/messages")} onClick={closeMenu}>
-                                {t('common.messages')}
-                                {unreadMessagesCount > 0 && (<span className="tetrone-badge">{displayMsgCount}</span>)}
+                            <Link to="/messages" className={ getLinkClass("/messages") } onClick={ closeMenu }>
+                                { t('common.messages') }
+                                { unreadMessagesCount > 0 && (
+                                    <span className="tetrone-badge">{ displayMsgCount }</span>) }
                             </Link>
-                            <Link to="/friends" className={getLinkClass("/friends")} onClick={closeMenu}>
-                                {t('common.friends')}
+                            <Link to="/friends" className={ getLinkClass("/friends") } onClick={ closeMenu }>
+                                { t('common.friends') }
                             </Link>
-                            <Link to="/notifications" className={getLinkClass("/notifications")} onClick={closeMenu}>
-                                {t('common.notifications')}
-                                {unreadCount > 0 && (<span className="tetrone-badge">{displayCount}</span>)}
+                            <Link to="/notifications" className={ getLinkClass("/notifications") }
+                                  onClick={ closeMenu }>
+                                { t('common.notifications') }
+                                { unreadCount > 0 && (<span className="tetrone-badge">{ displayCount }</span>) }
                             </Link>
-                            <Link to="/activity" className={getLinkClass("/activity")} onClick={closeMenu}>
-                                {t('common.activity')}
-                            </Link>
-
-                            {isStickersEnabled && (
-                                <Link to="/stickers-shop" className={getLinkClass("/stickers-shop")} onClick={closeMenu}>
-                                    {t('common.stickers_shop')}
-                                </Link>
-                            )}
-
-                            <Link to="/spaces" className={getLinkClass("/spaces")} onClick={closeMenu}>
-                                {t('common.spaces')}
+                            <Link to="/activity" className={ getLinkClass("/activity") } onClick={ closeMenu }>
+                                { t('common.activity') }
                             </Link>
 
-                            <Link to="/settings" className={getLinkClass("/settings")} onClick={closeMenu}>
-                                {t('common.settings')}
+                            <Link to="/stickers-shop" className={ getLinkClass("/stickers-shop") }
+                                  onClick={ closeMenu }>
+                                { t('common.stickers_shop') }
                             </Link>
 
-                            {user.role === userRole.Support && (
+                            <Link to="/spaces" className={ getLinkClass("/spaces") } onClick={ closeMenu }>
+                                { t('common.spaces') }
+                            </Link>
+
+                            <Link to="/settings" className={ getLinkClass("/settings") } onClick={ closeMenu }>
+                                { t('common.settings') }
+                            </Link>
+
+                            { user.role === userRole.Support && (
                                 <>
-                                    <hr />
-                                    <Link to="/support-panel" className={`${getLinkClass("/support-panel")} nav-link-support`} onClick={closeMenu}>
-                                        {t('common.support_panel')}
+                                    <hr/>
+                                    <Link to="/support-panel"
+                                          className={ `${ getLinkClass("/support-panel") } nav-link-support` }
+                                          onClick={ closeMenu }>
+                                        { t('common.support_panel') }
                                     </Link>
                                 </>
-                            )}
+                            ) }
 
-                            {user.role === userRole.Moderator && (
+                            { user.role === userRole.Moderator && (
                                 <>
-                                    <hr />
-                                    <Link to="/moderation" className={`${getLinkClass("/moderation")} nav-link-moderator`} onClick={closeMenu}>
-                                        {t('common.moderator_panel')}
+                                    <hr/>
+                                    <Link to="/moderation"
+                                          className={ `${ getLinkClass("/moderation") } nav-link-moderator` }
+                                          onClick={ closeMenu }>
+                                        { t('common.moderator_panel') }
                                     </Link>
                                 </>
-                            )}
+                            ) }
 
-                            {user.role >= userRole.Admin && (
+                            { user.role >= userRole.Admin && (
                                 <>
-                                    <hr />
-                                    <Link to="/control-panel" className={`${getLinkClass("/control-panel")} nav-link-admin`} onClick={closeMenu}>
-                                        {t('common.admin_panel')}
+                                    <hr/>
+                                    <Link to="/control-panel"
+                                          className={ `${ getLinkClass("/control-panel") } nav-link-admin` }
+                                          onClick={ closeMenu }>
+                                        { t('common.admin_panel') }
                                     </Link>
                                 </>
-                            )}
+                            ) }
                         </>
                     ) : (
                         <>
-                            <Link to="/login" className={getLinkClass("/login")} onClick={closeMenu}>
-                                {t('action.login')}
+                            <Link to="/login" className={ getLinkClass("/login") } onClick={ closeMenu }>
+                                { t('action.login') }
                             </Link>
-                            <Link to="/register" className={getLinkClass("/register")} onClick={closeMenu}>
-                                {t('action.register')}
+                            <Link to="/register" className={ getLinkClass("/register") } onClick={ closeMenu }>
+                                { t('action.register') }
                             </Link>
                         </>
-                    )}
+                    ) }
                 </nav>
 
-                {user && (
+                { user && (
                     <div className="tetrone-sidebar-profile">
-                        <Link to={`/${user.username}`} className="tetrone-mini-profile-link" onClick={closeMenu}>
+                        <Link to={ `/${ user.username }` } className="tetrone-mini-profile-link" onClick={ closeMenu }>
                             <Avatar
-                                user={user}
+                                user={ user }
                                 className="tetrone-mini-avatar"
                             />
                             <div className="tetrone-mini-name">
-                                {user.first_name || user.username}
+                                { user.first_name || user.username }
                             </div>
                         </Link>
-                        <button onClick={handleLogout} className="tetrone-logout-btn">
-                            {t('action.logout')}
+                        <button onClick={ handleLogout } className="tetrone-logout-btn">
+                            { t('action.logout') }
                         </button>
                     </div>
-                )}
+                ) }
 
-                {!user && (
+                { !user && (
                     <div className="tetrone-sidebar-profile tetrone-sidebar-guest-notice">
-                        {t('sidebar.guest.view_like_guest')}
+                        { t('sidebar.guest.view_like_guest') }
                     </div>
-                )}
+                ) }
             </aside>
         </>
     );
