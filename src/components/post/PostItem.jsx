@@ -20,7 +20,8 @@ export default function PostItem({
     isInner = false,
     readonly = false,
     depth = 1
-}) {
+})
+{
     const { t } = useTranslation();
 
     const {
@@ -32,7 +33,8 @@ export default function PostItem({
         createRepost
     } = usePostActions(post, readonly, onLikeToggle, onRepostSuccess);
 
-    const handleToggleReaction = async (stickerPayload, event) => {
+    const handleToggleReaction = async (stickerPayload, event) =>
+    {
         const currentReactions = postData.reactions || [];
         const previousReactions = [...currentReactions];
 
@@ -43,29 +45,43 @@ export default function PostItem({
         const existing = currentReactions.find(r => Number(r.id) === stickerId);
         const isAdding = !existing || !existing.me;
 
-        let updated = currentReactions.map(r => {
-            if (Number(r.id) === stickerId) {
+        let updated = currentReactions.map(r =>
+        {
+            if (Number(r.id) === stickerId)
+            {
                 return { ...r, count: r.me ? r.count - 1 : r.count + 1, me: !r.me };
             }
             return r;
         }).filter(r => r.count > 0);
 
-        if (!existing && stickerUrl) {
-            updated.push({ id: stickerId, url: stickerUrl, count: 1, me: true });
+        if (!existing)
+        {
+            if (stickerUrl)
+            {
+                updated.push({ id: stickerId, url: stickerUrl, count: 1, me: true });
+            }
+            else
+            {
+                updated = previousReactions;
+            }
         }
 
         updated.sort((a, b) => b.count - a.count);
         updateLocalPost({ reactions: updated });
 
-        if (isAdding) {
-            setTimeout(() => {
+        if (isAdding)
+        {
+            setTimeout(() =>
+            {
                 let spawnX = event?.clientX || window.innerWidth / 2;
                 let spawnY = event?.clientY || window.innerHeight / 2;
 
-                const container = document.getElementById(`post-reactions-${postData.id}`);
-                if (container) {
-                    const badge = container.querySelector(`[data-sticker-id="${stickerId}"]`);
-                    if (badge) {
+                const container = document.getElementById(`post-reactions-${ postData.id }`);
+                if (container)
+                {
+                    const badge = container.querySelector(`[data-sticker-id="${ stickerId }"]`);
+                    if (badge)
+                    {
                         const rect = badge.getBoundingClientRect();
                         spawnX = rect.left + rect.width / 2;
                         spawnY = rect.top + rect.height / 2;
@@ -73,19 +89,42 @@ export default function PostItem({
                 }
 
                 const urlToAnimate = existing ? existing.url : stickerUrl;
-                if (urlToAnimate) triggerStickerConfetti(urlToAnimate, spawnX, spawnY);
+                if (urlToAnimate)
+                {
+                    triggerStickerConfetti(urlToAnimate, spawnX, spawnY);
+                }
             }, 10);
         }
 
-        try {
+        try
+        {
             const res = await PostService.toggleReaction(postData.id, stickerId);
-            if (res.success) {
-                updateLocalPost({ reactions: res.data });
-            } else {
+
+            // 1. Відловлюємо будь-яку бізнес-помилку від бекенда (ERR_MAX_USER_REACTIONS і т.д.)
+            if (res && res.code && res.code.startsWith('ERR_'))
+            {
                 updateLocalPost({ reactions: previousReactions });
-                notifyError(res.message);
+                notifyError(t(`api.errors.${res.code}`));
+                return;
             }
-        } catch (error) {
+
+            // 2. Якщо все успішно (REACTION_TOGGLED)
+            if (res)
+            {
+                const newReactions = res.reactions || (res.post ? res.post.reactions : []);
+
+                if (newReactions)
+                {
+                    updateLocalPost({ reactions: newReactions });
+                }
+            }
+            else
+            {
+                updateLocalPost({ reactions: previousReactions });
+                notifyError(t('api.errors.ERR_NETWORK'));
+            }
+        } catch (error)
+        {
             updateLocalPost({ reactions: previousReactions });
             console.error(error);
         }
@@ -94,60 +133,62 @@ export default function PostItem({
     const originalAuthorColor = postData.original_post?.user?.personalization?.username_color;
 
     return (
-        <div className={`tetrone-post ${isInner ? 'tetrone-post-inner' : ''} ${readonly ? 'tetrone-post-readonly' : ''}`}>
+        <div
+            className={ `tetrone-post ${ isInner ? 'tetrone-post-inner' : '' } ${ readonly ? 'tetrone-post-readonly' : '' }` }>
             <PostHeader
-                post={postData}
-                isOwner={isOwner}
-                currentUserId={currentUserId}
-                onEdit={!isInner && !readonly ? onEdit : null}
-                onDelete={!isInner && !readonly ? onDelete : null}
-                onReport={!isInner && !readonly ? () => setIsReportModalOpen(true) : null}
+                post={ postData }
+                isOwner={ isOwner }
+                currentUserId={ currentUserId }
+                onEdit={ !isInner && !readonly ? onEdit : null }
+                onDelete={ !isInner && !readonly ? onDelete : null }
+                onReport={ !isInner && !readonly ? () => setIsReportModalOpen(true) : null }
             />
 
             <PostContent
-                content={postData.content}
-                post={postData}
-                onUpdate={updateLocalPost}
-                isOwner={isOwner}
+                content={ postData.content }
+                post={ postData }
+                onUpdate={ updateLocalPost }
+                isOwner={ isOwner }
             />
 
-            {postData.is_repost && (
+            { postData.is_repost && (
                 <div
                     className="tetrone-repost-branch"
-                    style={originalAuthorColor ? { borderLeftColor: originalAuthorColor } : {}}
+                    style={ originalAuthorColor ? { borderLeftColor: originalAuthorColor } : {} }
                 >
-                    {postData.original_post_id && postData.original_post && depth < 3 ? (
+                    { postData.original_post_id && postData.original_post && depth < 3 ? (
                         <PostItem
-                            post={postData.original_post}
-                            isInner={true}
-                            readonly={true}
-                            depth={depth + 1}
+                            post={ postData.original_post }
+                            isInner={ true }
+                            readonly={ true }
+                            depth={ depth + 1 }
                         />
                     ) : postData.original_post_id && depth >= 3 ? (
-                        <div className="tetrone-repost-limit-msg">{t('post.nested_too_deep')}</div>
+                        <div className="tetrone-repost-limit-msg">{ t('post.nested_too_deep') }</div>
                     ) : (
-                        <div className="tetrone-deleted-stub">{t('post.original_deleted')}</div>
-                    )}
+                        <div className="tetrone-deleted-stub">{ t('post.original_deleted') }</div>
+                    ) }
                 </div>
-            )}
+            ) }
 
-            {!isInner && (
+            { !isInner && (
                 <PostFooter
-                    postId={postData.id}
-                    isLiked={postData.is_liked}
-                    likesCount={postData.likes_count}
-                    commentsCount={postData.comments_count}
-                    repostsCount={postData.reposts_count}
-                    onToggleReaction={handleToggleReaction}
-                    reactions={postData.reactions}
-                    onLike={toggleLike}
-                    onRepost={createRepost}
-                    isReposting={isReposting}
-                    readonly={readonly}
+                    postId={ postData.id }
+                    isLiked={ postData.is_liked }
+                    likesCount={ postData.likes_count }
+                    commentsCount={ postData.comments_count }
+                    repostsCount={ postData.reposts_count }
+                    onToggleReaction={ handleToggleReaction }
+                    reactions={ postData.reactions }
+                    onLike={ toggleLike }
+                    onRepost={ createRepost }
+                    isReposting={ isReposting }
+                    readonly={ readonly }
                 />
-            )}
+            ) }
 
-            <ReportModal isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} targetType="post" targetId={postData.id} />
+            <ReportModal isOpen={ isReportModalOpen } onClose={ () => setIsReportModalOpen(false) } targetType="post"
+                         targetId={ postData.id }/>
         </div>
     );
 }

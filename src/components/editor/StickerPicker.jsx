@@ -18,7 +18,7 @@ export default function StickerPicker({ onSelect }) {
         const fetchPacks = async () => {
             try {
                 const response = await StickerService.getMyPacks();
-                setPacks(response.data || []);
+                setPacks(response.packs);
             } catch (error) {
                 console.error(error);
             } finally {

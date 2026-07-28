@@ -38,13 +38,13 @@ export const usePostActions = (initialPost, readonly, onLikeToggle, onRepostSucc
         try {
             const res = await PostService.toggleLike(postData.id);
 
-            if (res.success) {
+            if (res) {
                 setPostData(prev => ({
                     ...prev,
-                    is_liked: res.data.liked,
-                    likes_count: res.data.likes_count
+                    is_liked: res.like_info.liked,
+                    likes_count: res.like_info.likes_count
                 }));
-                if (onLikeToggle) onLikeToggle(postData.id, res.data.liked);
+                if (onLikeToggle) onLikeToggle(postData.id, res.like_info.liked);
             } else {
                 throw new Error(res.message);
             }
@@ -89,18 +89,17 @@ export const usePostActions = (initialPost, readonly, onLikeToggle, onRepostSucc
                 original_post_id: targetId
             });
 
-            if (res.success) {
-                notifySuccess(res.message || t('post.repost_success'));
+            if (res) {
+                notifySuccess(t('post.repost_success'));
                 setPostData(prev => ({
                     ...prev,
                     reposts_count: (prev.reposts_count || 0) + 1
                 }));
-                if (onRepostSuccess && res.data) onRepostSuccess(res.data);
+                if (onRepostSuccess && res.post) onRepostSuccess(res.post);
             } else {
-                notifyError(res.message || t('error.save_failed'));
+                notifyError(t('error.save_failed'));
             }
         } catch (err) {
-            notifyError(t('api.error.ERR_NETWORK'));
         } finally {
             setIsReposting(false);
         }

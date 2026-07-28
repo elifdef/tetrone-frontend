@@ -22,37 +22,33 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
         return () => document.removeEventListener('click', handleClickOutside);
     }, [showMenu]);
 
-    // ЗАХИСТ ВІД ПАДІННЯ: Якщо пост ще вантажиться або "битий"
     if (!post || (!post.user && !post.space)) return null;
 
-    // --- ЛОГІКА АВТОРСТВА (Юзер чи Група) ---
     const isSpacePost = post.is_posted_as_space && post.space;
+    const isSpaceContext = !post.is_posted_as_space && post.space;
 
-    // Хто виступає обличчям поста
     const author = isSpacePost ? post.space : post.user;
-
     const isAvatarUpdate = post.is_avatar_update === true;
-    const showTargetUser = !isAvatarUpdate && !isSpacePost && post.target_user && post.target_user.username !== currentProfileUsername;
+    const showTargetUser = !isAvatarUpdate && !isSpacePost && !isSpaceContext && post.target_user && post.target_user.username !== currentProfileUsername;
 
-    // isAuthor: чи поточний юзер є фізичним автором цього поста
-    const isAuthor = currentUserId ? currentUserId == post.user?.id : false;
+    const isAuthor = currentUserId ? currentUserId === post.user?.id : false;
 
-    // Дані для відображення
-    const authorLink = isSpacePost ? `/${author.nickname}` : `/${author.username}`;
+    // ВИПРАВЛЕНО: Використовуємо username для груп
+    const authorLink = isSpacePost ? `/space/${author.username}` : `/${author.username}`;
     const authorName = isSpacePost ? author.name : `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.username;
+
     const authorNameColor = isSpacePost ? undefined : author?.personalization?.username_color;
 
-    // Фейковий об'єкт для компонента Avatar, щоб він міг відмалювати обкладинку групи
+    // ВИПРАВЛЕНО: Використовуємо username та прокидаємо alias
     const avatarData = isSpacePost ? {
-        avatar: author.cover_url || author.avatar_path,
-        username: author.nickname,
+        avatar: author.avatar_url || author.avatar_path || '/images/default-space.svg',
+        username: author.username,
+        aliases: author.aliases || [], // Передаємо масив аліасів
         first_name: author.name,
         last_name: ''
     } : author;
 
-    // --- ПРАВА ДОСТУПУ ---
     const canEdit = onEdit && isAuthor && !isAvatarUpdate;
-    // Автор поста АБО адмін групи/стіни (isOwner) можуть видаляти
     const canDelete = onDelete && (isAuthor || isOwner);
     const canReport = onReport && !isAuthor;
 
@@ -64,8 +60,6 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
 
     return (
         <div className="tetrone-post-header">
-
-            {/* БЛОК АВАТАРКИ */}
             <Link to={authorLink}>
                 <Avatar
                     user={avatarData}
@@ -73,7 +67,6 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
                 />
             </Link>
 
-            {/* БЛОК ТЕКСТУ ТА ДАТИ */}
             <div className="tetrone-post-meta">
                 <div className="tetrone-post-authors-row">
                     <Link
@@ -84,10 +77,9 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
                         {authorName}
                     </Link>
 
-                    {/* Підказка для адмінів: якщо пост від імені групи, але ми бачимо справжнього юзера */}
                     {isSpacePost && post.user && (
-                        <span className="tetrone-post-target-text" style={{ fontSize: '0.85em', color: '#8c8c8c', marginLeft: '6px' }}>
-                            ({t('spaces.posted_by_admin', 'написав')} <Link to={`/${post.user.username}`} style={{ color: 'inherit', textDecoration: 'underline' }}>{post.user.first_name}</Link>)
+                        <span className="tetrone-post-admin-hint">
+                            ({t('spaces.posted_by_admin')} <Link to={`/${post.user.username}`} className="tetrone-post-admin-link">{post.user.first_name}</Link>)
                         </span>
                     )}
 
@@ -106,10 +98,11 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
                         </span>
                     )}
 
-                    {!isSpacePost && post.space_id && post.space && (
+                    {isSpaceContext && (
                         <span className="tetrone-post-target-text">
-                            <span style={{ margin: '0 6px', color: '#8c8c8c', fontSize: '0.85em' }}>▶</span>
-                            <Link to={`/${post.space.nickname}`} className="tetrone-post-author target">
+                            <span className="tetrone-post-arrow">▶</span>
+                            {/* ВИПРАВЛЕНО: Використовуємо username */}
+                            <Link to={`/space/${post.space.username}`} className="tetrone-post-author target">
                                 {post.space.name}
                             </Link>
                         </span>
@@ -121,9 +114,8 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
                 </Link>
             </div>
 
-            {/* МЕНЮ ДІЙ */}
             {showActions && (
-                <div className="tetrone-post-actions-container" style={{ position: 'relative', marginLeft: 'auto' }}>
+                <div className="tetrone-post-actions-container">
                     <button
                         className="tetrone-post-action-btn-trigger"
                         onClick={() => setShowMenu(!showMenu)}

@@ -34,7 +34,7 @@ export const useUserWall = (profileUser) =>
         mutationFn: ({ payload, images }) => PostService.create({ payload, images, target_user_id: profileUser.id }),
         onSuccess: (res) =>
         {
-            if (res.success)
+            if (res)
             {
                 queryClient.setQueryData(queryKey, (oldData) =>
                 {
@@ -43,8 +43,7 @@ export const useUserWall = (profileUser) =>
                         return oldData;
                     }
                     const newPages = [...oldData.pages];
-                    // Новий fetchClient дістане post з відповіді бекенда { code: 'POST_CREATED', post: {...} }
-                    const createdPost = res.post || res.data;
+                    const createdPost = res.post;
 
                     if (newPages.length > 0 && createdPost)
                     {
@@ -97,7 +96,7 @@ export const useUserWall = (profileUser) =>
         mutationFn: (postId) => PostService.delete(postId),
         onSuccess: (res, deletedId) =>
         {
-            if (res.success)
+            if (res)
             {
                 queryClient.setQueryData(queryKey, (oldData) =>
                 {

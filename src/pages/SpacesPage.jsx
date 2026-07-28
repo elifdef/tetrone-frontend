@@ -37,8 +37,8 @@ const SpacesPage = () => {
             }
 
             const res = await SpaceService.getSpacesList(params);
-            if (res.success) {
-                setSpaces(res.data || []);
+            if (res) {
+                setSpaces(res.spaces);
             }
             setIsLoading(false);
         };

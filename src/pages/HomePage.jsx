@@ -10,7 +10,8 @@ import InfiniteScrollList from "../components/common/InfiniteScrollList";
 import { AuthContext } from "../context/AuthContext";
 import Button from "../components/ui/Button";
 
-export default function HomePage() {
+export default function HomePage()
+{
     const { t } = useTranslation();
     usePageTitle(t('common.posts'));
 
@@ -19,8 +20,12 @@ export default function HomePage() {
     const { user: authUser } = useContext(AuthContext);
     const queryClient = useQueryClient();
 
-    const handleTabChange = (tab) => {
-        if (activeTab === tab) return;
+    const handleTabChange = (tab) =>
+    {
+        if (activeTab === tab)
+        {
+            return;
+        }
         setSearchParams({ tab });
     };
 
@@ -33,22 +38,31 @@ export default function HomePage() {
         isFetchingNextPage,
         refetch
     } = useInfiniteQuery({
-        queryKey: ['feed', activeTab], // Кеш окремо для 'feed' і 'global'
+        queryKey: ['feed', activeTab],
         queryFn: ({ pageParam = 1, signal }) => FeedService.getFeed(activeTab, pageParam, signal),
-        getNextPageParam: (lastPage) => {
+        getNextPageParam: (lastPage) =>
+        {
             const meta = lastPage?.meta;
             return meta && meta.current_page < meta.last_page ? meta.current_page + 1 : undefined;
         }
     });
 
-    const posts = data?.pages.flatMap(page => page.data || []) || [];
+    // 1. Оновлено: тепер беремо posts замість data
+    const posts = data?.pages.flatMap(page => page.posts || []) || [];
 
-    const handleRepostSuccess = (newPost) => {
-        queryClient.setQueryData(['feed', activeTab], (oldData) => {
-            if (!oldData) return oldData;
+    const handleRepostSuccess = (newPost) =>
+    {
+        queryClient.setQueryData(['feed', activeTab], (oldData) =>
+        {
+            if (!oldData)
+            {
+                return oldData;
+            }
             const newPages = [...oldData.pages];
-            if (newPages.length > 0) {
-                newPages[0] = { ...newPages[0], data: [newPost, ...newPages[0].data] };
+            if (newPages.length > 0)
+            {
+                // 2. Оновлено: мутуємо ключ posts замість data для кешу
+                newPages[0] = { ...newPages[0], posts: [newPost, ...newPages[0].posts] };
             }
             return { ...oldData, pages: newPages };
         });
@@ -56,57 +70,60 @@ export default function HomePage() {
 
     const EmptyState = () => (
         <div className="tetrone-empty-state with-card">
-            <h3>{t('common.welcome')}!</h3>
-            {activeTab === 'feed' ? (
+            <h3>{ t('common.welcome') }!</h3>
+            { activeTab === 'feed' ? (
                 <>
-                    <p>{t('empty.feed')}</p>
+                    <p>{ t('empty.feed') }</p>
                     <div className="tetrone-feed-actions">
                         <Button>
-                            <Link to="/friends?tab=all" style={{ color: '#ffffff' }}>
-                                {t('feed.find_friends')}
+                            {/* 3. Прибрано інлайн-стиль */ }
+                            <Link to="/friends?tab=all" className="tetrone-link-white">
+                                { t('feed.find_friends') }
                             </Link>
                         </Button>
-                        <Button onClick={() => handleTabChange('global')}>
-                            {t('feed.view_global_feed')}
+                        <Button onClick={ () => handleTabChange('global') }>
+                            { t('feed.view_global_feed') }
                         </Button>
                     </div>
                 </>
             ) : (
-                <p>{t('empty.feed')}</p>
-            )}
+                <p>{ t('empty.feed') }</p>
+            ) }
         </div>
     );
 
     return (
         <div className="tetrone-feed-page">
             <div className="tetrone-tabs">
-                <button className={`tetrone-tab ${activeTab === 'feed' ? 'active' : ''}`} onClick={() => handleTabChange('feed')}>
-                    {t('feed.my_feed')}
+                <button className={ `tetrone-tab ${ activeTab === 'feed' ? 'active' : '' }` }
+                        onClick={ () => handleTabChange('feed') }>
+                    { t('feed.my_feed') }
                 </button>
-                <button className={`tetrone-tab ${activeTab === 'global' ? 'active' : ''}`} onClick={() => handleTabChange('global')}>
-                    {t('feed.global_feed')}
+                <button className={ `tetrone-tab ${ activeTab === 'global' ? 'active' : '' }` }
+                        onClick={ () => handleTabChange('global') }>
+                    { t('feed.global_feed') }
                 </button>
             </div>
 
             <InfiniteScrollList
-                itemsCount={posts.length}
-                isLoadingInitial={isLoading}
-                isLoadingMore={isFetchingNextPage}
-                hasMore={!!hasNextPage}
-                onLoadMore={fetchNextPage}
-                error={isError}
-                onRetry={refetch}
-                emptyState={<EmptyState />}
+                itemsCount={ posts.length }
+                isLoadingInitial={ isLoading }
+                isLoadingMore={ isFetchingNextPage }
+                hasMore={ !!hasNextPage }
+                onLoadMore={ fetchNextPage }
+                error={ isError }
+                onRetry={ refetch }
+                emptyState={ <EmptyState/> }
             >
-                {posts.map(post => (
+                { posts.map(post => (
                     <PostItem
-                        key={post.id}
-                        post={post}
-                        currentUserId={authUser?.id}
-                        isOwner={authUser?.id === post.user?.id}
-                        onRepostSuccess={handleRepostSuccess}
+                        key={ post.id }
+                        post={ post }
+                        currentUserId={ authUser?.id }
+                        isOwner={ authUser?.id === post.user?.id }
+                        onRepostSuccess={ handleRepostSuccess }
                     />
-                ))}
+                )) }
             </InfiniteScrollList>
         </div>
     );

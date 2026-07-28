@@ -9,9 +9,9 @@ const SpaceListItem = ({ space, onLeave }) => {
 
     return (
         <div className="space-list-item">
-            <Link to={`/${space.nickname}`}>
+            <Link to={`/${space.username}`}>
                 <img
-                    src={space.cover_url}
+                    src={space.avatar_url}
                     alt={space.name}
                     className="space-list-avatar"
                 />
@@ -19,7 +19,7 @@ const SpaceListItem = ({ space, onLeave }) => {
 
             <div className="space-list-info">
                 <div className="space-list-info-row">
-                    <Link to={`/${space.nickname}`} className="space-header-link-right">
+                    <Link to={`/${space.username}`} className="space-header-link-right">
                         {space.name}
                     </Link>
                 </div>
@@ -27,16 +27,16 @@ const SpaceListItem = ({ space, onLeave }) => {
                     <span>{t(`spaces.privacy_${space.privacy_type}`)}</span>
                 </div>
                 <div className="space-list-info-row">
-                    <Link to={`/${space.nickname}?tab=members`} className="space-header-link-right">{t('entities.member', { count: space.members_count })}</Link>
+                    <Link to={`/${space.username}?tab=members`} className="space-header-link-right">{t('entities.member', { count: space.members_count })}</Link>
                 </div>
             </div>
 
             <div className="space-list-actions">
-                <Link className="space-action-item" to={`/${space.nickname}`}>
+                <Link className="space-action-item" to={`/${space.username}`}>
                     {t('spaces.visit')}
                 </Link>
                 {user.id === space.owner_id && (
-                    <Link className="space-action-item" to={`/${space.nickname}?tab=settings`}>
+                    <Link className="space-action-item" to={`/${space.username}?tab=settings`}>
                         {t('spaces.settings')}
                     </Link>
                 )}

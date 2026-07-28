@@ -25,7 +25,7 @@ export const useEmailVerification = () => {
                 const query = location.search;
                 const res = await AuthService.verifyEmail(match.params.id, match.params.hash, query);
 
-                if (res.success) {
+                if (res) {
                     const verifiedDate = new Date().toISOString();
 
                     const channel = new BroadcastChannel('auth_channel');
@@ -33,7 +33,7 @@ export const useEmailVerification = () => {
                     channel.close();
 
                     setVerifyStatus('success');
-                    setStatusMessage(res.message);
+                    setStatusMessage(res);
 
                     setTimeout(() => {
                         setVerifyStatus('hidden');
@@ -54,10 +54,10 @@ export const useEmailVerification = () => {
         setLoading(true);
         const res = await AuthService.resendVerification();
 
-        if (res.success) {
-            notifyInfo(res.message || t('info.email_send_letter'));
+        if (res) {
+            notifyInfo(t('info.email_send_letter'));
         } else {
-            notifyError(res.message || t('error.email_send'));
+            notifyError(t('error.email_send'));
         }
 
         setLoading(false);

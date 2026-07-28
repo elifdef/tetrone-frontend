@@ -59,8 +59,8 @@ const SpaceWall = ({ space }) => {
                 is_posted_as_space: payload.is_posted_as_space
             });
 
-            if (res.success) {
-                setPosts(prev => [res.data, ...prev]);
+            if (res) {
+                setPosts(prev => [res.post, ...prev]);
                 return true;
             }
             notifyError(t('api.error.ERR_SERVER'));
