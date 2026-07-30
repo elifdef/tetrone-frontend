@@ -7,6 +7,25 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { Extension, Mark, mergeAttributes } from '@tiptap/core';
 import { CustomStickerNode } from '../editor/CustomStickerNode';
 import StickerTooltip from '../editor/StickerTooltip';
+import { PullquoteNode, DetailsNode, SummaryNode } from '../editor/extensions';
+import { Underline } from '@tiptap/extension-underline';
+import { Link } from '@tiptap/extension-link';
+import { TaskList } from '@tiptap/extension-task-list';
+import { TaskItem } from '@tiptap/extension-task-item';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { Subscript } from '@tiptap/extension-subscript';
+import { Superscript } from '@tiptap/extension-superscript';
+import { Highlight } from '@tiptap/extension-highlight';
+
+// Імпорт для підсвітки
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { common, createLowlight } from 'lowlight';
+import hljs from 'highlight.js';
+
+const lowlight = createLowlight(common);
 
 const SpoilerMark = Mark.create({
     name: 'spoiler',
@@ -37,14 +56,53 @@ const FontSize = Extension.create({
 });
 
 const getRichTextExtensions = () => [
-    StarterKit.configure(),
+    StarterKit.configure({ codeBlock: false }),
     TextStyle.configure(),
     Color.configure(),
     FontSize.configure(),
     SpoilerMark.configure(),
     CustomStickerNode.configure(),
-    Mention.configure({ HTMLAttributes: { class: 'mention' } })
+    Mention.configure({ HTMLAttributes: { class: 'mention' } }),
+    Underline.configure(),
+    Link.configure({ openOnClick: false, HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer nofollow' } }),
+    TaskList.configure(),
+    TaskItem.configure({ nested: true }),
+    Table.configure({ resizable: true }),
+    TableRow.configure(),
+    TableHeader.configure(),
+    TableCell.configure(),
+    PullquoteNode.configure(),
+    DetailsNode.configure(),
+    SummaryNode.configure(),
+    Subscript.configure(),
+    Superscript.configure(),
+    Highlight.configure({ multicolor: true }),
+    CodeBlockLowlight.configure({ lowlight }),
 ];
+
+// ХИТРИЙ ДЕКОДЕР: Рятує нас від подвійного екранування і дозволяє пройти тести на бекенді
+const decodeHtmlEntities = (text) => {
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value;
+};
+
+export const decodeTipTapContent = (content) => {
+    if (!content) return content;
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) return content.map(decodeTipTapContent);
+    if (typeof content === 'object') {
+        const newObj = { ...content };
+        if (newObj.type === 'text' && typeof newObj.text === 'string') {
+            newObj.text = decodeHtmlEntities(newObj.text);
+        }
+        if (newObj.content) {
+            newObj.content = decodeTipTapContent(newObj.content);
+        }
+        return newObj;
+    }
+    return content;
+};
 
 export default function RichText({ text, className = "tetrone-post-text" }) {
     const containerRef = useRef(null);
@@ -53,23 +111,38 @@ export default function RichText({ text, className = "tetrone-post-text" }) {
     const [activeStickerId, setActiveStickerId] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
     const [isPinned, setIsPinned] = useState(false);
-
     const hideTimeoutRef = useRef(null);
 
     const htmlContent = useMemo(() => {
         if (!text || typeof text !== 'object') return null;
         try {
-            return generateHTML(text, getRichTextExtensions());
+            // Розкодовуємо текст перед генерацією
+            const decodedText = decodeTipTapContent(text);
+            return generateHTML(decodedText, getRichTextExtensions());
         } catch (error) {
             return null;
         }
     }, [text]);
 
+    // ФІКС ПІДСВІТКИ КОДУ ПРИ ВИДАЛЕННІ/РЕДАГУВАННІ:
+    useEffect(() => {
+        if (containerRef.current && htmlContent) {
+            setTimeout(() => {
+                if (!containerRef.current) return;
+                const codeBlocks = containerRef.current.querySelectorAll('pre code');
+                codeBlocks.forEach((block) => {
+                    // Примусово скидаємо старі класи від попереднього поста, якщо React використав той самий блок
+                    block.innerHTML = block.textContent;
+                    block.className = block.className.replace(/\bhljs\b/g, '').trim();
+                    hljs.highlightElement(block);
+                });
+            }, 10);
+        }
+    }, [htmlContent]);
+
     const showTooltip = (target, pinned = false) => {
         clearTimeout(hideTimeoutRef.current);
-
         const packname = target.getAttribute('data-pack-name');
-        
         const rect = target.getBoundingClientRect();
 
         if (packname) {
@@ -77,7 +150,6 @@ export default function RichText({ text, className = "tetrone-post-text" }) {
                 x: rect.left + window.scrollX + (rect.width / 2),
                 y: rect.top + window.scrollY - 10
             });
-
             setActiveStickerId(packname);
             if (pinned) setIsPinned(true);
         }
@@ -109,7 +181,6 @@ export default function RichText({ text, className = "tetrone-post-text" }) {
         if (target && target.classList.contains('tetrone-micro-sticker')) {
             e.preventDefault();
             e.stopPropagation();
-
             const shortcode = target.getAttribute('data-shortcode');
 
             if (isPinned && activeStickerId === shortcode) {

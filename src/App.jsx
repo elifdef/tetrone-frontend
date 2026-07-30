@@ -18,7 +18,7 @@ const GlobalLoading = () =>
     );
 };
 
-const GlobalErrorScreen = ({ title, desc, onRetry, showButton=false }) =>
+const GlobalErrorScreen = ({ title, desc, onRetry, showButton= true }) =>
 {
     return (
         <div className="tetrone-fullscreen-center">
@@ -113,7 +113,7 @@ export default function App()
     {
         return <GlobalErrorScreen
             title={ t("api.error.CRITICAL_SERVER_ERROR") }
-            desc={ t("easter_eggs.server_maintenance_desc") }
+            desc={ t("easter_eggs.server_err_desc") }
             onRetry={ () => setGlobalServerState(null) }
         />;
     }

@@ -31,10 +31,12 @@ export default function CreatePostForm({ onSubmitSuccess, spaceId = null}) {
             onPaste={handlePaste}
         >
             <Editor
+                preset="post"
                 className="tetrone-form-textarea fixed-size"
                 placeholder={isDragging ? t('wall.drop_files_here') : t('action.write_post')}
                 value={content}
                 onChange={setContent}
+                onAddPoll={!pollData ? () => setShowPollCreator(true) : null}
             />
 
             {pollData && (
@@ -71,16 +73,7 @@ export default function CreatePostForm({ onSubmitSuccess, spaceId = null}) {
             <div className="tetrone-wall-actions">
                 <div className="tetrone-wall-actions-left">
                     <AttachBar onFileSelect={handleFileSelect} />
-
-                    {!pollData && (
-                        <button
-                            className="tetrone-add-poll-btn"
-                            onClick={() => setShowPollCreator(true)}
-                            title={t('poll.add_poll')}
-                        >
-                            <PollIcon width={20} height={20} />
-                        </button>
-                    )}
+                    {/* Кнопку Poll звідси ми ПРИБРАЛИ, бо вона тепер у скріпці */}
                 </div>
 
                 <Button onClick={handleSubmit}>

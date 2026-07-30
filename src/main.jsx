@@ -27,6 +27,7 @@ import "./styles/ui.css";
 import "./styles/video.css";
 import "./styles/space.css";
 import "./styles/landing.css";
+import "./styles/editor.css";
 
 const queryClient = new QueryClient({
     defaultOptions: {
