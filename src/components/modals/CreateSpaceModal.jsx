@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import SpaceService from '../../services/space.service';
 import Button from '../ui/Button';
 import Input from '../ui/Input';

@@ -570,6 +570,87 @@ body.modal-open {
     gap: 12px;
 }
 
+/* Privacy Exceptions Modal & Mini User Cards */
+.tetrone-exceptions-modal {
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.tetrone-exceptions-modal-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: 0;
+}
+
+.tetrone-exceptions-list-container {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-right: 5px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tetrone-mini-user-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--theme-bg-box);
+    border: 1px solid var(--theme-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tetrone-mini-user-card:hover {
+    border-color: var(--theme-primary);
+    background: var(--theme-bg-hover);
+}
+
+.tetrone-mini-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.tetrone-mini-user-avatar {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.tetrone-mini-user-text {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tetrone-mini-user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--theme-text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tetrone-mini-user-username {
+    font-size: 12px;
+    color: var(--theme-text-muted);
+}
+
+.tetrone-mini-user-action {
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+}
+
 @media (max-width: 768px) {
     .tetrone-modal-overlay {
         padding: 10px;

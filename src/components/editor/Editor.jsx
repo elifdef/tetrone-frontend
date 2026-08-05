@@ -22,9 +22,6 @@ import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { Highlight } from '@tiptap/extension-highlight';
 import FontFamily from '@tiptap/extension-font-family';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { common, createLowlight } from 'lowlight';
-const lowlight = createLowlight(common);
 import { CustomStickerNode } from './CustomStickerNode';
 import { decodeTipTapContent } from '../common/RichText';
 import StickerPicker from './StickerPicker';
@@ -34,6 +31,11 @@ import EditorAttachmentMenu from './EditorAttachmentMenu.jsx';
 import { SpoilerMark, FontSize, EnterHandler, StickerTrigger, PullquoteNode, DetailsNode, SummaryNode } from './extensions';
 import mentionSuggestion from './mentionSuggestion';
 import { EmojiIcon } from "../ui/Icons.jsx";
+
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { all, createLowlight } from 'lowlight';
+
+const lowlight = createLowlight(all);
 
 function Editor({
     value, onChange, placeholder = "", className = "", onEnter = null, preset = "post", onAddPoll = null

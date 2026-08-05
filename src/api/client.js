@@ -47,7 +47,7 @@ export default async function fetchClient(endpoint, {
             }
         }
 
-        const Data = { ...data, status: response.status };
+        const Data = { ...data, status: response.status, success: true }; // TODO: забрати success
 
         if (!silentAuth)
         {

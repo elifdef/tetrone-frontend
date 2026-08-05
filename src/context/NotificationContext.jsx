@@ -25,8 +25,8 @@ export const NotificationProvider = ({ children }) => {
         ]);
 
         if (notifRes) {
-            setNotifications(notifRes.data?.notifications || []);
-            setUnreadCount(notifRes.data?.unread_count || 0);
+            setNotifications(notifRes.notifications);
+            setUnreadCount(notifRes.unread_count);
         }
         if (chatRes) {
             const chats = chatRes.data || [];

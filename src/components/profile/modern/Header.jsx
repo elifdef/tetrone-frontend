@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from "../../../hooks/useDateFormatter";
 import PostService from "../../../services/post.service";

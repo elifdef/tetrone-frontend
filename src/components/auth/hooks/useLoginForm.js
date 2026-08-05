@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import AuthService from '../../../services/auth.service';
 import { AuthContext } from '../../../context/AuthContext';
 import { APP_ENV } from "../../../config.js";

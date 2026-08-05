@@ -1,6 +1,6 @@
 import { useContext, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import { usePageTitle } from "../hooks/usePageTitle";
 import { AuthContext } from "../context/AuthContext";
 import { userRole } from '../config';

@@ -21,6 +21,7 @@ class AuthService {
             silentAuth: true
         });
     }
+
     async logout() {
         return fetchClient('/auth/sign-out', { method: 'POST' });
     }
@@ -35,17 +36,38 @@ class AuthService {
         });
     }
 
+    // ==========================================
+    // СЕСІЇ ТА ТОКЕНИ
+    // ==========================================
     async getSessions() {
         return await fetchClient('/settings/sessions');
     }
 
+    async createApiToken(data) {
+        return await fetchClient('/settings/sessions/api-token', {
+            method: 'POST',
+            body: data
+        });
+    }
+
     async revokeSession(tokenId) {
-        return await fetchClient(`/settings/sessions/${tokenId}`, { method: 'DELETE' });
+        return await fetchClient(`/settings/sessions/${tokenId}`, {
+            method: 'DELETE'
+        });
     }
 
     async revokeAllOtherSessions() {
-        return await fetchClient('/settings/sessions', { method: 'DELETE' });
+        return await fetchClient('/settings/sessions', {
+            method: 'DELETE'
+        });
     }
+
+    async revokeAllSessions() {
+        return await fetchClient('/settings/sessions/all', {
+            method: 'DELETE'
+        });
+    }
+    // ==========================================
 
     async verifyResetCode(email, code) {
         return await fetchClient('/email/verify-reset-code', {

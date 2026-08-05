@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { useTranslation } from 'react-i18next';

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import AdminService from '../../services/admin.service';
 import PostService from '../../services/post.service';
 import { notifySuccess, notifyError } from "../common/Notify";

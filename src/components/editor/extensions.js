@@ -115,9 +115,39 @@ export const DetailsNode = Node.create({
     },
     parseHTML() { return [{ tag: 'details.tetrone-details' }, { tag: 'details' }]; },
     renderHTML({ HTMLAttributes }) { return ['details', mergeAttributes(HTMLAttributes, { class: 'tetrone-details' }), 0]; },
+
+    // ДОДАЄМО СИНХРОНІЗАЦІЮ СТАНУ
+    addNodeView() {
+        return ({ node, getPos, editor }) => {
+            const dom = document.createElement('details');
+            dom.classList.add('tetrone-details');
+
+            // Встановлюємо стан при завантаженні (з JSON)
+            if (node.attrs.open) {
+                dom.setAttribute('open', '');
+            }
+
+            // Слухаємо клік користувача і записуємо зміну в Tiptap
+            dom.addEventListener('toggle', () => {
+                if (typeof getPos === 'function') {
+                    const pos = getPos();
+                    const currentState = editor.state.doc.nodeAt(pos)?.attrs?.open;
+                    if (currentState !== dom.open) {
+                        editor.view.dispatch(editor.state.tr.setNodeMarkup(pos, null, { open: dom.open }));
+                    }
+                }
+            });
+
+            return {
+                dom,
+                contentDOM: dom, // Дозволяємо Tiptap рендерити summary та paragraph всередині
+            };
+        };
+    },
+
     addCommands() {
         return {
-            setDetails: (summaryText = 'Заголовок...', bodyText = 'Текст...') => ({ commands }) => {
+            setDetails: (summaryText = '...', bodyText = '...') => ({ commands }) => {
                 return commands.insertContent({
                     type: 'details',
                     attrs: { open: true },

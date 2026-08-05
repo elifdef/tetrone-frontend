@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import FriendService from "../../../services/friend.service";
 import { AuthContext } from "../../../context/AuthContext";
 import { useFriendship } from "./useFriendship";

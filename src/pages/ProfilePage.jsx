@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../context/AuthContext";
 import UserProfileCard from "../components/profile/UserProfileCard";

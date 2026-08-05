@@ -1,17 +1,17 @@
-import {createContext, useContext, useEffect, useState} from 'react';
-import {io} from 'socket.io-client';
-import {AuthContext} from './AuthContext';
-import {WS_URL} from '../config';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
+import { AuthContext } from './AuthContext';
+import { WS_URL } from '../config';
 
 const SocketContext = createContext(null);
 
 export const useSocket = () => useContext(SocketContext);
 
-export const SocketProvider = ({children}) =>
+export const SocketProvider = ({ children }) =>
 {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
-    const {isAuthenticated} = useContext(AuthContext);
+    const { isAuthenticated } = useContext(AuthContext);
 
     useEffect(() =>
     {
@@ -33,17 +33,17 @@ export const SocketProvider = ({children}) =>
 
         newSocket.on('online_users_list', (users) =>
         {
-            setOnlineUsers(users.map(id => parseInt(id)));
+            setOnlineUsers(users);
         });
 
         newSocket.on('user_online', (data) =>
         {
-            setOnlineUsers(prev => [...new Set([...prev, parseInt(data.user_id)])]);
+            setOnlineUsers(prev => [...new Set([...prev, data.username])]);
         });
 
         newSocket.on('user_offline', (data) =>
         {
-            setOnlineUsers(prev => prev.filter(id => id !== parseInt(data.user_id)));
+            setOnlineUsers(prev => prev.filter(username => username !== data.username));
         });
 
         newSocket.on('connect_error', (err) =>
@@ -75,8 +75,8 @@ export const SocketProvider = ({children}) =>
     }, [isAuthenticated]); // Перепідключаємо, якщо статус авторизації змінився
 
     return (
-        <SocketContext.Provider value={{socket, onlineUsers}}>
-            {children}
+        <SocketContext.Provider value={ { socket, onlineUsers } }>
+            { children }
         </SocketContext.Provider>
     );
 };

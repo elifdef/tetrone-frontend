@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { useTranslation } from 'react-i18next';
 import MessageService from "../../../services/chat.service";
 import Button from "../../ui/Button";
+import { notifyError } from "../../common/Notify.jsx";
 
 export default function ProfileActions({
     sameUser, userId, loading, status, isBlockedByMe, isBlockedByTarget,
@@ -57,6 +58,8 @@ export default function ProfileActions({
 
     const handleSendMessage = async () => {
         setIsChatLoading(true);
+        notifyError("now work now");
+        return;
         const res = await MessageService.initChat(userId);
 
         if (res.success && res.data?.chat_slug) {
@@ -71,6 +74,7 @@ export default function ProfileActions({
         <div className="tetrone-actions">
             {!isBlockedByMe && permissions?.can_message && (
                 <Button
+                    variant={"primary"}
                     onClick={handleSendMessage}
                     disabled={isChatLoading || loading}
                 >
@@ -78,9 +82,9 @@ export default function ProfileActions({
                 </Button>
             )}
 
-            {/* Дропдаун залишається без змін */}
             <div className="tetrone-dropdown-wrapper" ref={menuRef}>
                 <Button
+                    variant={"primary"}
                     className="tetrone-btn-dropdown-trigger"
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     disabled={loading}

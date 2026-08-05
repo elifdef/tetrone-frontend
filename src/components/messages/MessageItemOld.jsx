@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useState, useMemo, memo } from "react";
 import { extractPreviewText } from '../../utils/editorHelpers';
 import MessageImage from './MessageImage';

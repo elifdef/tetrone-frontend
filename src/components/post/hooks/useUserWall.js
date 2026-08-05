@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from 'react-i18next';
 import { notifyError, notifySuccess } from "../../common/Notify";
@@ -129,7 +129,7 @@ export const useUserWall = (profileUser) =>
 
     const saveEdit = async (postId, updateData) => await editMutation.mutateAsync({ postId, updateData });
 
-    const handleDelete = async (postId) =>
+    const handleDelete = useCallback(async (postId) =>
     {
         const isConfirmed = await openConfirm(t('action.delete'));
         if (!isConfirmed)
@@ -137,7 +137,7 @@ export const useUserWall = (profileUser) =>
             return;
         }
         await deleteMutation.mutateAsync(postId);
-    };
+    }, []);
 
     const handleRepostSuccess = (newPost) =>
     {

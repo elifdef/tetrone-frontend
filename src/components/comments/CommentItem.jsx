@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { EditIcon, DeleteIcon, ReplyIcon, ReportIcon, DotsIcon } from '../ui/Icons';

@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import { AuthContext } from "../../context/AuthContext";
 import { AudioProvider } from "../../context/AudioContext";
 import LeftSidebar from "./LeftSidebar";

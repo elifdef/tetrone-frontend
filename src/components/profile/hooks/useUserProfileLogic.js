@@ -65,21 +65,21 @@ export const useUserProfileLogic = (currentUser, isPreview = false) => {
         switch (status) {
             case 'none':
                 res = await FriendService.addFriend(currentUser.username);
-                if (res.success) nextStatus = 'pending_sent';
+                if (res) nextStatus = 'pending_sent';
                 break;
             case 'pending_sent':
                 res = await FriendService.removeFriend(currentUser.username);
-                if (res.success) nextStatus = 'none';
+                if (res) nextStatus = 'none';
                 break;
             case 'pending_received':
                 res = await FriendService.acceptRequest(currentUser.username);
-                if (res.success) nextStatus = 'friends';
+                if (res) nextStatus = 'friends';
                 break;
             case 'friends':
                 const confirmed = await openConfirm(`${t('action.remove')}?`);
                 if (confirmed) {
                     res = await FriendService.removeFriend(currentUser.username);
-                    if (res.success) nextStatus = 'none';
+                    if (res) nextStatus = 'none';
                 } else {
                     setLoading(false);
                     return;
@@ -90,16 +90,14 @@ export const useUserProfileLogic = (currentUser, isPreview = false) => {
                 return;
         }
 
-        if (res) {
-            if (res.success) {
+            if (res) {
                 setStatus(nextStatus);
                 if (status === 'none' || status === 'pending_received') {
-                    notifySuccess(res.message);
+                    notifySuccess(res.code);
                 }
             } else {
-                notifyError(res.message);
+                notifyError(res.code);
             }
-        }
 
         setLoading(false);
     };

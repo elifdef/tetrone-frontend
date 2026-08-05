@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect } from "react";
 import { getSystemLanguage } from "../i18n";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { notifyError } from "../components/common/Notify";
 import AuthService from "../services/auth.service.js";

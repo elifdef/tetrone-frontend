@@ -1,5 +1,5 @@
 import { useEffect, useContext, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { usePageTitle } from "../hooks/usePageTitle";
 import { AuthContext } from "../context/AuthContext";

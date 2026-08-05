@@ -525,10 +525,12 @@
 }
 
 .ProseMirror pre code,
-.tetrone-post-text pre code {
-    color: #abb2bf;
-    background: transparent;
-    padding: 0;
+.hljs-container pre code {
+    display: block;
+    background: #282c34; /* Твій колір фону для коду */
+    padding: 1em;
+    border-radius: 8px;
+    overflow-x: auto;
 }
 
 .ProseMirror p code,

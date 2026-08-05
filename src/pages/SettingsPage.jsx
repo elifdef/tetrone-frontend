@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router';
 import { AuthContext } from '../context/AuthContext';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useTranslation } from 'react-i18next';

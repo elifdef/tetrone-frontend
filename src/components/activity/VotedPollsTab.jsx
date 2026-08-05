@@ -24,7 +24,7 @@ export default function VotedPollsTab() {
         const res = await ActivityService.getVotedPolls(page);
 
         if (res.success) {
-            const items = res.data || [];
+            const items = res.posts;
             const meta = res.meta;
 
             setPosts(prev => {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import fetchClient from '../api/client';
 import LikedPostsTab from '../components/activity/LikedPostsTab';
@@ -36,7 +36,7 @@ export default function ActivityPage() {
     useEffect(() => {
         fetchClient('/activity/counts').then(res => {
             if (res.success) {
-                setCounts(res.data);
+                setCounts(res.counts);
             } else {
                 notifyError(res.message);
             }

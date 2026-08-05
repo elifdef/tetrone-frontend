@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 
 export const GuestGuard = () => {

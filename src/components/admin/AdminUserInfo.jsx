@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { usePageTitle } from "../../hooks/usePageTitle";
 import AdminService from '../../services/admin.service';
 import { notifySuccess, notifyError } from '../../components/common/Notify';

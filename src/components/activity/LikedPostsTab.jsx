@@ -23,7 +23,7 @@ export default function LikedPostsTab({ onCountUpdate }) {
         const res = await ActivityService.getLikedPosts(page);
 
         if (res.success) {
-            const items = res.data || [];
+            const items = res.posts;
             const meta = res.meta;
 
             setPosts(prev => {

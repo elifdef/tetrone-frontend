@@ -2,11 +2,6 @@ import fetchClient from "../api/client";
 
 class NotificationSettingsService
 {
-    async getSettings()
-    {
-        return await fetchClient('/settings/notifications');
-    }
-
     async updateSettings(data)
     {
         return await fetchClient('/settings/notifications', {

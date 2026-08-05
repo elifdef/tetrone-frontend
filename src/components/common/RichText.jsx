@@ -5,9 +5,11 @@ import Mention from '@tiptap/extension-mention';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Extension, Mark, mergeAttributes } from '@tiptap/core';
+
 import { CustomStickerNode } from '../editor/CustomStickerNode';
 import StickerTooltip from '../editor/StickerTooltip';
 import { PullquoteNode, DetailsNode, SummaryNode } from '../editor/extensions';
+
 import { Underline } from '@tiptap/extension-underline';
 import { Link } from '@tiptap/extension-link';
 import { TaskList } from '@tiptap/extension-task-list';
@@ -20,12 +22,14 @@ import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { Highlight } from '@tiptap/extension-highlight';
 
-// Імпорт для підсвітки
+// 1. Імпортуємо 'all', щоб працювали ВСІ мови, включно з x86asm
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { common, createLowlight } from 'lowlight';
-import hljs from 'highlight.js';
+import { all, createLowlight } from 'lowlight';
 
-const lowlight = createLowlight(common);
+// 2. КРИТИЧНО ВАЖЛИВО: Імпортуємо CSS-тему, щоб з'явилися кольори!
+import 'highlight.js/styles/github-dark.css';
+
+const lowlight = createLowlight(all);
 
 const SpoilerMark = Mark.create({
     name: 'spoiler',
@@ -34,6 +38,8 @@ const SpoilerMark = Mark.create({
         return ['span', mergeAttributes(HTMLAttributes, { 'data-spoiler': 'true', class: 'tetrone-spoiler' }), 0];
     },
 });
+
+const ALLOWED_FONT_SIZES = ['11px', '12px', '13px', '14px', '15px', '16px', '17px', '18px', '19px', '20px', '22px', '24px'];
 
 const FontSize = Extension.create({
     name: 'fontSize',
@@ -46,7 +52,7 @@ const FontSize = Extension.create({
                     default: null,
                     parseHTML: element => element.style.fontSize?.replace(/['"]+/g, ''),
                     renderHTML: attributes => {
-                        if (!attributes.fontSize) return {};
+                        if (!attributes.fontSize || !ALLOWED_FONT_SIZES.includes(attributes.fontSize)) return {};
                         return { style: `font-size: ${attributes.fontSize}` };
                     },
                 },
@@ -80,7 +86,6 @@ const getRichTextExtensions = () => [
     CodeBlockLowlight.configure({ lowlight }),
 ];
 
-// ХИТРИЙ ДЕКОДЕР: Рятує нас від подвійного екранування і дозволяє пройти тести на бекенді
 const decodeHtmlEntities = (text) => {
     const textArea = document.createElement('textarea');
     textArea.innerHTML = text;
@@ -104,7 +109,8 @@ export const decodeTipTapContent = (content) => {
     return content;
 };
 
-export default function RichText({ text, className = "tetrone-post-text" }) {
+// 3. ОГОРТАЄМО У React.memo: Це зупинить нескінченні перерендери і ворнінги Tiptap
+const RichText = React.memo(function RichText({ text, className = "tetrone-post-text" }) {
     const containerRef = useRef(null);
     const tooltipRef = useRef(null);
 
@@ -116,7 +122,6 @@ export default function RichText({ text, className = "tetrone-post-text" }) {
     const htmlContent = useMemo(() => {
         if (!text || typeof text !== 'object') return null;
         try {
-            // Розкодовуємо текст перед генерацією
             const decodedText = decodeTipTapContent(text);
             return generateHTML(decodedText, getRichTextExtensions());
         } catch (error) {
@@ -124,21 +129,8 @@ export default function RichText({ text, className = "tetrone-post-text" }) {
         }
     }, [text]);
 
-    // ФІКС ПІДСВІТКИ КОДУ ПРИ ВИДАЛЕННІ/РЕДАГУВАННІ:
-    useEffect(() => {
-        if (containerRef.current && htmlContent) {
-            setTimeout(() => {
-                if (!containerRef.current) return;
-                const codeBlocks = containerRef.current.querySelectorAll('pre code');
-                codeBlocks.forEach((block) => {
-                    // Примусово скидаємо старі класи від попереднього поста, якщо React використав той самий блок
-                    block.innerHTML = block.textContent;
-                    block.className = block.className.replace(/\bhljs\b/g, '').trim();
-                    hljs.highlightElement(block);
-                });
-            }, 10);
-        }
-    }, [htmlContent]);
+    // ТУТ БУВ useEffect для highlight.js - ВІН ПОВНІСТЮ ВИДАЛЕНИЙ!
+    // CodeBlockLowlight робить все автоматично і на 100% безпечно від XSS.
 
     const showTooltip = (target, pinned = false) => {
         clearTimeout(hideTimeoutRef.current);
@@ -249,4 +241,6 @@ export default function RichText({ text, className = "tetrone-post-text" }) {
             )}
         </>
     );
-}
+});
+
+export default RichText;

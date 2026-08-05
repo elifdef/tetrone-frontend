@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import GlobalModal from './GlobalModal';
 import PrivacyService from '../../services/privacy.service';
-import FriendService from '../../services/friend.service';
+import UserService from '../../services/user.service';
 import Button from '../ui/Button';
 import { notifyError, notifySuccess } from '../common/Notify';
 import Avatar from '../ui/Avatar';
@@ -10,13 +10,15 @@ import Avatar from '../ui/Avatar';
 export default function PrivacyExceptionsModal({ isOpen, onClose, context, initialExceptions, onSaveSuccess }) {
     const { t } = useTranslation();
 
-    const [friends, setFriends] = useState([]);
+    const [searchResults, setSearchResults] = useState([]);
     const [search, setSearch] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
     const [initialIds, setInitialIds] = useState([]);
     const [localAllowedIds, setLocalAllowedIds] = useState([]);
+
+    const searchTimeoutRef = useRef(null);
 
     useEffect(() => {
         if (isOpen && context) {
@@ -25,21 +27,39 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
 
             setInitialIds(ids);
             setLocalAllowedIds(ids);
-            fetchFriends();
-        } else {
             setSearch('');
+            fetchUsers('');
         }
     }, [isOpen, context, initialExceptions]);
 
-    const fetchFriends = async () => {
+    useEffect(() => {
+        if (!isOpen) return;
+
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        searchTimeoutRef.current = setTimeout(() => {
+            fetchUsers(search);
+        }, 400);
+
+        return () => clearTimeout(searchTimeoutRef.current);
+    }, [search, isOpen]);
+
+    const fetchUsers = async (searchQuery) => {
         setIsLoading(true);
         try {
-            const res = await FriendService.getList('friends');
-            if (res.success) {
-                setFriends(res.data?.data || res.data || []);
-            } else {
-                notifyError(res.message || t('common.error'));
+            const params = {};
+            if (searchQuery.trim() !== '') {
+                params['filter[search]'] = searchQuery;
             }
+
+            const res = await UserService.getUsers(params);
+
+            // Надійна вибірка: підтримує як плоский масив, так і пагінатор Laravel
+            const fetchedUsers = res?.users?.data || res?.users || [];
+            setSearchResults(fetchedUsers);
+
         } catch (error) {
             notifyError(t('common.error'));
         } finally {
@@ -47,11 +67,11 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
         }
     };
 
-    const handleToggle = (friendId) => {
+    const handleToggle = (userId) => {
         setLocalAllowedIds(prev =>
-            prev.includes(friendId)
-                ? prev.filter(id => id !== friendId)
-                : [...prev, friendId]
+            prev.includes(userId)
+                ? prev.filter(id => id !== userId)
+                : [...prev, userId]
         );
     };
 
@@ -97,12 +117,25 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
         }
     };
 
-    const filteredFriends = useMemo(() => {
-        return friends.filter(f => {
-            const fullName = `${f.first_name} ${f.last_name} ${f.username}`.toLowerCase();
+    const displayUsers = useMemo(() => {
+        const usersMap = new Map();
+
+        initialExceptions.forEach(ex => {
+            if (ex.context === context && ex.is_allowed && ex.target_user) {
+                usersMap.set(ex.target_user.id, ex.target_user);
+            }
+        });
+
+        searchResults.forEach(user => {
+            usersMap.set(user.id, user);
+        });
+
+        return Array.from(usersMap.values()).filter(u => {
+            if (!search.trim()) return true;
+            const fullName = `${u.first_name || ''} ${u.last_name || ''} ${u.username}`.toLowerCase();
             return fullName.includes(search.toLowerCase());
         });
-    }, [friends, search]);
+    }, [searchResults, initialExceptions, context, search]);
 
     return (
         <GlobalModal
@@ -112,10 +145,10 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
             type="custom"
             title={context ? t(`privacy.context_${context}`) : ''}
         >
-            <div className="tetrone-modal-dialog modal-md" onClick={(e) => e.stopPropagation()}>
+            <div className="tetrone-modal-dialog modal-md tetrone-exceptions-modal">
                 <div className="tetrone-modal-header">
                     <h3>{t('privacy.manage_exceptions')}</h3>
-                    <button className="tetrone-modal-close" onClick={onClose} disabled={isSaving}>✖</button>
+                    <button className="tetrone-modal-close" onClick={onClose} disabled={isSaving}></button>
                 </div>
 
                 <div className="tetrone-modal-body tetrone-exceptions-modal-body">
@@ -129,37 +162,42 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
                     />
 
                     <div className="tetrone-exceptions-list-container">
-                        {isLoading ? (
+                        {isLoading && displayUsers.length === 0 ? (
                             <div className="tetrone-loading">{t('common.loading')}</div>
-                        ) : filteredFriends.length > 0 ? (
-                            filteredFriends.map(friend => {
-                                const isChecked = localAllowedIds.includes(friend.id);
+                        ) : displayUsers.length > 0 ? (
+                            displayUsers.map(user => {
+                                const isChecked = localAllowedIds.includes(user.id);
+                                const nameColor = user.personalization?.username_color;
+
                                 return (
-                                    <div key={friend.id} className="tetrone-friend-select-item">
-                                        <div className="tetrone-friend-select-info">
+                                    <div key={user.id} className="tetrone-mini-user-card" onClick={() => !isSaving && handleToggle(user.id)}>
+                                        <div className="tetrone-mini-user-info">
                                             <Avatar
-                                                user={friend}
-                                                className="tetrone-avatar tetrone-img-cover"
+                                                user={user}
+                                                className="tetrone-mini-user-avatar"
                                             />
-                                            <div className="tetrone-friend-select-text">
-                                                <span className="tetrone-friend-name">
-                                                    {friend.first_name} {friend.last_name}
+                                            <div className="tetrone-mini-user-text">
+                                                <span
+                                                    className="tetrone-mini-user-name"
+                                                    style={nameColor ? { color: nameColor } : undefined}
+                                                >
+                                                    {user.first_name} {user.last_name}
                                                 </span>
-                                                <span className="tetrone-friend-username">
-                                                    @{friend.username}
+                                                <span className="tetrone-mini-user-username">
+                                                    @{user.username}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <label className="tetrone-pointer">
+                                        <div className="tetrone-mini-user-action">
                                             <input
                                                 type="checkbox"
                                                 className="tetrone-checkbox"
                                                 checked={isChecked}
-                                                onChange={() => handleToggle(friend.id)}
+                                                readOnly
                                                 disabled={isSaving}
                                             />
-                                        </label>
+                                        </div>
                                     </div>
                                 );
                             })

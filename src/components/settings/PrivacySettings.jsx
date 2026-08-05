@@ -34,13 +34,28 @@ export default function PrivacySettings() {
         setIsLoading(true);
         try {
             const res = await PrivacyService.getSettings();
-            if (res.success) {
-                const fetchedSettings = res.data.settings || {};
-                setInitialSettings(fetchedSettings);
-                setLocalSettings(fetchedSettings);
-                setExceptions(res.data.exceptions || []);
+
+            // ВИПРАВЛЕНО: Читаємо дані з правильного шляху res.privacy
+            if (res && res.privacy) {
+                // 1. Захист від порожнього масиву з PHP
+                const rawSettings = Array.isArray(res.privacy.settings) && res.privacy.settings.length === 0
+                    ? {}
+                    : (res.privacy.settings || {});
+
+                // 2. Нормалізація: гарантуємо, що ВСІ ключі існують у стейті
+                // Це наш фронтенд-фаллбек, оскільки ми відмовились від нього на бекенді
+                const normalizedSettings = {};
+                PRIVACY_CONTEXTS.forEach(context => {
+                    normalizedSettings[context] = rawSettings[context] !== undefined
+                        ? parseInt(rawSettings[context], 10)
+                        : 0; // 0 = Everyone (дефолтне значення)
+                });
+
+                setInitialSettings(normalizedSettings);
+                setLocalSettings(normalizedSettings);
+                setExceptions(res.privacy.exceptions || []);
             } else {
-                notifyError(res.message || t('common.error'));
+                notifyError(t('common.error'));
             }
         } catch (error) {
             notifyError(t('common.error'));
@@ -49,6 +64,8 @@ export default function PrivacySettings() {
         }
     };
 
+    // Оскільки тепер обидва об'єкти (initial і local) мають однаковий набір
+    // відсортованих ключів, JSON.stringify працюватиме ідеально і без багів.
     const isDirty = useMemo(() => {
         return JSON.stringify(initialSettings) !== JSON.stringify(localSettings);
     }, [initialSettings, localSettings]);
@@ -69,11 +86,10 @@ export default function PrivacySettings() {
                 key => localSettings[key] !== initialSettings[key]
             );
 
-            const promises = changedKeys.map(context =>
-                PrivacyService.updateSetting(context, localSettings[context])
-            );
-
-            await Promise.all(promises);
+            // ВИПРАВЛЕНО: Зберігаємо послідовно (Sequential), щоб уникнути Race Condition у базі
+            for (const context of changedKeys) {
+                await PrivacyService.updateSetting(context, localSettings[context]);
+            }
 
             setInitialSettings(localSettings);
             notifySuccess(t('settings.privacy_saved'));
@@ -96,7 +112,8 @@ export default function PrivacySettings() {
             <div className="tetrone-settings-box tetrone-sessions-box-no-margin">
                 <div className="tetrone-sessions-list">
                     {PRIVACY_CONTEXTS.map(context => {
-                        const currentValue = localSettings[context] !== undefined ? localSettings[context] : 0;
+                        // Тепер localSettings гарантовано містить значення для кожного context
+                        const currentValue = localSettings[context];
 
                         return (
                             <div key={context} className="tetrone-privacy-row">

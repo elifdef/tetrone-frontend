@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useState, useRef } from "react";
 import CommentIcon from "../../assets/comment.svg?react";
 import NoCommentIcon from "../../assets/nocomment.svg?react";

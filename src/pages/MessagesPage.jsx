@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useInbox } from '../components/messages/hooks/useInbox';
 import { useMessages } from '../components/messages/hooks/useMessages';

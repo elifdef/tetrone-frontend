@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { APP_NAME } from "../../config";
 import "flag-icons/css/flag-icons.min.css";
 

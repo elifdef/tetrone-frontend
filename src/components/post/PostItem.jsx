@@ -8,8 +8,9 @@ import ReportModal from "../modals/ReportModal";
 import PostService from '../../services/post.service';
 import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
+import { memo } from "react";
 
-export default function PostItem({
+const PostItem = ({
     post,
     onEdit,
     onDelete,
@@ -20,7 +21,7 @@ export default function PostItem({
     isInner = false,
     readonly = false,
     depth = 1
-})
+}) =>
 {
     const { t } = useTranslation();
 
@@ -192,3 +193,19 @@ export default function PostItem({
         </div>
     );
 }
+export default memo(PostItem, (prevProps, nextProps) => {
+    // 1. Якщо це різні пости - рендеримо
+    if (prevProps.post.id !== nextProps.post.id) return false;
+
+    // 2. Якщо змінилася статистика (лайки, коменти, репости) - рендеримо
+    if (prevProps.post.likes_count !== nextProps.post.likes_count) return false;
+    if (prevProps.post.comments_count !== nextProps.post.comments_count) return false;
+    if (prevProps.post.reposts_count !== nextProps.post.reposts_count) return false;
+    if (prevProps.post.is_liked !== nextProps.post.is_liked) return false;
+
+    // 3. Якщо змінилися реакції (стікери) - рендеримо
+    if (JSON.stringify(prevProps.post.reactions) !== JSON.stringify(nextProps.post.reactions)) return false;
+
+    // 4. Якщо нічого з вищепереліченого не змінилось - БЛОКУЄМО РЕНДЕР
+    return true;
+});

@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate, useMatch } from 'react-router-dom';
+import { useLocation, useNavigate, useMatch } from 'react-router';
 import AuthService from '../services/auth.service';
 import { AuthContext } from "../context/AuthContext";
 import { notifyError, notifyInfo } from "../components/common/Notify";

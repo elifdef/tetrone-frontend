@@ -1,5 +1,5 @@
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.jsx';
 import { NotificationProvider } from './context/NotificationContext.jsx';
@@ -28,6 +28,15 @@ import "./styles/video.css";
 import "./styles/space.css";
 import "./styles/landing.css";
 import "./styles/editor.css";
+import { scan } from 'react-scan';
+
+
+// Викликаємо до createRoot
+if (typeof window !== 'undefined') {
+    scan({
+        enabled: true,
+    });
+}
 
 const queryClient = new QueryClient({
     defaultOptions: {

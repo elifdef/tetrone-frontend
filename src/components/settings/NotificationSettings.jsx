@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import notificationService from '../../services/notification.settings.service';
 import { notifySuccess, notifyError } from '../common/Notify';
 import Button from '../ui/Button';
 import { audioManager } from '../../utils/audioManager';
 import { SOUND_OPTIONS } from '../../config.js';
+import { AuthContext } from "../../context/AuthContext.jsx";
 
 const SETTING_ITEMS = [
     { type: 'messages', labelKey: 'settings.notification_messages' },
@@ -19,29 +20,20 @@ const SETTING_ITEMS = [
 const NotificationSettings = () =>
 {
     const { t } = useTranslation();
+    const { user, setUser } = useContext(AuthContext);
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
     useEffect(() =>
     {
-        const fetchSettings = async () =>
+        if (user && user.notification_settings)
         {
-            const res = await notificationService.getSettings();
-            if (res.success)
-            {
-                setSettings(res.data || {});
-            }
-            else
-            {
-                notifyError(res.message);
-            }
-            setLoading(false);
-        };
-        fetchSettings();
-    }, []);
+            setSettings(user.notification_settings);
+        }
+        setLoading(false);
+    }, [user]);
 
-    // вкл/викл тип сповіщення
     const handleToggle = (type) =>
     {
         setSettings(prev => ({
@@ -50,21 +42,19 @@ const NotificationSettings = () =>
         }));
     };
 
-    // Змінити звук для типу
     const handleSoundChange = (type, soundId) =>
     {
         setSettings(prev => ({
             ...prev,
-            [type]: { ...prev[type], sound_id: parseInt(soundId) }
+            [type]: { ...prev[type], sound_id: Number(soundId) }
         }));
     };
 
-    // Програти звук
     const handlePlaySound = (type) =>
     {
-        const soundId = settings[type]?.sound_id ?? 1;
+        const soundId = Number(settings[type]?.sound_id);
 
-        if (soundId === 0)
+        if (!soundId || soundId === 0)
         {
             return;
         }
@@ -84,14 +74,15 @@ const NotificationSettings = () =>
 
         const res = await notificationService.updateSettings({ settings: settingsArray });
 
-        if (res.success)
+        if (res && res.code === 'SETTINGS_UPDATED')
         {
-            setSettings(res.data);
-            notifySuccess(res.message || t('common.saved_successfully'));
+            setSettings(res.settings);
+            setUser(prev => ({ ...prev, notification_settings: res.settings }));
+            notifySuccess(t('common.saved_successfully'));
         }
         else
         {
-            notifyError(res.message);
+            notifyError(t('error.save_failed'));
         }
         setSaving(false);
     };
@@ -106,8 +97,8 @@ const NotificationSettings = () =>
             <div className="notification-settings-list">
                 { SETTING_ITEMS.map(({ type, labelKey }) =>
                 {
-                    const isEnabled = settings[type]?.is_enabled ?? true;
-                    const soundId = settings[type]?.sound_id ?? 1;
+                    const isEnabled = Boolean(settings[type].is_enabled);
+                    const soundId = Number(settings[type].sound_id);
 
                     return (
                         <div key={ type } className="notification-setting-row">
@@ -134,7 +125,6 @@ const NotificationSettings = () =>
                                             </option>
                                         )) }
                                     </select>
-
                                     { soundId !== 0 && (
                                         <Button
                                             type="button"
