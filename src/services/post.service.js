@@ -26,7 +26,7 @@ class PostService {
 
             data.images.forEach((file, index) => formData.append(`media[${index}]`, file));
 
-            return await fetchClient('/v1/posts', { method: 'POST', body: formData });
+            return await fetchClient('/posts', { method: 'POST', body: formData });
         }
 
         return await fetchClient('/posts', {

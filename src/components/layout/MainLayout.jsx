@@ -26,7 +26,7 @@ export default function MainLayout() {
                 <div className="mobile-menu-overlay" onClick={closeMenu}></div>
             )}
             <div className="tetrone-app-layout">
-                <LeftSidebar isOpen={isMobileMenuOpen} closeMenu={closeMenu} />
+                <LeftSidebar />
                 <main className="tetrone-main-content">
                     <Outlet />
                 </main>

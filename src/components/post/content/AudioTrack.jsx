@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { AudioContext } from "../../../context/AudioContext";
 import { formatFileSize } from "../../../utils/upload";
@@ -16,7 +16,7 @@ const MiniPauseIcon = () => (
     </svg>
 );
 
-export default function AudioTrack({ doc }) {
+const AudioTrack = ({ doc, postId }) => {
     const { t } = useTranslation();
     const { currentTrack, isPlaying, playTrack } = useContext(AudioContext);
 
@@ -27,10 +27,14 @@ export default function AudioTrack({ doc }) {
         return <ProcessingSkeleton type="audio" />;
     }
 
+    const handlePlayClick = () => {
+        playTrack({ ...doc, postId });
+    };
+
     return (
         <div
             className={`tetrone-document-item tetrone-audio-track ${isActiveTrack ? 'active' : ''} ${doc.cover_url ? 'has-cover' : ''}`}
-            onClick={() => playTrack(doc)}
+            onClick={handlePlayClick}
         >
             {doc.cover_url ? (
                 <div className="tetrone-audio-cover-wrapper">
@@ -55,4 +59,6 @@ export default function AudioTrack({ doc }) {
             </div>
         </div>
     );
-}
+};
+
+export default memo(AudioTrack, (prev, next) => prev.doc.id === next.doc.id);

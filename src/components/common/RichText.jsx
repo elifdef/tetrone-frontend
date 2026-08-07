@@ -22,14 +22,8 @@ import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { Highlight } from '@tiptap/extension-highlight';
 
-// 1. Імпортуємо 'all', щоб працювали ВСІ мови, включно з x86asm
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { all, createLowlight } from 'lowlight';
-
-// 2. КРИТИЧНО ВАЖЛИВО: Імпортуємо CSS-тему, щоб з'явилися кольори!
-import 'highlight.js/styles/github-dark.css';
-
-const lowlight = createLowlight(all);
+import { useTranslation } from 'react-i18next';
+import hljs from 'highlight.js';
 
 const SpoilerMark = Mark.create({
     name: 'spoiler',
@@ -53,7 +47,7 @@ const FontSize = Extension.create({
                     parseHTML: element => element.style.fontSize?.replace(/['"]+/g, ''),
                     renderHTML: attributes => {
                         if (!attributes.fontSize || !ALLOWED_FONT_SIZES.includes(attributes.fontSize)) return {};
-                        return { style: `font-size: ${attributes.fontSize}` };
+                        return { style: `font-size: ${attributes.fontSize}` }; // Динамічні дані залишаємо в інлайні
                     },
                 },
             },
@@ -61,8 +55,8 @@ const FontSize = Extension.create({
     },
 });
 
-const getRichTextExtensions = () => [
-    StarterKit.configure({ codeBlock: false }),
+const RICH_TEXT_EXTENSIONS = [
+    StarterKit.configure(),
     TextStyle.configure(),
     Color.configure(),
     FontSize.configure(),
@@ -82,8 +76,7 @@ const getRichTextExtensions = () => [
     SummaryNode.configure(),
     Subscript.configure(),
     Superscript.configure(),
-    Highlight.configure({ multicolor: true }),
-    CodeBlockLowlight.configure({ lowlight }),
+    Highlight.configure({ multicolor: true })
 ];
 
 const decodeHtmlEntities = (text) => {
@@ -109,8 +102,8 @@ export const decodeTipTapContent = (content) => {
     return content;
 };
 
-// 3. ОГОРТАЄМО У React.memo: Це зупинить нескінченні перерендери і ворнінги Tiptap
 const RichText = React.memo(function RichText({ text, className = "tetrone-post-text" }) {
+    const { t } = useTranslation();
     const containerRef = useRef(null);
     const tooltipRef = useRef(null);
 
@@ -123,14 +116,68 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
         if (!text || typeof text !== 'object') return null;
         try {
             const decodedText = decodeTipTapContent(text);
-            return generateHTML(decodedText, getRichTextExtensions());
+            return generateHTML(decodedText, RICH_TEXT_EXTENSIONS);
         } catch (error) {
             return null;
         }
     }, [text]);
 
-    // ТУТ БУВ useEffect для highlight.js - ВІН ПОВНІСТЮ ВИДАЛЕНИЙ!
-    // CodeBlockLowlight робить все автоматично і на 100% безпечно від XSS.
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const preElements = containerRef.current.querySelectorAll('pre');
+
+        preElements.forEach((pre) => {
+            const codeBlock = pre.querySelector('code');
+            if (!codeBlock) return;
+
+            // 1. Підсвічуємо код
+            if (!codeBlock.classList.contains('hljs')) {
+                hljs.highlightElement(codeBlock);
+            }
+
+            // Щоб не дублювати шапку при перерендерах
+            if (pre.querySelector('.tetrone-code-header')) return;
+
+            // 2. Визначаємо мову
+            let langName = 'text';
+            const langClass = Array.from(codeBlock.classList).find(c => c.startsWith('language-'));
+
+            if (langClass) {
+                langName = langClass.replace('language-', '');
+            } else if (codeBlock.result?.language) {
+                langName = codeBlock.result.language; // Підтягує автовизначення від highlight.js
+            }
+
+            // 3. Створюємо DOM-елементи для шапки
+            const header = document.createElement('div');
+            header.className = 'tetrone-code-header';
+
+            const langSpan = document.createElement('span');
+            langSpan.className = 'tetrone-code-lang';
+            langSpan.innerText = langName;
+
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'tetrone-code-copy-btn';
+            copyBtn.innerText = t('action.copy');
+
+            // Обробник копіювання
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+                    copyBtn.innerText = t('action.copied');
+                    setTimeout(() => {
+                        if (copyBtn) copyBtn.innerText = t('action.copy');
+                    }, 2000);
+                });
+            };
+
+            header.appendChild(langSpan);
+            header.appendChild(copyBtn);
+
+            // 4. Вставляємо шапку всередину <pre> перед <code>
+            pre.insertBefore(header, codeBlock);
+        });
+    }, [htmlContent, t]);
 
     const showTooltip = (target, pinned = false) => {
         clearTimeout(hideTimeoutRef.current);

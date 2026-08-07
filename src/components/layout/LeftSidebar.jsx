@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, memo } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { APP_NAME, userRole } from "../../config";
@@ -197,4 +197,4 @@ const LeftSidebar = () =>
     );
 };
 
-export default LeftSidebar;
+export default memo(LeftSidebar);

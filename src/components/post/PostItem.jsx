@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePostActions } from "./hooks/usePostActions";
 
@@ -8,14 +9,13 @@ import ReportModal from "../modals/ReportModal";
 import PostService from '../../services/post.service';
 import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
-import { memo } from "react";
 
 const PostItem = ({
     post,
     onEdit,
     onDelete,
     isOwner,
-    currentUserId,
+    currentUsername, // Змінено з currentUserId
     onLikeToggle,
     onRepostSuccess,
     isInner = false,
@@ -101,19 +101,16 @@ const PostItem = ({
         {
             const res = await PostService.toggleReaction(postData.id, stickerId);
 
-            // 1. Відловлюємо будь-яку бізнес-помилку від бекенда (ERR_MAX_USER_REACTIONS і т.д.)
             if (res && res.code && res.code.startsWith('ERR_'))
             {
                 updateLocalPost({ reactions: previousReactions });
-                notifyError(t(`api.errors.${res.code}`));
+                notifyError(t(`api.errors.${ res.code }`));
                 return;
             }
 
-            // 2. Якщо все успішно (REACTION_TOGGLED)
             if (res)
             {
                 const newReactions = res.reactions || (res.post ? res.post.reactions : []);
-
                 if (newReactions)
                 {
                     updateLocalPost({ reactions: newReactions });
@@ -139,7 +136,7 @@ const PostItem = ({
             <PostHeader
                 post={ postData }
                 isOwner={ isOwner }
-                currentUserId={ currentUserId }
+                currentUsername={ currentUsername } // Передаємо змінений проп
                 onEdit={ !isInner && !readonly ? onEdit : null }
                 onDelete={ !isInner && !readonly ? onDelete : null }
                 onReport={ !isInner && !readonly ? () => setIsReportModalOpen(true) : null }
@@ -192,20 +189,17 @@ const PostItem = ({
                          targetId={ postData.id }/>
         </div>
     );
-}
-export default memo(PostItem, (prevProps, nextProps) => {
-    // 1. Якщо це різні пости - рендеримо
-    if (prevProps.post.id !== nextProps.post.id) return false;
+};
 
-    // 2. Якщо змінилася статистика (лайки, коменти, репости) - рендеримо
+export default memo(PostItem, (prevProps, nextProps) =>
+{
+    if (prevProps.post.id !== nextProps.post.id) return false;
     if (prevProps.post.likes_count !== nextProps.post.likes_count) return false;
     if (prevProps.post.comments_count !== nextProps.post.comments_count) return false;
     if (prevProps.post.reposts_count !== nextProps.post.reposts_count) return false;
     if (prevProps.post.is_liked !== nextProps.post.is_liked) return false;
-
-    // 3. Якщо змінилися реакції (стікери) - рендеримо
     if (JSON.stringify(prevProps.post.reactions) !== JSON.stringify(nextProps.post.reactions)) return false;
+    if (JSON.stringify(prevProps.post.content) !== JSON.stringify(nextProps.post.content)) return false;
 
-    // 4. Якщо нічого з вищепереліченого не змінилось - БЛОКУЄМО РЕНДЕР
     return true;
 });

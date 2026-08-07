@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { memo, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import GlobalAudioPlayer from "./GlobalAudioPlayer";
 import { useIsMobile } from "../../hooks/useIsMobile";
@@ -14,4 +14,4 @@ const RightSidebar = () => {
     );
 };
 
-export default RightSidebar;
+export default memo(RightSidebar);

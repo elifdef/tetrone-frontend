@@ -28,13 +28,12 @@ import "./styles/video.css";
 import "./styles/space.css";
 import "./styles/landing.css";
 import "./styles/editor.css";
-import { scan } from 'react-scan';
 
-
-// Викликаємо до createRoot
-if (typeof window !== 'undefined') {
-    scan({
-        enabled: true,
+if (import.meta.env.VITE_APP_ENV)
+{
+    import('/src/utils/react-scan-init.js').then((module) =>
+    {
+        module.initScanLogger();
     });
 }
 

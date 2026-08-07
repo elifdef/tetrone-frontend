@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { formatFileSize } from "../../../utils/upload";
 import AudioTrack from "./AudioTrack";
 
@@ -19,7 +20,7 @@ const getFileIcon = (fileName) => {
     return <DefaultFileIcon width={64} height={64} />;
 };
 
-export default function PostDocuments({ documents = [] }) {
+const PostDocuments = ({ documents = [], postId }) => {
     if (documents.length === 0) return null;
 
     return (
@@ -29,7 +30,8 @@ export default function PostDocuments({ documents = [] }) {
                 const isAudio = ['mp3', 'wav', 'ogg', 'flac', 'm4a'].includes(ext) || doc.type === 'audio';
 
                 if (isAudio) {
-                    return <AudioTrack key={doc.id} doc={doc} />;
+                    // Передаємо postId!
+                    return <AudioTrack key={doc.id} doc={doc} postId={postId} />;
                 }
 
                 return (
@@ -57,4 +59,9 @@ export default function PostDocuments({ documents = [] }) {
             })}
         </div>
     );
-}
+};
+
+// Мемоїзація списку документів
+export default memo(PostDocuments, (prev, next) => {
+    return prev.postId === next.postId && prev.documents === next.documents;
+});

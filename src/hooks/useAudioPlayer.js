@@ -7,13 +7,13 @@ const STORAGE_KEY = 'tetrone_audio_state';
 export const useAudioPlayer = () => {
     const { currentTrack, isPlaying, setIsPlaying, closePlayer, channelRef } = useContext(AudioContext);
 
-    const audioElRef = useRef(new Audio());
+    const audioRef = useRef(new Audio()); // Змінено ім'я на audioRef для мікро-компонентів
     const hlsRef = useRef(null);
 
     const [isReady, setIsReady] = useState(false);
     const [hasError, setHasError] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
+
+    // ВАЖЛИВО: state для currentTime та duration видалено звідси!
 
     const [playbackRate, setPlaybackRate] = useState(() => {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY))?.speed || 1; } catch { return 1; }
@@ -40,11 +40,9 @@ export const useAudioPlayer = () => {
     useEffect(() => {
         if (!currentTrack) return;
 
-        const audio = audioElRef.current;
+        const audio = audioRef.current;
         setIsReady(false);
         setHasError(false);
-        setCurrentTime(0);
-        setDuration(0);
 
         audio.pause();
         audio.removeAttribute('src');
@@ -71,7 +69,9 @@ export const useAudioPlayer = () => {
                 if (isPlaying) audio.play().catch(() => setIsPlaying(false));
             });
             hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
-                setDuration(data.details.totalduration);
+                // Зберігаємо тривалість в атрибут, щоб мікро-компоненти могли її зчитати
+                audio.setAttribute('data-hls-duration', data.details.totalduration);
+                audio.dispatchEvent(new Event('durationchange'));
             });
             hls.on(Hls.Events.ERROR, (event, data) => {
                 if (data.fatal) {
@@ -83,13 +83,11 @@ export const useAudioPlayer = () => {
             audio.src = relativeUrl;
             audio.onloadedmetadata = () => {
                 setIsReady(true);
-                setDuration(audio.duration);
                 if (isPlaying) audio.play().catch(() => setIsPlaying(false));
             };
         }
 
         // Обробники подій
-        const onTimeUpdate = () => setCurrentTime(audio.currentTime);
         const onPlay = () => {
             setIsPlaying(true);
             if (channelRef?.current) channelRef.current.postMessage('PAUSE_AUDIO');
@@ -101,7 +99,6 @@ export const useAudioPlayer = () => {
         const onEnded = () => setIsPlaying(false);
         const onError = () => setHasError(true);
 
-        audio.addEventListener('timeupdate', onTimeUpdate);
         audio.addEventListener('play', onPlay);
         audio.addEventListener('pause', onPause);
         audio.addEventListener('ended', onEnded);
@@ -112,12 +109,10 @@ export const useAudioPlayer = () => {
             const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
             if (saved && saved.track && saved.track.id === currentTrack.id && saved.time) {
                 audio.currentTime = saved.time;
-                setCurrentTime(saved.time);
             }
         } catch (e) { }
 
         return () => {
-            audio.removeEventListener('timeupdate', onTimeUpdate);
             audio.removeEventListener('play', onPlay);
             audio.removeEventListener('pause', onPause);
             audio.removeEventListener('ended', onEnded);
@@ -131,7 +126,7 @@ export const useAudioPlayer = () => {
     }, [currentTrack]);
 
     useEffect(() => {
-        const audio = audioElRef.current;
+        const audio = audioRef.current;
         if (isReady) {
             if (isPlaying && audio.paused) {
                 audio.play().catch(() => setIsPlaying(false));
@@ -147,44 +142,39 @@ export const useAudioPlayer = () => {
         const nextSpeed = playbackRate === 1 ? 1.5 : playbackRate === 1.5 ? 2 : 1;
         setPlaybackRate(nextSpeed);
         stateRef.current.playbackRate = nextSpeed;
-        audioElRef.current.playbackRate = nextSpeed;
+        audioRef.current.playbackRate = nextSpeed;
     };
 
     const toggleLoop = () => {
         const nextLoop = !isLooping;
         setIsLooping(nextLoop);
         stateRef.current.isLooping = nextLoop;
-        audioElRef.current.loop = nextLoop;
+        audioRef.current.loop = nextLoop;
     };
 
     const handleVolumeChange = (e) => {
         const newVolume = parseFloat(e.target.value);
         setVolume(newVolume);
         stateRef.current.volume = newVolume;
-        audioElRef.current.volume = newVolume;
-    };
-
-    const handleSeek = (time) => {
-        setCurrentTime(time);
-        audioElRef.current.currentTime = time;
+        audioRef.current.volume = newVolume;
     };
 
     const handleClose = () => {
-        audioElRef.current.pause();
+        audioRef.current.pause();
         stateRef.current.currentTrack = null;
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
             speed: playbackRate,
             loop: isLooping,
             volume: volume
         }));
-
         closePlayer();
     };
 
     return {
-        isReady, hasError, currentTime, duration,
+        audioRef, // Повертаємо посилання на аудіо
+        isReady, hasError,
         playbackRate, isLooping, volume,
         playPauseClick, toggleSpeed, toggleLoop,
-        handleVolumeChange, handleSeek, handleClose
+        handleVolumeChange, handleClose
     };
 };

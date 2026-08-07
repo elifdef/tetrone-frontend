@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Link, useParams } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { EditIcon, DeleteIcon, ReportIcon, DotsIcon } from '../ui/Icons';
 import Avatar from '../ui/Avatar';
 
-export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, currentUserId }) {
+const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername }) => {
     const { t } = useTranslation();
     const formatDate = useDateFormatter();
     const { username: currentProfileUsername } = useParams();
@@ -31,19 +31,18 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
     const isAvatarUpdate = post.is_avatar_update === true;
     const showTargetUser = !isAvatarUpdate && !isSpacePost && !isSpaceContext && post.target_user && post.target_user.username !== currentProfileUsername;
 
-    const isAuthor = currentUserId ? currentUserId === post.user?.id : false;
+    // 2. ВИПРАВЛЕНО: Тепер перевіряємо власника виключно по username
+    const isAuthor = currentUsername ? currentUsername === post.user?.username : false;
 
-    // ВИПРАВЛЕНО: Використовуємо username для груп
     const authorLink = isSpacePost ? `/space/${author.username}` : `/${author.username}`;
     const authorName = isSpacePost ? author.name : `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.username;
 
     const authorNameColor = isSpacePost ? undefined : author?.personalization?.username_color;
 
-    // ВИПРАВЛЕНО: Використовуємо username та прокидаємо alias
     const avatarData = isSpacePost ? {
         avatar: author.avatar_url || author.avatar_path || '/images/default-space.svg',
         username: author.username,
-        aliases: author.aliases || [], // Передаємо масив аліасів
+        aliases: author.aliases || [],
         first_name: author.name,
         last_name: ''
     } : author;
@@ -101,7 +100,6 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
                     {isSpaceContext && (
                         <span className="tetrone-post-target-text">
                             <span className="tetrone-post-arrow">▶</span>
-                            {/* ВИПРАВЛЕНО: Використовуємо username */}
                             <Link to={`/space/${post.space.username}`} className="tetrone-post-author target">
                                 {post.space.name}
                             </Link>
@@ -146,4 +144,6 @@ export default function PostHeader({ post, isOwner, onEdit, onDelete, onReport, 
             )}
         </div>
     );
-}
+};
+
+export default memo(PostHeader, (prev, next) => prev.post.id === next.post.id);

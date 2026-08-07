@@ -17,13 +17,21 @@ export const AudioProvider = ({ children }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const channelRef = useRef(null);
 
+    // Зберігаємо поточний трек при його зміні
+    useEffect(() => {
+        if (currentTrack) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ track: currentTrack }));
+        } else {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    }, [currentTrack]);
+
     useEffect(() => {
         channelRef.current = new BroadcastChannel('tetrone_audio_sync');
 
-        // Слухаємо команди від інших вкладок
         channelRef.current.onmessage = (event) => {
             if (event.data === 'PAUSE_AUDIO') {
-                setIsPlaying(false); // Якщо інша вкладка почала грати, ми ставимо на паузу
+                setIsPlaying(false);
             }
         };
 
@@ -36,7 +44,6 @@ export const AudioProvider = ({ children }) => {
         if (currentTrack && currentTrack.id === track.id) {
             const newState = !isPlaying;
             setIsPlaying(newState);
-            // Якщо ми зняли з паузи - кажемо іншим вкладкам STFU
             if (newState) {
                 channelRef.current.postMessage('PAUSE_AUDIO');
             }

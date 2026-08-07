@@ -2,13 +2,14 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { APP_NAME } from "../../config";
 import "flag-icons/css/flag-icons.min.css";
+import { memo } from "react";
 
 const SUPPORTED_LANGUAGES = [
     { code: 'uk', countryCode: 'ua', name: 'Українська' },
     { code: 'en', countryCode: 'gb', name: 'English' },
 ];
 
-export default function Footer() {
+const Footer = () => {
     const { t, i18n } = useTranslation();
 
     const changeLanguage = (lang) => {
@@ -54,3 +55,5 @@ export default function Footer() {
         </footer>
     );
 }
+
+export default memo(Footer);

@@ -13,6 +13,7 @@ export const usePostActions = (initialPost, readonly, onLikeToggle, onRepostSucc
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isLiking, setIsLiking] = useState(false);
 
+    // Синхронізація з батьківським станом
     useEffect(() => {
         setPostData(initialPost);
     }, [initialPost]);
@@ -29,6 +30,7 @@ export const usePostActions = (initialPost, readonly, onLikeToggle, onRepostSucc
         const originalLiked = postData.is_liked;
         const originalCount = postData.likes_count;
 
+        // 1. Оптимістичне оновлення (Перший рендер)
         setPostData(prev => ({
             ...prev,
             is_liked: !originalLiked,
@@ -39,16 +41,17 @@ export const usePostActions = (initialPost, readonly, onLikeToggle, onRepostSucc
             const res = await PostService.toggleLike(postData.id);
 
             if (res) {
-                setPostData(prev => ({
-                    ...prev,
-                    is_liked: res.like_info.liked,
-                    likes_count: res.like_info.likes_count
-                }));
-                if (onLikeToggle) onLikeToggle(postData.id, res.like_info.liked);
+                // 2. ЗАБРАНО локальний setPostData.
+                // Викликаємо тільки onLikeToggle, щоб оновити батька.
+                // Батько оновить initialPost, і спрацює useEffect вище.
+                if (onLikeToggle) {
+                    onLikeToggle(postData.id, res.like_info.liked);
+                }
             } else {
                 throw new Error(res.message);
             }
         } catch (err) {
+            // Відкат у разі помилки
             setPostData(prev => ({
                 ...prev,
                 is_liked: originalLiked,
@@ -91,10 +94,14 @@ export const usePostActions = (initialPost, readonly, onLikeToggle, onRepostSucc
 
             if (res) {
                 notifySuccess(t('post.repost_success'));
+
+                // Тут також можна покластися на onRepostSuccess замість локального стейту,
+                // якщо батько повністю контролює reposts_count
                 setPostData(prev => ({
                     ...prev,
                     reposts_count: (prev.reposts_count || 0) + 1
                 }));
+
                 if (onRepostSuccess && res.post) onRepostSuccess(res.post);
             } else {
                 notifyError(t('error.save_failed'));

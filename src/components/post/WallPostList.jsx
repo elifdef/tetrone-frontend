@@ -13,7 +13,7 @@ export default function WallPostList({
     return (
         <div className="tetrone-post-list">
             {posts.map(post => {
-                const isAuthor = authUser && post.user && authUser.id === post.user.id;
+                const isAuthor = authUser && post.user && authUser.username === post.user.username;
 
                 return (
                     <PostItem
@@ -21,7 +21,7 @@ export default function WallPostList({
                         post={post}
                         isOwner={isAuthor || isWallOwner}
                         onEdit={isAuthor ? startEditing : null}
-                        currentUserId={authUser?.id}
+                        currentUsername={authUser?.username}
                         onDelete={handleDelete}
                         onRepostSuccess={handleRepostSuccess}
                     />

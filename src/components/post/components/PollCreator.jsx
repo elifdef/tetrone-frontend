@@ -73,7 +73,6 @@ export default function PollCreator({ initialData, onSave, onCancel }) {
 
     return (
         <div className="tetrone-poll-creator">
-            <h3>{t('poll.create_title')}</h3>
 
             <Input
                 placeholder={t('poll.question_placeholder')}
