@@ -17,14 +17,12 @@ const mentionSuggestion = {
                 return;
             }
 
-            // дебаунс 400 мілісекунд
             debounceTimeout = setTimeout(async () => {
                 try {
                     const res = await userService.searchUsers(query);
 
-                    const users = Array.isArray(res.data) ? res.data : [];
+                    const users = res.users;
 
-                    // тільки перші 5 результатів
                     resolve(users.slice(0, 5));
                 } catch (error) {
                     console.error('Mention search error:', error);

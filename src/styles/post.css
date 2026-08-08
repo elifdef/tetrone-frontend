@@ -910,6 +910,7 @@
 .tetrone-post-text p,
 .tetrone-comment-text p,
 .ProseMirror p {
+    position: relative;
     word-spacing: normal;
 }
 

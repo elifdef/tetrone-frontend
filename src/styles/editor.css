@@ -96,7 +96,6 @@
 
 .tetrone-editor-input-area {
     flex: 1;
-    min-width: 0;
 }
 
 .tetrone-editor-input-area .ProseMirror {
@@ -113,23 +112,25 @@
 
 .ProseMirror p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
+    position: absolute;
+    left: 0;
+    top: 0;
     color: var(--theme-text-muted);
+    pointer-events: none;
+    cursor: text;
+    float: left;
+    height: 0;
 }
 
-.tetrone-editor-input-area {
-    flex: 1;
-    min-width: 0;
+.ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: var(--theme-text-muted);
 }
 
 .tetrone-editor-side-actions {
     display: flex;
     align-items: flex-end;
-    gap: 4px;
     padding-bottom: 8px;
-}
-
-.tetrone-editor-side-right {
-    padding-right: 8px;
 }
 
 .tetrone-editor-side-btn {

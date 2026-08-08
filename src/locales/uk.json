@@ -672,7 +672,6 @@
     "delete_all": "Очистити всі",
     "friend_request": "хоче додати вас у друзі",
     "in_comment": "у коментарі.",
-    "in_comment_under": "у коментарі під",
     "in_post": "у пості.",
     "in_your_poll": "у вашому опитуванні",
     "left_audio_female": "залишила аудіозапис на вашій стіні",
@@ -719,7 +718,16 @@
     "your_photo": "вашому фото",
     "your_poll": "вашому опитуванні",
     "your_post": "ваш пост",
-    "your_video": "вашому відео"
+    "your_video": "вашому відео",
+    "replied_female": "відповіла",
+    "replied_male": "відповів",
+    "your_comment": "ваш коментар",
+    "to_your_comment": "на ваш коментар",
+    "in_his_post": "у своєму пості",
+    "post_accusative": "постом",
+    "in_comment_under": "у коментарях під",
+    "in_comment_under_yours": "у коментарях під вашим",
+    "in_comment_under_theirs": "у коментарях під своїм"
   },
   "page_404": {
     "invalid_page": "Можливо, ви перейшли за недійсним посиланням\nабо користувача було видалено.",

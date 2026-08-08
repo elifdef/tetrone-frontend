@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router'; // ДОДАНО
 import { useNotificationConfig } from '../../hooks/useNotificationConfig';
 import ShieldIcon from '../../assets/shield.svg?react';
 import Avatar from '../ui/Avatar';
@@ -63,6 +64,7 @@ export default function Notification({ notification, onClose })
 {
     const { getConfig } = useNotificationConfig();
     const { t } = useTranslation();
+    const navigate = useNavigate(); // ДОДАНО
 
     const payload = notification.data || notification;
     const type = payload.type || notification.type;
@@ -70,19 +72,26 @@ export default function Notification({ notification, onClose })
     const target = payload.target || {};
     const soundId = Number(payload.sound_id);
 
-    useEffect(() =>
-    {
-        // Програємо звук при появі сповіщення, якщо він увімкнений (не дорівнює 0)
-        if (soundId && soundId !== 0)
-        {
+    const soundPlayed = useRef(false);
+    const onCloseRef = useRef(onClose);
+
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+
+    useEffect(() => {
+        if (soundId && soundId !== 0 && !soundPlayed.current) {
             audioManager.play(soundId);
+            soundPlayed.current = true;
         }
 
-        const timer = setTimeout(() => onClose(), 7000);
-        return () => clearTimeout(timer);
-    }, [onClose, soundId]);
+        const timer = setTimeout(() => {
+            onCloseRef.current();
+        }, 5000);
 
-    // Перевірка на системне повідомлення тепер за username, а не за id
+        return () => clearTimeout(timer);
+    }, [soundId]);
+
     const isSystem = actor.username === 'system' || !actor.username;
 
     const senderName = isSystem
@@ -92,15 +101,30 @@ export default function Notification({ notification, onClose })
     const {
         actionText,
         linkText,
+        linkUrl,
         snippetText,
         mediaPreview,
         isReaction,
         mediaPosition
     } = getConfig(type, actor, target);
+
     const fullText = `${ actionText } ${ linkText || '' }`.trim();
 
+    const handleToastClick = () =>
+    {
+        if (linkUrl)
+        {
+            navigate(linkUrl);
+            onClose();
+        }
+    };
+
     return (
-        <div className="tetrone-toast">
+        <div
+            className="tetrone-toast"
+            onClick={ handleToastClick }
+            style={ { cursor: linkUrl ? 'pointer' : 'default' } }
+        >
             <NotificationAvatar user={ actor } isSystem={ isSystem }/>
             <NotificationContent
                 name={ senderName }

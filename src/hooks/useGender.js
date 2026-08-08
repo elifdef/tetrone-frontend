@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-export const useGender = (genderValue) => {
+export const useGender = (genderValue) =>
+{
     const { t } = useTranslation();
 
     const getGenderMap = (t) => ({
@@ -21,8 +22,9 @@ export const useGender = (genderValue) => {
             reacted: t('notifications.reacted_male'),
             accepted_friend: t('notifications.accepted_friend_male'),
             voted: t('notifications.voted_male'),
+            replied: t('notifications.replied_male'),
         },
-        
+
         2: {
             liked: t('notifications.liked_female'),
             commented: t('notifications.commented_female'),
@@ -40,6 +42,7 @@ export const useGender = (genderValue) => {
             reacted: t('notifications.reacted_female'),
             accepted_friend: t('notifications.accepted_friend_female'),
             voted: t('notifications.voted_female'),
+            replied: t('notifications.replied_female'),
         }
     });
 

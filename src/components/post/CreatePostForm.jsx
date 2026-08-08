@@ -32,7 +32,6 @@ export default function CreatePostForm({ onSubmitSuccess, spaceId = null}) {
         >
             <Editor
                 preset="post"
-                className="tetrone-form-textarea fixed-size"
                 placeholder={isDragging ? t('wall.drop_files_here') : t('action.write_post')}
                 value={content}
                 onChange={setContent}

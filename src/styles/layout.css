@@ -21,6 +21,30 @@
     min-height: 100vh;
 }
 
+.tetrone-sidebar-left {
+    width: 10%;
+    min-width: 170px;
+    flex-shrink: 0;
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.tetrone-sidebar-right {
+    width: 10%;
+    min-width: 200px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 15px;
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+}
+
 .tetrone-main-content {
     width: 50%;
     flex-shrink: 1;
@@ -66,19 +90,6 @@
     padding-right: 5px;
     position: relative !important;
     z-index: 10 !important;
-}
-
-.tetrone-sidebar-left {
-    width: 10%;
-    min-width: 170px;
-    flex-shrink: 0;
-    padding: 15px 0;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
 }
 
 .tetrone-logo {
@@ -128,17 +139,6 @@
 
 [data-theme="light"] .tetrone-nav-item.active {
     background: #E1E5EB;
-}
-
-.tetrone-sidebar-right {
-    width: 20%;
-    min-width: 200px;
-    flex-shrink: 0;
-    position: sticky;
-    top: 15px;
-    height: max-content;
-    display: flex;
-    flex-direction: column;
 }
 
 .tetrone-audio-track {

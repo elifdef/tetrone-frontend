@@ -38,8 +38,6 @@ export default function PostPage()
             })
             .catch(err =>
             {
-                console.log(err);
-                console.log(res)
                 setError(t('error.load_failed'));
             })
             .finally(() =>
@@ -73,13 +71,12 @@ export default function PostPage()
         try
         {
             const res = await postService.update(postId, editData);
-            if (res.success && res.data)
+            if (res)
             {
-                setPost(res.data); // Оновлюємо дані на сторінці
+                setPost(res.post);
             }
         } catch (err)
         {
-            console.error('Помилка збереження:', err);
             loadPost();
         }
     };
@@ -100,7 +97,7 @@ export default function PostPage()
         );
     }
 
-    const isOwner = user && post && user.id === post.user_id;
+    const isOwner = user && post && user.username === post.user.username;
 
     return (
         <div className="tetrone-post-page-wrapper">

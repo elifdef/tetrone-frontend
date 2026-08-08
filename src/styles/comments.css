@@ -1,54 +1,218 @@
-.tetrone-comments-container {
-    background-color: var(--theme-bg-page);
-    padding: 15px;
-    border-top: 1px solid var(--theme-border);
+.tetrone-comment-form {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 15px;
 }
 
-[data-theme="light"] .tetrone-comments-container {
-    background-color: #f7f7f7;
+.tetrone-comment-avatar-input {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--theme-border);
+    object-fit: cover;
 }
 
-.tetrone-comments-list {
+.tetrone-comment-input-wrapper {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+}
+
+.tetrone-comment-input-row {
+    display: flex;
+    align-items: center;
+    background: var(--theme-input-bg);
+    border: 1px solid var(--theme-border);
+    border-radius: 0;
+    min-height: 32px;
+}
+
+.tetrone-comment-input-row .tetrone-editor-outer-container,
+.tetrone-comment-input-row .tetrone-editor-row-wrapper {
+    border: none !important;
+    background: transparent !important;
+    min-height: unset !important;
+}
+
+.tetrone-comment-input-row .tetrone-editor-input-area .ProseMirror {
+    min-height: 20px !important;
+    padding: 6px 10px !important;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.tetrone-comment-input-row .tetrone-editor-input-area .ProseMirror p {
+    margin: 0;
+}
+
+.tetrone-send-btn {
+    background: transparent;
+    border: none;
+    color: var(--theme-link);
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tetrone-comment-thread {
+    display: flex;
+    flex-direction: column;
 }
 
 .tetrone-comment-item {
     display: flex;
-    gap: 12px;
+    padding: 8px 0;
     position: relative;
-    transition: background-color 0.5s ease;
-    padding: 8px;
+    border-bottom: 1px solid transparent;
+    align-items: flex-start;
 }
 
-.tetrone-highlight-msg {
-    background-color: rgba(91, 155, 213, 0.15);
+.tetrone-comment-avatar-col {
+    flex-shrink: 0;
+    margin-right: 8px;
 }
 
 .tetrone-comment-avatar {
-    width: 36px;
-    height: 36px;
-    object-fit: cover;
+    width: 40px;
+    height: 40px;
+    border-radius: 0 !important;
     border: 1px solid var(--theme-border);
+    object-fit: cover;
+    display: block;
+}
+
+.tetrone-comment-item.has-children::before {
+    content: '';
+    position: absolute;
+    top: 48px;
+    bottom: 0;
+    left: 19px;
+    width: 1px;
+    background-color: var(--theme-border);
+    z-index: 1;
+}
+
+.tetrone-comment-thread.depth-2 > .tetrone-comment-item.has-children::before {
+    top: 40px;
+    left: 15px;
+}
+
+.tetrone-comment-children-container {
+    margin-left: 19px;
+    display: flex;
+    flex-direction: column;
+}
+
+.tetrone-comment-thread.depth-2 > .tetrone-comment-children-container {
+    margin-left: 15px;
+}
+
+.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container {
+    margin-left: 0;
+}
+
+.tetrone-comment-children-container > .tetrone-comment-thread {
+    position: relative;
+    padding-left: 16px;
+}
+
+.tetrone-comment-thread.depth-2 .tetrone-comment-avatar,
+.tetrone-comment-thread.depth-3 .tetrone-comment-avatar {
+    width: 32px;
+    height: 32px;
+}
+
+.tetrone-comment-children-container > .tetrone-comment-thread::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background-color: var(--theme-border);
+}
+
+.tetrone-comment-children-container > .tetrone-comment-thread:last-child::before {
+    bottom: auto;
+    height: 24px;
+}
+
+
+.tetrone-comment-children-container > .tetrone-comment-thread::after {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 0;
+    width: 12px;
+    height: 1px;
+    background-color: var(--theme-border);
+}
+
+.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread::before,
+.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread::after,
+.tetrone-comment-thread.depth-3 > .tetrone-comment-item.has-children::before {
+    display: none;
+}
+
+.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread {
+    padding-left: 0;
+}
+
+.tetrone-comment-children-container > .tetrone-comment-thread::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: var(--theme-border);
+}
+
+.tetrone-comment-children-container > .tetrone-comment-thread:last-child::before {
+    bottom: auto;
+    height: 24px;
+}
+
+.tetrone-comment-children-container > .tetrone-comment-thread::after {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 0;
+    width: 12px;
+    height: 1px;
+    background-color: var(--theme-border);
+}
+
+.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread::before,
+.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread::after {
+    display: none;
+}
+
+.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread {
+    padding-left: 0;
 }
 
 .tetrone-comment-content {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .tetrone-comment-header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
     margin-bottom: 4px;
+    min-height: 16px;
 }
 
 .tetrone-comment-author {
     color: var(--theme-link);
     font-weight: bold;
-    font-size: 12px;
+    font-size: 11px;
     text-decoration: none;
 }
 
@@ -61,170 +225,67 @@
     color: var(--theme-text-muted);
 }
 
-.tetrone-comment-form {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.tetrone-comment-input-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background-color: var(--theme-input-bg);
-    border: 1px solid var(--theme-input-border);
-    transition: border-color 0.2s;
-    overflow: hidden;
-}
-
-.tetrone-comment-input-wrapper:focus-within {
-    border-color: var(--theme-link);
-}
-
-.tetrone-comment-reply-preview {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--theme-bg-hover, rgba(0, 0, 0, 0.05));
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--theme-input-border);
-    border-left: 3px solid var(--theme-link);
-}
-
-.tetrone-reply-preview-left {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--theme-link);
-    font-size: 11px;
-    font-weight: bold;
-}
-
-.tetrone-reply-preview-close {
-    background: none;
-    border: none;
-    color: var(--theme-text-muted);
+.tetrone-comment-more-actions {
+    position: relative;
     cursor: pointer;
+    color: var(--theme-text-muted);
+    margin-left: auto;
+    padding: 0 4px;
     display: flex;
     align-items: center;
-    justify-content: center;
 }
 
-.tetrone-reply-preview-close:hover {
-    color: var(--theme-error);
+.tetrone-comment-more-actions:hover {
+    color: var(--theme-text-main);
 }
 
-.tetrone-comment-input-row {
+.tetrone-comment-body {
+    font-size: 12px;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    color: var(--theme-text-main);
+}
+
+.tetrone-comment-actions {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
+    gap: 12px;
 }
 
-.tetrone-comment-textarea {
-    flex: 1;
+.tetrone-comment-like-btn {
     background: transparent;
     border: none;
-    color: var(--theme-text-main);
-    padding: 8px 10px;
-    font-size: 12px;
-    resize: none;
-    outline: none;
-    min-height: 36px;
-    max-height: 150px;
-}
-
-.tetrone-send-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--theme-link);
-    padding: 10px;
+    color: var(--theme-text-muted);
+    font-size: 11px;
+    font-weight: bold;
     display: flex;
     align-items: center;
-    justify-content: center;
-    opacity: 0.8;
-    transition: opacity 0.2s;
+    gap: 4px;
+    cursor: pointer;
+    padding: 0;
 }
 
-.tetrone-send-btn:hover:not(:disabled) {
-    opacity: 1;
-}
-
-.tetrone-send-btn:disabled {
-    color: var(--theme-text-muted);
-    cursor: default;
-    opacity: 0.4;
-}
-
-.tetrone-comment-reply-wrapper {
-    margin-top: 4px;
+.tetrone-comment-like-btn:hover {
+    color: var(--theme-error);
 }
 
 .tetrone-comment-reply-btn {
-    background: none;
+    background: transparent;
     border: none;
     color: var(--theme-text-muted);
     font-size: 11px;
-    cursor: pointer;
-    padding: 0;
     display: flex;
     align-items: center;
     gap: 4px;
-    transition: color 0.2s;
+    cursor: pointer;
+    padding: 0;
 }
 
 .tetrone-comment-reply-btn:hover {
-    color: var(--theme-link);
+    text-decoration: underline;
 }
 
-.tetrone-comment-actions-wrapper {
-    opacity: 0;
-    display: flex;
-    align-items: flex-start;
-    gap: 4px;
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    transition: opacity 0.2s;
-}
-
-.tetrone-comment-item:hover .tetrone-comment-actions-wrapper {
-    opacity: 1;
-}
-
-.tetrone-comment-action-icon {
-    background: var(--theme-bg-box);
-    border: 1px solid var(--theme-border);
-    cursor: pointer;
-    color: var(--theme-text-muted);
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.tetrone-comment-action-icon:hover {
-    color: var(--theme-link);
-    border-color: var(--theme-link);
-}
-
-.tetrone-comment-action-icon.danger:hover {
-    color: var(--theme-error);
-    border-color: var(--theme-error);
-}
-
-.tetrone-edit-mode-comment {
-    margin-top: 5px;
-    width: 100%;
-}
-
-.tetrone-relative-card {
-    position: relative;
-}
-
-.tetrone-absolute-actions {
-    position: absolute;
-    top: 15px;
-    right: 15px;
+.tetrone-inline-reply-container {
+    margin-top: 6px;
+    padding-top: 8px;
 }
