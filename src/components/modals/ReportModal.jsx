@@ -17,12 +17,12 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }) {
             const fetchReasons = async () => {
                 setIsLoadingReasons(true);
                 const res = await ReportService.getReasons();
-                if (res.success) {
-                    const data = res.data.reasons || [];
+                if (res) {
+                    const data = res.reasons || [];
                     setReasons(data);
                     if (data.length > 0) setSelectedReason(data[0]);
                 } else {
-                    notifyError(res.message || t('reports.error_load_reasons'));
+                    notifyError(res.code ||t('reports.error_load_reasons'));
                 }
                 setIsLoadingReasons(false);
             };

@@ -57,7 +57,12 @@ export const SocketProvider = ({ children }) =>
         {
             if (document.visibilityState === 'hidden')
             {
-                // newSocket.disconnect();
+                if (localStorage.getItem('dwswvspf') === false ||
+                    localStorage.getItem('dwswvspf') === null
+                )
+                {
+                    newSocket.disconnect();
+                }
             }
             else if (document.visibilityState === 'visible')
             {
