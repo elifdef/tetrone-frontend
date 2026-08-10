@@ -1,103 +1,167 @@
 import fetchClient from "../api/client";
 
-class AdminService {
-    async getUsers(search = '', page = 1) {
-        return await fetchClient(`/admin/users?search=${search}&page=${page}`);
-    }
+const AdminService = {
+    getUsers: async (search = '', page = 1) =>
+    {
+        return fetchClient(`/admin/users?search=${ search }&page=${ page }`);
+    },
 
-    async getUser(username) {
-        return await fetchClient(`/admin/users/${username}`);
-    }
+    async getUser(username)
+    {
+        return fetchClient(`/admin/users/${ username }`);
+    },
 
-    async toggleMute(username, reason) {
-        return await fetchClient(`/admin/users/${username}/mute`, { method: 'POST', body: { reason } });
-    }
+    async toggleMute(username, reason)
+    {
+        return fetchClient(`/admin/users/${ username }/mute`, {
+            method: 'POST',
+            body: { reason }
+        });
+    },
 
-    async toggleBan(username, reason) {
-        return await fetchClient(`/admin/users/${username}/ban`, { method: 'POST', body: { reason } });
-    }
+    async toggleBan(username, reason)
+    {
+        return fetchClient(`/admin/users/${ username }/ban`, {
+            method: 'POST',
+            body: { reason }
+        });
+    },
 
-    async getDashboardStats() {
-        return await fetchClient('/admin/dashboard');
-    }
+    async getDashboardStats()
+    {
+        return fetchClient('/admin/dashboard');
+    },
 
-    async getReports(status = 'pending') {
-        return await fetchClient(`/admin/reports?status=${status}`);
-    }
+    async getReports(filters = {})
+    {
+        const queryParams = new URLSearchParams();
 
-    async handleReport(reportId, actionType, adminResponse) {
-        return await fetchClient(`/admin/reports/${reportId}/${actionType}`, { method: 'POST', body: { admin_response: adminResponse } });
-    }
+        if (filters.status && filters.status !== 'all')
+        {
+            queryParams.append('filter[status]', filters.status);
+        }
+        if (filters.type && filters.type !== 'all')
+        {
+            queryParams.append('filter[type]', filters.type);
+        }
+        if (filters.date && filters.date !== 'all')
+        {
+            queryParams.append('filter[date]', filters.date);
+        }
+        if (filters.reason && filters.reason !== 'all')
+        {
+            queryParams.append('filter[reason]', filters.reason);
+        }
+        if (filters.search && filters.search.trim() !== '')
+        {
+            queryParams.append('filter[search]', filters.search.trim());
+        }
 
-    async getAppeals(status = 'pending') {
-        return await fetchClient(`/admin/appeals?status=${status}`);
-    }
+        const queryString = queryParams.toString();
+        const endpoint = queryString ? `/admin/reports?${ queryString }` : '/admin/reports';
 
-    async handleAppeal(appealId, actionType, adminResponse) {
-        return await fetchClient(`/admin/appeals/${appealId}/${actionType}`, { method: 'POST', body: { admin_response: adminResponse } });
-    }
+        return fetchClient(endpoint);
+    },
 
-    async getUserPosts(username = '', page = 1) {
-        const query = username ? `?username=${username}&page=${page}` : `?page=${page}`;
-        return await fetchClient(`/admin/posts${query}`);
-    }
+    async handleReport(reportId, actionType, adminResponse = '')
+    {
+        return fetchClient(`/admin/reports/${ reportId }/${ actionType }`, {
+            method: 'POST',
+            body: { admin_response: adminResponse }
+        });
+    },
 
-    async getUserComments(username, page = 1) {
-        return await fetchClient(`/admin/users/${username}/comments?page=${page}`);
-    }
+    async getAppeals(status = 'pending')
+    {
+        return fetchClient(`/admin/appeals?status=${ status }`);
+    },
 
-    async getUserLikes(username, page = 1) {
-        return await fetchClient(`/admin/users/${username}/likes?page=${page}`);
-    }
+    async handleAppeal(appealId, actionType, adminResponse)
+    {
+        return fetchClient(`/admin/appeals/${ appealId }/${ actionType }`, {
+            method: 'POST',
+            body: { admin_response: adminResponse }
+        });
+    },
 
-    async getUserSessions(username) {
-        return await fetchClient(`/admin/users/${username}/sessions`);
-    }
+    async getUserPosts(username = '', page = 1)
+    {
+        const query = username ? `?username=${ username }&page=${ page }` : `?page=${ page }`;
+        return fetchClient(`/admin/posts${ query }`);
+    },
 
-    async getTickets(status = '') {
-        const query = status ? `?status=${status}` : '';
-        return await fetchClient(`/admin/tickets${query}`);
-    }
+    async getUserComments(username, page = 1)
+    {
+        return fetchClient(`/admin/users/${ username }/comments?page=${ page }`);
+    },
 
-    async getTicket(id) {
-        return await fetchClient(`/admin/tickets/${id}`);
-    }
+    async getUserLikes(username, page = 1)
+    {
+        return fetchClient(`/admin/users/${ username }/likes?page=${ page }`);
+    },
 
-    async replyToTicket(id, message, isInternal) {
-        return await fetchClient(`/admin/tickets/${id}/reply`, {
+    async getUserSessions(username)
+    {
+        return fetchClient(`/admin/users/${ username }/sessions`);
+    },
+
+    async getTickets(status = '')
+    {
+        const query = status ? `?status=${ status }` : '';
+        return fetchClient(`/admin/tickets${ query }`);
+    },
+
+    async getTicket(id)
+    {
+        return fetchClient(`/admin/tickets/${ id }`);
+    },
+
+    async replyToTicket(id, message, isInternal)
+    {
+        return fetchClient(`/admin/tickets/${ id }/reply`, {
             method: 'POST',
             body: { message, is_internal: isInternal }
         });
-    }
+    },
 
-    async assignTicket(id) {
-        return await fetchClient(`/admin/tickets/${id}/assign`, {
+    async assignTicket(id)
+    {
+        return fetchClient(`/admin/tickets/${ id }/assign`, {
             method: 'POST'
         });
-    }
+    },
 
-    async getDatabaseTables() {
-        return await fetchClient(`/admin/database/tables`);
-    }
+    async getDatabaseTables()
+    {
+        return fetchClient(`/admin/database/tables`);
+    },
 
-    async executeDbQuery(query) {
-        return await fetchClient(`/admin/database/query`, {
+    async executeDbQuery(query)
+    {
+        return fetchClient(`/admin/database/query`, {
             method: 'POST',
             body: { query }
         });
-    }
+    },
 
-    async getStaffLogs(page = 1) {
-        return await fetchClient(`/admin/staff-logs?page=${page}`);
-    }
+    async getStaffLogs(page = 1)
+    {
+        return fetchClient(`/admin/staff-logs?page=${ page }`);
+    },
 
-    async getStaffLogsSummary() {
-        return await fetchClient(`/admin/staff-logs/summary`);
-    }
+    async getStaffLogsSummary()
+    {
+        return fetchClient(`/admin/staff-logs/summary`);
+    },
 
-    async getStaffLogsCharts() {
-        return await fetchClient(`/admin/staff-logs/charts`);
-    }
-}
+    async getStaffLogsCharts()
+    {
+        return fetchClient(`/admin/staff-logs/charts`);
+    },
+    async getReportTarget(reportId)
+    {
+        return fetchClient(`/admin/reports/${ reportId }/target`);
+    },
+};
 
-export default new AdminService();
+export default AdminService;

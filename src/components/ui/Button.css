@@ -35,6 +35,22 @@
     --theme-btn-disabled-bg: #2a2a2a;
     --theme-btn-disabled-border: #444444;
     --theme-btn-disabled-text: #666666;
+
+    /* Success */
+    --theme-btn-success-bg: #3b8c4a;
+    --theme-btn-success-grad-top: #4da65d;
+    --theme-btn-success-border: #265930;
+    --theme-btn-success-text: #ffffff;
+    --theme-btn-success-hover-bg: #439c53;
+    --theme-btn-success-hover-grad-top: #55b367;
+
+    /* Reject */
+    --theme-btn-reject-bg: #8c3b3b;
+    --theme-btn-reject-grad-top: #a64d4d;
+    --theme-btn-reject-border: #592626;
+    --theme-btn-reject-text: #ffffff;
+    --theme-btn-reject-hover-bg: #9c4343;
+    --theme-btn-reject-hover-grad-top: #b35555;
 }
 
 [data-theme="light"] {
@@ -74,6 +90,22 @@
     --theme-btn-disabled-bg: #e0e0e0;
     --theme-btn-disabled-border: #cccccc;
     --theme-btn-disabled-text: #999999;
+
+    /* Success */
+    --theme-btn-success-bg: #4bb34b;
+    --theme-btn-success-grad-top: #60c760;
+    --theme-btn-success-border: #358035;
+    --theme-btn-success-text: #ffffff;
+    --theme-btn-success-hover-bg: #52c452;
+    --theme-btn-success-hover-grad-top: #6fd66f;
+
+    /* Reject */
+    --theme-btn-reject-bg: #b34b4b;
+    --theme-btn-reject-grad-top: #c76060;
+    --theme-btn-reject-border: #803535;
+    --theme-btn-reject-text: #ffffff;
+    --theme-btn-reject-hover-bg: #c45252;
+    --theme-btn-reject-hover-grad-top: #d66f6f;
 }
 
 .tetrone-btn {
@@ -145,6 +177,32 @@
 .tetrone-btn-warning:hover:not(:disabled) {
     background-color: var(--theme-btn-warning-hover-bg);
     background-image: linear-gradient(to bottom, var(--theme-btn-warning-hover-grad-top), var(--theme-btn-warning-hover-bg));
+}
+
+.tetrone-btn-success {
+    background-color: var(--theme-btn-success-bg);
+    background-image: linear-gradient(to bottom, var(--theme-btn-success-grad-top), var(--theme-btn-success-bg));
+    border: 1px solid var(--theme-btn-success-border);
+    color: var(--theme-btn-success-text);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.tetrone-btn-success:hover:not(:disabled) {
+    background-color: var(--theme-btn-success-hover-bg);
+    background-image: linear-gradient(to bottom, var(--theme-btn-success-hover-grad-top), var(--theme-btn-success-hover-bg));
+}
+
+.tetrone-btn-reject {
+    background-color: var(--theme-btn-reject-bg);
+    background-image: linear-gradient(to bottom, var(--theme-btn-reject-grad-top), var(--theme-btn-reject-bg));
+    border: 1px solid var(--theme-btn-reject-border);
+    color: var(--theme-btn-reject-text);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.tetrone-btn-reject:hover:not(:disabled) {
+    background-color: var(--theme-btn-reject-hover-bg);
+    background-image: linear-gradient(to bottom, var(--theme-btn-reject-hover-grad-top), var(--theme-btn-reject-hover-bg));
 }
 
 .tetrone-btn.is-disabled,

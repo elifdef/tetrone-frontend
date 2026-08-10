@@ -4,7 +4,7 @@ import { useDateFormatter } from "../hooks/useDateFormatter";
 import { NotificationContext } from "../context/NotificationContext";
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useNotificationConfig } from '../hooks/useNotificationConfig';
-import ReportResultModal from '../components/common/ReportResultModal';
+import ReportResultModal from '../components/modals/ReportResultModal.jsx';
 import { useModal } from "../context/ModalContext";
 import { NotificationListItem } from "../components/notification/NotificationListItem";
 

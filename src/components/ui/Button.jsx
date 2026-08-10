@@ -4,7 +4,9 @@ const Button = ({ children, className = "", variant = "primary", disabled = fals
         primary: 'tetrone-btn-primary',     // Головна дія (зберегти, надіслати)         
         secondary: 'tetrone-btn-secondary', // Другорядна (скасувати, назад)         
         danger: 'tetrone-btn-danger',       // Видалення (червона)         
-        warning: 'tetrone-btn-warning',     // Увага (жовта)     
+        warning: 'tetrone-btn-warning',     // Увага (жовта)
+        approve: 'tetrone-btn-success',   // Підтвердити (зелена)
+        reject: 'tetrone-btn-reject',     // Відхилити
     };
     
     const currentVariantClass = variantClasses[variant] || variantClasses.primary;

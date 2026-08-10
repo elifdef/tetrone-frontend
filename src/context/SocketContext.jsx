@@ -55,16 +55,7 @@ export const SocketProvider = ({ children }) =>
 
         const handleVisibilityChange = () =>
         {
-            if (document.visibilityState === 'hidden')
-            {
-                if (localStorage.getItem('dwswvspf') === false ||
-                    localStorage.getItem('dwswvspf') === null
-                )
-                {
-                    newSocket.disconnect();
-                }
-            }
-            else if (document.visibilityState === 'visible')
+            if (document.visibilityState === 'visible')
             {
                 newSocket.connect();
             }

@@ -1,1065 +1,479 @@
-.nav-link-support {
-    color: #3498db;
-}
-
-.nav-link-moderator {
-    color: #2ecc71;
-}
-
-.nav-link-admin {
-    color: #ffd700;
-}
-
-.admin-search-bar {
+.tetrone-admin-stats-container {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
-    align-items: center;
-    background: var(--theme-bg-box);
-    padding: 15px;
-    border: 1px solid var(--theme-border);
-}
-
-.admin-post-search,
-.admin-user-search {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
     margin-bottom: 15px;
-}
-
-.admin-post-search-input {
-    flex: 1;
-}
-
-.admin-user-card {
-    display: flex;
-    padding: 15px;
-    border: 1px solid var(--theme-border);
-    background: var(--theme-bg-box);
-    margin-bottom: 10px;
-    align-items: center;
-    gap: 15px;
-}
-
-.admin-user-avatar {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border: 1px solid var(--theme-border);
-}
-
-.admin-user-info {
-    flex: 1;
-}
-
-.admin-user-name {
-    font-weight: bold;
-    color: var(--theme-link);
-    text-decoration: none;
-    font-size: 14px;
-    display: block;
-    margin-bottom: 4px;
-}
-
-.admin-user-name:hover {
-    text-decoration: underline;
-}
-
-.admin-user-meta {
-    font-size: 11px;
-    color: var(--theme-text-muted);
-}
-
-.admin-user-status {
-    font-size: 11px;
-    margin-top: 5px;
-    font-weight: bold;
-}
-
-.admin-status-banned {
-    color: var(--theme-error);
-}
-
-.admin-status-muted {
-    color: #d39e00;
-}
-
-.admin-status-red {
-    color: var(--theme-error);
-    font-weight: bold;
-}
-
-.admin-status-green {
-    color: #4caf50;
-    font-weight: bold;
-}
-
-.admin-status-orange {
-    color: #ff9800;
-    font-weight: bold;
-}
-
-.admin-user-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 150px;
-}
-
-.admin-actions-box {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid var(--theme-border, #ddd);
-}
-
-.admin-reason-input {
-    margin-bottom: 10px;
-    width: 100%;
-}
-
-.admin-dossier-card {
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.admin-dossier-row {
-    display: flex;
-    gap: 20px;
-    margin-top: 15px;
     flex-wrap: wrap;
 }
 
-.admin-dossier-col {
+.tetrone-admin-stat-box {
     flex: 1;
-    min-width: 250px;
-}
-
-.admin-stats-box {
-    flex: 1;
-    min-width: 250px;
-    background-color: var(--theme-bg-secondary);
-    border: 2px solid var(--theme-bg-box);
-    padding: 15px;
-}
-
-.admin-tables-row {
-    display: flex;
-    gap: 18px;
-    flex-wrap: wrap;
-}
-
-.admin-table-card {
-    flex: 1;
-    padding: 20px;
-    min-width: 300px;
-}
-
-.admin-table {
-    width: 100%;
-    text-align: left;
-    margin-top: 10px;
-    border-collapse: collapse;
-}
-
-.admin-table th,
-.admin-table td {
-    padding: 8px;
-    border-bottom: 1px solid var(--theme-border, #eee);
-}
-
-.admin-table-empty-row {
+    min-width: 120px;
+    background-color: var(--theme-bg-box);
+    border: 1px solid var(--theme-border);
+    padding: 10px;
     text-align: center;
 }
 
-.admin-badge {
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.admin-badge-positive {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-
-.admin-badge-negative {
-    background-color: #ffebee;
-    color: #c62828;
-}
-
-.admin-stats-row {
-    margin-bottom: 20px;
-}
-
-.admin-stats-label {
+.tetrone-admin-stat-label {
     font-size: 11px;
     color: var(--theme-text-muted);
+    font-weight: bold;
     text-transform: uppercase;
-    font-weight: bold;
-}
-
-.admin-stats-value {
-    font-size: 28px;
-    font-weight: bold;
-    color: var(--theme-link);
-    margin-top: 5px;
-}
-
-.admin-chart-card {
-    background-color: var(--theme-bg-box);
-    border: 1px solid var(--theme-border);
-}
-
-.admin-chart-title {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: var(--theme-text-main);
-}
-
-.admin-chart-container {
-    width: 100%;
-    height: 250px;
-}
-
-.admin-chart-tooltip {
-    background-color: var(--theme-bg-box) !important;
-    border: 1px solid var(--theme-border) !important;
-    padding: 10px;
-    color: var(--theme-text-main) !important;
-    font-size: 11px;
-}
-
-.admin-chart-legend {
-    font-size: 11px;
-    padding-top: 10px;
-}
-
-.admin-content-wrapper {
-    margin-top: 15px;
-}
-
-.admin-dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.admin-timeframe-badge {
-    background-color: var(--theme-bg-box);
-    border: 1px solid var(--theme-border);
-    color: var(--theme-text-muted);
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: bold;
-}
-
-.admin-infrastructure-row {
-    margin-bottom: 20px;
-}
-
-.admin-server-card,
-.admin-online-card {
-    background-color: var(--theme-bg-box);
-    border: 1px solid var(--theme-border);
-    display: flex;
-    flex-direction: column;
-}
-
-.admin-server-metric {
-    margin-bottom: 15px;
-}
-
-.admin-server-metric-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--theme-text-main);
     margin-bottom: 5px;
 }
 
-.admin-progress-track {
-    width: 100%;
-    height: 6px;
-    background-color: var(--theme-bg-page);
+.tetrone-admin-stat-value {
+    font-size: 20px;
+    color: var(--theme-link);
+    font-weight: bold;
+}
+
+.tetrone-admin-tabs-compact {
+    display: flex;
+    background: var(--theme-header-bg);
     border: 1px solid var(--theme-border);
-    overflow: hidden;
+    margin-bottom: 15px;
 }
 
-.admin-progress-bar {
-    height: 100%;
-    transition: width 0.5s ease-in-out;
-}
-
-.admin-progress-bar.cpu {
-    background-color: #5b9bd5;
-}
-
-.admin-progress-bar.disk {
-    background-color: #e64646;
-}
-
-.admin-server-info-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--theme-border);
-}
-
-.admin-server-info-row:last-child {
-    border-bottom: none;
-}
-
-.admin-online-badge {
-    background-color: var(--theme-success);
-    color: #fff;
-    padding: 2px 6px;
-    font-size: 10px;
-    margin-left: 5px;
-    vertical-align: middle;
-}
-
-.admin-online-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 200px;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-.admin-online-user {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    padding: 6px;
-    border: 1px solid var(--theme-border);
-    background-color: var(--theme-bg-page);
-    transition: background 0.2s;
-}
-
-.admin-online-user:hover {
-    background-color: var(--theme-btn-hover);
-}
-
-.admin-online-avatar {
-    width: 30px;
-    height: 30px;
-    object-fit: cover;
-    margin-right: 10px;
-}
-
-.admin-online-details {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.admin-online-name {
-    font-size: 11px;
+.tetrone-admin-tab {
+    padding: 8px 15px;
+    font-size: 12px;
     font-weight: bold;
     color: var(--theme-link);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    border-right: 1px solid var(--theme-border);
 }
 
-.admin-online-nick {
-    font-size: 10px;
-    color: var(--theme-text-muted);
-}
-
-.admin-online-indicator {
-    width: 8px;
-    height: 8px;
-    background-color: var(--theme-success);
-    box-shadow: 0 0 5px var(--theme-success);
-}
-
-.admin-feed-wrapper .tetrone-post-content {
-    margin-top: 10px;
-    padding-left: 0;
-}
-
-.admin-feed-wrapper .tetrone-post-actions-top {
-    position: static;
-    margin-top: -10px;
-}
-
-.admin-feed-wrapper .tetrone-post-header {
-    flex-wrap: wrap;
-}
-
-.admin-post-actions-visible {
-    opacity: 1 !important;
-}
-
-.admin-appeals-stats-container,
-.admin-stats-container {
-    margin-bottom: 20px;
-}
-
-.admin-appeal-quote,
-.admin-report-quote {
-    margin-top: 5px;
-}
-
-.admin-appeal-response-box,
-.admin-report-response-box {
-    margin-top: 15px;
-    margin-bottom: 0;
-}
-
-.admin-report-comment-target {
-    display: flex;
-    flex-direction: column;
-}
-
-.tetrone-stats-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.tetrone-stats-subtitle {
-    color: var(--theme-text-muted);
-    font-size: 14px;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-}
-
-.tetrone-stats-total {
-    font-size: 36px;
-    font-weight: bold;
-    color: var(--theme-link);
-}
-
-.tetrone-stats-desc {
-    color: var(--theme-text-muted);
-    font-size: 13px;
-    margin-top: 5px;
-}
-
-.tetrone-stats-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.tetrone-stats-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 15px;
+.tetrone-admin-tab:hover {
     background: var(--theme-bg-page);
+}
+
+.tetrone-admin-tab.active {
+    background: var(--theme-bg-box);
+    color: var(--theme-text-main);
+    border-bottom: 2px solid var(--theme-link);
+}
+
+.tetrone-admin-report-card {
+    background: var(--theme-bg-box);
     border: 1px solid var(--theme-border);
-}
-
-.tetrone-stats-date {
-    font-weight: 500;
-}
-
-.tetrone-stats-time {
-    color: var(--theme-text-muted);
-}
-
-.admin-info-label {
-    font-weight: bold;
-}
-
-.admin-info-item {
-    margin-bottom: 8px;
-}
-
-.admin-stat-value {
-    color: var(--theme-link);
-}
-
-.admin-ip-text {
-    font-family: monospace;
-}
-
-.admin-reason-cell {
-    max-width: 300px;
-    word-break: break-word;
-}
-
-.tetrone-empty-title {
-    font-size: 1.25rem;
-    margin-bottom: 8px;
-}
-
-.tetrone-empty-desc {
-    color: var(--theme-text-muted);
-}
-
-.admin-moderation-post {
-    border: 1px solid var(--theme-border-admin);
-}
-
-.tetrone-admin-tickets-container {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.tetrone-admin-ticket-row {
-    display: grid;
-    grid-template-columns: 80px 1fr 150px 120px 120px;
-    gap: 16px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border-color);
-    align-items: center;
-    cursor: pointer;
-}
-
-.tetrone-admin-ticket-row:hover {
-    background-color: var(--hover-bg);
-}
-
-.tetrone-admin-ticket-header {
-    font-weight: bold;
-    background-color: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-    border-bottom: 2px solid var(--border-color);
-}
-
-.tetrone-admin-ticket-detail {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.tetrone-admin-ticket-meta {
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 0.9rem;
-}
-
-.tetrone-ticket-chat {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-height: 500px;
-    overflow-y: auto;
-    padding: 16px;
-    border: 1px inset var(--border-color);
-    background-color: #ffffff;
-}
-
-.tetrone-ticket-message {
-    padding: 10px 14px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-color);
-    max-width: 85%;
-}
-
-.tetrone-ticket-message-user {
-    align-self: flex-start;
-    border-left: 3px solid var(--accent-color);
-}
-
-.tetrone-ticket-message-admin {
-    align-self: flex-end;
-    background-color: rgba(52, 152, 219, 0.1);
-    border-right: 3px solid #3498db;
-}
-
-.tetrone-ticket-message-internal {
-    align-self: center;
-    width: 100%;
-    background-color: #fffacd;
-    border: 1px dashed #f1c40f;
-    color: #8a6d3b;
-}
-
-.tetrone-ticket-message-header {
+    margin-bottom: 10px;
+    padding: 10px;
     display: flex;
     justify-content: space-between;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 4px;
+    font-size: 12px;
 }
 
-.tetrone-ticket-reply-box {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
+.tetrone-admin-report-info {
+    flex: 1;
 }
 
-.tetrone-ticket-checkbox-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
-    cursor: pointer;
-}
-
-.tetrone-feedback-msg {
-    padding: 10px 12px;
-    margin-bottom: 16px;
-    font-weight: bold;
-    border: 1px solid transparent;
-}
-
-.tetrone-feedback-error {
-    background-color: #ffeaea;
-    color: #cc0000;
-    border-color: #ff4d4d;
-}
-
-.tetrone-feedback-success {
-    background-color: #eaf8e6;
-    color: #2ecc71;
-    border-color: #2ecc71;
-}
-
-.tetrone-status-filter {
-    width: 200px;
-}
-
-.tetrone-admin-ticket-subject {
-    font-weight: bold;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.tetrone-admin-ticket-date {
-    font-size: 0.85rem;
-}
-
-.tetrone-ticket-msg-text {
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.tetrone-ticket-msg-attachments {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.tetrone-ticket-attachment-img {
-    height: 60px;
-    border: 1px solid var(--border-color);
-    object-fit: cover;
-}
-
-.tetrone-ticket-reply-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-}
-
-.tetrone-ticket-chat {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-    background-color: var(--bg-color);
-    /* БУВ ЖОРСТКИЙ #ffffff */
-    border: 1px inset var(--border-color);
-    max-height: 500px;
-    overflow-y: auto;
-    margin-bottom: 16px;
-}
-
-.tetrone-ticket-message {
-    padding: 10px 14px;
-    max-width: 85%;
-    border: 1px solid var(--border-color);
+.tetrone-admin-report-actions {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    color: var(--text-primary);
+    min-width: 140px;
+    align-items: stretch;
 }
 
-.tetrone-ticket-message-user {
-    align-self: flex-start;
-    background-color: var(--card-bg);
-    border-left: 3px solid var(--accent-color);
+.tetrone-admin-meta-row {
+    margin-bottom: 4px;
 }
 
-.tetrone-ticket-message-admin {
-    align-self: flex-end;
-    background-color: var(--hover-bg);
-    border-right: 3px solid #3498db;
+.tetrone-admin-meta-label {
+    color: var(--theme-text-muted);
+    margin-right: 5px;
 }
 
-.tetrone-ticket-message-internal {
-    align-self: center;
-    width: 100%;
-    background-color: rgba(241, 196, 15, 0.1);
-    border: 1px dashed #f1c40f;
-    color: var(--text-primary);
+.tetrone-admin-report-quote {
+    background: var(--theme-bg-page);
+    border-left: 2px solid var(--theme-link);
+    padding: 5px 8px;
+    margin-top: 5px;
+    color: var(--theme-text-muted);
 }
 
-.tetrone-ticket-message-header {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px dotted var(--border-color);
-    padding-bottom: 4px;
+.tetrone-admin-status-badge {
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    display: inline-block;
+    border: 1px solid currentColor;
+    background: var(--theme-bg-page);
 }
 
-.tetrone-ticket-msg-text {
-    white-space: pre-wrap;
-    word-break: break-word;
-    color: var(--text-primary);
+.tetrone-admin-status-pending {
+    color: #d39e00;
 }
 
-.admin-progress-bar {
-    height: 100%;
-    width: var(--progress-width, 0%);
-    transition: width 0.5s ease-in-out;
+.tetrone-admin-status-resolved {
+    color: var(--theme-success);
 }
 
-.admin-progress-bar.cpu {
-    background-color: #3498db;
+.tetrone-admin-status-rejected {
+    color: var(--theme-error);
 }
 
-.admin-progress-bar.ram {
-    background-color: #2ecc71;
-}
-
-.admin-progress-bar.disk {
-    background-color: #e74c3c;
-}
-
-@media (max-width: 768px) {
-    .admin-table-card {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .admin-table {
-        min-width: 500px;
-    }
-}
-
-@media (max-width: 480px) {
-    .admin-server-metric-header {
-        flex-direction: column;
-        gap: 5px;
-    }
-}
-
-.admin-db-manager {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: 20px;
-    align-items: start;
-}
-
-.admin-db-sidebar {
+.tetrone-admin-modal-body {
     padding: 15px;
-    background: var(--theme-bg-box);
-    max-height: calc(100vh - 100px);
-    overflow-y: auto;
+    font-size: 12px;
+}
+
+.tetrone-admin-modal-target-box {
+    background: var(--theme-bg-page);
     border: 1px solid var(--theme-border);
+    padding: 10px;
+    margin-top: 10px;
 }
 
-.admin-db-sidebar-title {
-    margin-bottom: 15px;
-    border-bottom: 1px solid var(--theme-border);
-    padding-bottom: 10px;
-    font-size: 1.1rem;
+.tetrone-admin-modal-target-box-header {
+    margin-bottom: 10px;
+    border-bottom: 1px dotted var(--theme-border);
+    padding-bottom: 5px;
 }
 
-.admin-db-table-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.admin-db-table-btn {
-    background: transparent;
-    border: none;
-    color: var(--theme-text-main);
-    cursor: pointer;
-    text-align: left;
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-}
-
-.admin-db-table-btn:hover {
-    background: var(--theme-btn-hover);
-}
-
-.admin-db-main {
+.tetrone-admin-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    min-width: 0;
+    gap: 15px;
+    font-family: Tahoma, Verdana, Arial, sans-serif;
+    font-size: 11px;
 }
 
-.admin-db-editor-card {
-    padding: 20px;
+.tetrone-admin-block {
     background: var(--theme-bg-box);
     border: 1px solid var(--theme-border);
 }
 
-.admin-db-editor-header {
+.tetrone-admin-block-header {
+    background: var(--theme-header-bg);
+    padding: 6px 10px;
+    font-weight: bold;
+    font-size: 11px;
+    border-bottom: 1px solid var(--theme-border);
+    color: var(--theme-text-main);
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
     align-items: center;
 }
 
-.admin-db-danger-text {
-    font-size: 0.8rem;
-    color: var(--theme-error);
+.tetrone-admin-block-content {
+    padding: 10px;
+}
+
+.tetrone-admin-stats-row {
+    display: flex;
+    background: var(--theme-bg-box);
+    border: 1px solid var(--theme-border);
+}
+
+.tetrone-admin-stat-item {
+    flex: 1;
+    padding: 12px 10px;
+    text-align: center;
+    border-right: 1px solid var(--theme-border);
+}
+
+.tetrone-admin-stat-item:last-child {
+    border-right: none;
+}
+
+.tetrone-admin-stat-title {
+    color: var(--theme-text-muted);
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.tetrone-admin-stat-count {
+    color: var(--theme-link);
+    font-size: 18px;
     font-weight: bold;
 }
 
-.admin-db-textarea {
+.tetrone-admin-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.tetrone-admin-progress-wrap {
+    margin-bottom: 12px;
+}
+
+.tetrone-admin-progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.tetrone-admin-progress-track {
+    background: var(--theme-bg-page);
+    border: 1px solid var(--theme-border);
+    height: 8px;
     width: 100%;
-    height: 150px;
-    padding: 15px;
-    font-family: monospace;
-    font-size: 14px;
-    background: var(--theme-input-bg);
+}
+
+.tetrone-admin-progress-bar {
+    height: 100%;
+    transition: width 0.5s ease-in-out;
+}
+
+.bg-cpu {
+    background-color: #5b9bd5;
+}
+
+.bg-ram {
+    background-color: #4bb34b;
+}
+
+.bg-disk {
+    background-color: #e64646;
+}
+
+.tetrone-admin-info-list {
+    font-size: 11px;
+    margin-top: 10px;
+    border-top: 1px solid var(--theme-border);
+    padding-top: 10px;
+}
+
+.tetrone-admin-info-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted var(--theme-border);
+}
+
+.tetrone-admin-info-row:last-child {
+    border-bottom: none;
+}
+
+.tetrone-admin-online-list {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.tetrone-admin-online-item {
+    display: flex;
+    align-items: center;
+    padding: 6px;
+    border-bottom: 1px solid var(--theme-bg-page);
+    text-decoration: none;
     color: var(--theme-text-main);
-    border: 1px solid var(--theme-border);
-    border-radius: 5px;
-    margin-bottom: 10px;
-    resize: vertical;
 }
 
-.admin-db-results-card {
-    padding: 20px;
-    background: var(--theme-bg-box);
-    min-height: 300px;
-    border: 1px solid var(--theme-border);
-}
-
-.admin-db-results-table-wrap {
-    overflow-x: auto;
-    max-height: 500px;
-    border: 1px solid var(--theme-border);
-}
-
-.admin-db-results-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    white-space: nowrap;
-}
-
-.admin-db-results-table th {
-    position: sticky;
-    top: 0;
-    background: var(--theme-bg-box);
-    z-index: 1;
-    padding: 10px;
-    border-bottom: 2px solid var(--theme-border);
-}
-
-.admin-db-results-table td {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--theme-border);
-}
-
-.admin-db-results-table tr:nth-child(even) {
+.tetrone-admin-online-item:hover {
     background: var(--theme-bg-page);
 }
 
-.admin-staff-logs-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.admin-staff-chart-card {
-    padding: 20px;
-    background: var(--theme-bg-box);
+.tetrone-admin-online-avatar {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
     border: 1px solid var(--theme-border);
 }
 
-.admin-staff-chart-wrap {
-    height: 300px;
-}
-
-.admin-staff-table-wrap {
-    overflow-x: auto;
-}
-
-.admin-staff-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-}
-
-.admin-staff-table th {
-    padding: 10px;
-    border-bottom: 2px solid var(--theme-border);
-}
-
-.admin-staff-table td {
-    padding: 10px;
-    border-bottom: 1px solid var(--theme-border);
-}
-
-.admin-staff-action-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    background: var(--theme-btn-bg);
-    color: var(--theme-btn-text);
-    font-size: 0.9em;
-}
-
-.admin-dash-container {
+.tetrone-admin-online-details {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px;
 }
 
-.admin-dash-grid-4 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-.admin-dash-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.admin-dash-stat-card {
-    padding: 20px;
-    text-align: center;
-    background: var(--theme-bg-box);
-    border: 1px solid var(--theme-border);
-}
-
-.admin-dash-stat-card h3 {
-    font-size: 2rem;
-    margin: 0 0 5px 0;
+.tetrone-admin-online-name {
+    font-weight: bold;
     color: var(--theme-link);
 }
 
-.admin-dash-stat-card p {
+.tetrone-admin-online-nick {
     color: var(--theme-text-muted);
-    margin: 0;
 }
 
-.admin-dash-chart-card {
-    padding: 20px;
-    background: var(--theme-bg-box);
-    border: 1px solid var(--theme-border);
+.tetrone-admin-chart-wrap {
+    height: 200px;
+    margin-top: 10px;
 }
 
-.admin-dash-chart-card h3 {
-    margin-bottom: 20px;
-    font-size: 1.1rem;
-}
-
-.admin-dash-chart-wrap {
-    height: 300px;
-}
-
-.admin-dash-server-header {
+.tetrone-admin-online-modal-list {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+    flex-direction: column;
 }
 
-.admin-dash-server-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-.admin-dash-progress-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-}
-
-.admin-dash-progress-bg {
-    width: 100%;
-    background: var(--theme-bg-page);
-    height: 10px;
-    border-radius: 5px;
-    overflow: hidden;
-    border: 1px solid var(--theme-border);
-}
-
-
-.admin-db-action-row {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.admin-db-loading-wrap {
-    display: flex;
-    justify-content: center;
-    padding: 40px;
-}
-
-.admin-staff-load-more {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.admin-db-results-raw {
-    background: var(--theme-bg-page);
-    padding: 15px;
-    border-radius: 5px;
-}
-
-
-.admin-staff-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.admin-staff-center-wrap {
+.tetrone-admin-online-modal-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-}
-
-.admin-staff-list {
-    padding: 0 20px;
-}
-
-.admin-staff-list-item {
-    display: flex;
-    justify-content: space-between;
     padding: 10px 0;
-    border-bottom: 1px solid var(--theme-border-color);
+    gap: 15px;
+    border-bottom: 1px solid var(--theme-border);
+    text-decoration: none;
+    transition: background-color 0.2s;
 }
 
-.admin-staff-user-wrap {
+.tetrone-admin-online-modal-item:hover {
+    background-color: var(--theme-bg-page);
+}
+
+.tetrone-admin-online-modal-item:last-child {
+    border-bottom: none;
+}
+
+.tetrone-admin-online-modal-avatar {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border: 1px solid var(--theme-border);
+}
+
+.tetrone-admin-online-modal-details {
+    flex: 1;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+}
+
+.tetrone-admin-online-modal-name {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--theme-text-main);
+}
+
+.tetrone-admin-online-modal-nick {
+    font-size: 11px;
+    color: var(--theme-text-muted);
+    margin-top: 2px;
+}
+
+.tetrone-admin-online-modal-indicator {
+    width: 10px;
+    height: 10px;
+    background-color: var(--theme-success);
+    box-shadow: 0 0 4px var(--theme-success);
+}
+
+.tetrone-admin-filters-section {
+    display: flex;
+    flex-wrap: wrap;
     gap: 10px;
+    margin-bottom: 20px;
+    background: var(--theme-bg-box);
+    padding: 15px;
+    border: 1px solid var(--theme-border);
 }
 
-.admin-staff-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+.tetrone-admin-filter-search {
+    flex: 1 1 200px;
 }
 
-.admin-staff-badge-primary {
-    background-color: var(--theme-btn-primary);
-    color: #fff;
+.tetrone-admin-filter-select {
+    flex: 1 1 120px;
+}
+
+.tetrone-admin-target-deleted {
+    text-decoration: line-through;
+    color: var(--theme-text-muted);
+}
+
+.tetrone-admin-target-id {
+    font-size: 0.85em;
+    margin-left: 5px;
+    color: var(--theme-text-muted);
+}
+
+.tetrone-admin-meta-row-spaced {
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.tetrone-admin-meta-value-bold {
+    font-weight: 500;
+}
+
+.tetrone-admin-response-text {
+    font-style: italic;
+    color: var(--theme-text-muted);
+}
+
+.tetrone-admin-report-quote {
+    font-style: italic;
+    background: var(--theme-bg-page);
+    border-left: 2px solid var(--theme-link);
+    padding: 8px;
+    color: var(--theme-text-muted);
+}
+
+.tetrone-admin-decision-box {
+    margin-top: 15px;
+    padding: 10px 12px;
+    background: var(--theme-bg-page);
+    border: 1px solid var(--theme-border);
+}
+
+.tetrone-admin-decision-box.status-resolved {
+    border-left: 3px solid var(--theme-success);
+}
+
+.tetrone-admin-decision-box.status-rejected {
+    border-left: 3px solid var(--theme-error);
+}
+
+.tetrone-admin-block-clickable {
+    cursor: pointer;
+}
+
+.tetrone-admin-online-count {
+    color: var(--theme-link);
+    font-weight: bold;
+}
+
+.tetrone-admin-block-content-no-padding {
+    padding: 0;
+}
+
+.tetrone-empty-state-compact {
+    padding: 15px;
+    text-align: center;
+    color: var(--theme-text-muted);
+}
+
+.tetrone-admin-online-more {
+    padding: 8px;
+    text-align: center;
+    color: var(--theme-link);
+    border-top: 1px solid var(--theme-border);
+}
+
+.tetrone-admin-info-list-compact {
+    font-size: 10px;
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+.tetrone-ping-indicator {
+    font-weight: bold;
+}
+
+.tetrone-ping-good {
+    color: var(--theme-success);
+}
+
+.tetrone-ping-warn {
+    color: #F1C40F;
+}
+
+.tetrone-ping-error {
+    color: var(--theme-error);
+}
+
+@media (max-width: 768px) {
+    .tetrone-admin-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .tetrone-admin-stats-row {
+        flex-wrap: wrap;
+    }
+
+    .tetrone-admin-stat-item {
+        min-width: 45%;
+        border-bottom: 1px solid var(--theme-border);
+    }
 }

@@ -57,7 +57,7 @@ export default function ModernProfileCard({ currentUser, isPreview = false }) {
                     isOpen={isReportModalOpen}
                     onClose={() => setIsReportModalOpen(false)}
                     targetType="user"
-                    targetId={currentUser.id}
+                    targetId={currentUser.username}
                 />
             )}
         </div>

@@ -3,7 +3,8 @@ import { Link } from "react-router";
 import RichText from "../common/RichText";
 import { NotificationListAvatar } from "./NotificationListAvatar";
 
-export const NotificationListItem = ({ notif, handleNotificationClick, getConfig, formatDate }) => {
+export const NotificationListItem = ({ notif, handleNotificationClick, getConfig, formatDate }) =>
+{
     const { t } = useTranslation();
 
     const isUnread = !notif.read_at;
@@ -15,92 +16,112 @@ export const NotificationListItem = ({ notif, handleNotificationClick, getConfig
 
     const isSystem = actor.id === 0;
     const senderName = isSystem
-        ? t('common.moderator')
-        : `${actor.first_name || ''} ${actor.last_name || ''}`.trim();
+        ? (actor.first_name ? `${ actor.first_name } ${ actor.last_name || '' }`.trim() : t('common.moderator'))
+        : `${ actor.first_name || '' } ${ actor.last_name || '' }`.trim();
 
-    const { actionText, linkText, linkUrl, snippetText, mediaPreview, isReaction, mediaPosition } = getConfig(type, actor, target);
+    const {
+        actionText,
+        linkText,
+        linkUrl,
+        snippetText,
+        mediaPreview,
+        isReaction,
+        mediaPosition
+    } = getConfig(type, actor, target);
 
-    const onBlockClick = () => {
-        handleNotificationClick(notif, payload, isSystem);
+    const isSystemReport = [
+        'report_reviewed',
+        'content_deleted',
+        'report_reverted',
+        'content_restored'
+    ].includes(type);
+
+    const onBlockClick = () =>
+    {
+        handleNotificationClick(notif, payload, isSystemReport);
     };
 
     return (
-        <div className={`tetrone-notification-item ${isUnread ? 'unread' : ''}`} onClick={onBlockClick}>
+        <div className={ `tetrone-notification-item ${ isUnread ? 'unread' : '' }` } onClick={ onBlockClick }>
             <div className="tetrone-notification-layout">
                 <div className="tetrone-system-avatar-wrapper">
-                    {isSystem ? (
-                        <NotificationListAvatar isSystem={true} />
+                    { isSystem ? (
+                        <NotificationListAvatar isSystem={ true }/>
                     ) : (
-                        <Link to={`/${actor.username}`}>
-                            <NotificationListAvatar actor={actor} isSystem={false} />
+                        <Link to={ `/${ actor.username }` } onClick={ e => e.stopPropagation() }>
+                            <NotificationListAvatar actor={ actor } isSystem={ false }/>
                         </Link>
-                    )}
+                    ) }
                 </div>
 
                 <div className="tetrone-notification-content-box">
                     <div className="tetrone-notification-text-row">
-                        {isSystem ? (
-                            <span className="tetrone-comment-author">{senderName}</span>
-                        ) : (
-                            <Link
-                                to={`/${actor.username}`}
-                                className="tetrone-comment-author"
-                                style={actor.personalization?.username_color ? { color: actor.personalization.username_color } : undefined}
-                            >
-                                {senderName}
-                            </Link>
-                        )}
-                        {' '}
+                        { !isSystemReport && (
+                            isSystem ? (
+                                <span className="tetrone-comment-author">{ senderName }</span>
+                            ) : (
+                                <Link
+                                    to={ `/${ actor.username }` }
+                                    className="tetrone-comment-author"
+                                    onClick={ e => e.stopPropagation() }
+                                    style={ actor.personalization?.username_color ? { color: actor.personalization.username_color } : undefined }
+                                >
+                                    { senderName }
+                                </Link>
+                            )
+                        ) }
+                        { !isSystemReport && ' ' }
                         <span className="tetrone-notification-action">
-                            {actionText}
-                            {actionText && linkText ? ' ' : ''}
-                            {linkUrl && linkText ? (
-                                <Link to={linkUrl} className="tetrone-link">
-                                    {linkText}{snippetText && !isReaction ? ':' : ''}
+                            { actionText }
+                            { actionText && linkText ? ' ' : '' }
+                            { linkUrl && linkText ? (
+                                <Link to={ linkUrl } className="tetrone-link" onClick={ e => e.stopPropagation() }>
+                                    { linkText }{ snippetText && !isReaction ? ':' : '' }
                                 </Link>
                             ) : (
-                                <>{linkText}{snippetText && !isReaction ? ':' : ''}</>
-                            )}
+                                <>{ linkText }{ snippetText && !isReaction ? ':' : '' }</>
+                            ) }
                         </span>
                     </div>
 
-                    {(snippetText || (mediaPreview && mediaPosition === 'left')) && (
+                    { (snippetText || (mediaPreview && mediaPosition === 'left')) && (
                         <div className="ntf-snippet-container">
-                            {mediaPreview && mediaPosition === 'left' && (
+                            { mediaPreview && mediaPosition === 'left' && (
                                 <div className="ntf-media-left">
-                                    <img src={mediaPreview} alt="Media" className="ntf-media-img" />
+                                    <img src={ mediaPreview } alt="Media" className="ntf-media-img"/>
                                 </div>
-                            )}
+                            ) }
 
-                            {snippetText && (
+                            { snippetText && (
                                 <div className="ntf-snippet-text-box">
-                                    {isReaction ? (
-                                        <img src={snippetText} alt="Reaction" className="ntf-reaction-img" />
+                                    { isReaction ? (
+                                        <img src={ snippetText } alt="Reaction" className="ntf-reaction-img"/>
                                     ) : typeof snippetText === 'object' ? (
-                                        <RichText text={snippetText.text || snippetText} className="tetrone-notification-richtext" />
+                                        <RichText text={ snippetText.text || snippetText }
+                                                  className="tetrone-notification-richtext"/>
                                     ) : (
-                                        <span>"{snippetText}"</span>
-                                    )}
+                                        <span>"{ snippetText }"</span>
+                                    ) }
                                 </div>
-                            )}
+                            ) }
                         </div>
-                    )}
+                    ) }
 
                     <div className="tetrone-notification-date">
-                        {formatDate(notif.created_at)}
+                        { formatDate(notif.created_at) }
                     </div>
                 </div>
             </div>
 
-            {mediaPreview && mediaPosition === 'right' && (
+            { mediaPreview && mediaPosition === 'right' && (
                 <div className="ntf-media-right">
-                    <img src={mediaPreview} alt="Media" className="ntf-media-img" />
+                    <img src={ mediaPreview } alt="Media" className="ntf-media-img"/>
                 </div>
-            )}
+            ) }
 
-            {isUnread && (
-                <div className="tetrone-notification-dot" title={t('notifications.mark_read')}></div>
-            )}
+            { isUnread && (
+                <div className="tetrone-notification-dot" title={ t('notifications.mark_read') }></div>
+            ) }
         </div>
     );
 };

@@ -146,13 +146,6 @@ export const useNotificationConfig = () =>
                 linkUrl: `/messages?dm=${ target.target_id }`,
                 mediaPosition: 'left'
             }),
-            report_reviewed: () => ({ actionText: t('notifications.report_reviewed_click'), linkText: '' }),
-            comment_reply: () => ({
-                actionText: phrase.replied,
-                linkText: t('notifications.your_comment'),
-                linkUrl: `/post/${ target.target_id }?comment=${ target.sub_target_id }`,
-                mediaPreview: null
-            }),
             like_comment: () => ({
                 actionText: phrase.liked,
                 linkText: t('notifications.your_comment'),
@@ -165,7 +158,31 @@ export const useNotificationConfig = () =>
                 linkUrl: `/post/${ target.target_id }?comment=${ target.sub_target_id }`,
                 mediaPreview: null,
                 isReaction: true
-            })
+            }),
+            report_reviewed: () => ({
+                actionText: t('notifications.report_reviewed_click'),
+                linkText: '',
+                snippetText: null,
+                mediaPreview: null
+            }),
+            report_reverted: () => ({
+                actionText: t('notifications.report_reverted_click'),
+                linkText: '',
+                snippetText: null,
+                mediaPreview: null
+            }),
+            content_deleted: () => ({
+                actionText: t('notifications.content_deleted_click'),
+                linkText: '',
+                snippetText: null,
+                mediaPreview: null
+            }),
+            content_restored: () => ({
+                actionText: t('notifications.content_restored_click'),
+                linkText: '',
+                snippetText: null,
+                mediaPreview: null
+            }),
         };
 
         const generateConfig = configs[type];

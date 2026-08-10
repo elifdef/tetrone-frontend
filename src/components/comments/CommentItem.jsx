@@ -16,6 +16,7 @@ import { triggerStickerConfetti } from '../../utils/confetti';
 import StickerPicker from '../editor/StickerPicker';
 import LikeIcon from '../../assets/like.svg?react';
 import NoLikeIcon from '../../assets/nolike.svg?react';
+import ReportModal from '../modals/ReportModal';
 
 export default function CommentItem({ comment, currentUser, onDelete, onEdit, onAddComment, depth = 1 })
 {
@@ -363,7 +364,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                             <CommentForm
                                 user={ currentUser }
                                 onSubmit={ handleInlineReplySubmit }
-                                onCancel={ () => setIsReplying(false) } // ДОДАНО ОСЬ ЦЕ
+                                onCancel={ () => setIsReplying(false) }
                                 placeholder={ `${ t('action.comment', 'Відповісти') } ${ comment.user.first_name }...` }
                             />
                         </div>
@@ -386,6 +387,13 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                     )) }
                 </div>
             ) }
+
+            <ReportModal
+                isOpen={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                targetType="comment"
+                targetId={comment.id}
+            />
         </div>
     );
 }
