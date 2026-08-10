@@ -71,9 +71,27 @@ const AdminService = {
         });
     },
 
-    async getAppeals(status = 'pending')
+    async getAppeals(filters = {})
     {
-        return fetchClient(`/admin/appeals?status=${ status }`);
+        const queryParams = new URLSearchParams();
+
+        if (filters.status && filters.status !== 'all')
+        {
+            queryParams.append('filter[status]', filters.status);
+        }
+        if (filters.date && filters.date !== 'all')
+        {
+            queryParams.append('filter[date]', filters.date);
+        }
+        if (filters.search && filters.search.trim() !== '')
+        {
+            queryParams.append('filter[search]', filters.search.trim());
+        }
+
+        const queryString = queryParams.toString();
+        const endpoint = queryString ? `/admin/appeals?${ queryString }` : '/admin/appeals';
+
+        return fetchClient(endpoint);
     },
 
     async handleAppeal(appealId, actionType, adminResponse)
@@ -157,10 +175,6 @@ const AdminService = {
     async getStaffLogsCharts()
     {
         return fetchClient(`/admin/staff-logs/charts`);
-    },
-    async getReportTarget(reportId)
-    {
-        return fetchClient(`/admin/reports/${ reportId }/target`);
     },
 };
 

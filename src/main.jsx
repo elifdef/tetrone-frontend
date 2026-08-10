@@ -28,6 +28,7 @@ import "./styles/video.css";
 import "./styles/space.css";
 import "./styles/landing.css";
 import "./styles/editor.css";
+import "./styles/banned.css";
 
 if (import.meta.env.VITE_APP_ENV)
 {

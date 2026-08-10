@@ -1,13 +1,15 @@
 import fetchClient from '../api/client';
 
-class AppealService {
-    async checkStatus() {
-        return await fetchClient('/appeals/status');
-    }
+const AppealService = {
+    checkStatus: async () =>
+    {
+        return fetchClient('/appeals/status');
+    },
 
-    async submitAppeal(message) {
-        return await fetchClient('/appeals', { method: 'POST', body: { message } });
+    submitAppeal: async (message) =>
+    {
+        return fetchClient('/appeals', { method: 'POST', body: { message } });
     }
 }
 
-export default new AppealService();
+export default AppealService;

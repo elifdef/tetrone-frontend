@@ -18,27 +18,28 @@ export default function AdminReports()
     const [loading, setLoading] = useState(true);
 
     const [filters, setFilters] = useState({ status: 'pending', date: 'all', reason: 'all', type: 'all', search: '' });
-
     const [searchInput, setSearchInput] = useState('');
-
-    const handleFilterChange = (key, value) =>
-    {
-        setFilters(prev => ({ ...prev, [key]: value }));
-    };
 
     useEffect(() =>
     {
         const timer = setTimeout(() =>
         {
-            setFilters(prev => ({ ...prev, search: searchInput }));
+            setFilters(prev =>
+            {
+                if (prev.search === searchInput)
+                {
+                    return prev;
+                }
+                return { ...prev, search: searchInput };
+            });
         }, 800);
         return () => clearTimeout(timer);
     }, [searchInput]);
 
-    const fetchReports = useCallback(async () =>
+    const fetchReports = useCallback(async (currentFilters) =>
     {
         setLoading(true);
-        const res = await AdminService.getReports(filters);
+        const res = await AdminService.getReports(currentFilters);
 
         if (res && res.code === 'REPORTS_RETRIEVED')
         {
@@ -50,12 +51,18 @@ export default function AdminReports()
             notifyError(t('common.error'));
         }
         setLoading(false);
-    }, [filters, t]);
+    }, [t]);
 
+    // Викликаємо щоразу, коли змінився об'єкт filters
     useEffect(() =>
     {
-        fetchReports();
-    }, [fetchReports]);
+        fetchReports(filters);
+    }, [filters, fetchReports]);
+
+    const handleFilterChange = (key, value) =>
+    {
+        setFilters(prev => ({ ...prev, [key]: value }));
+    };
 
     const handleAction = async (reportId, actionType) =>
     {

@@ -1,11 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../context/AuthContext';
-import Button from '../ui/Button';
 import AppealService from '../../services/appeal.service';
 import { notifySuccess, notifyError } from '../common/Notify';
+import Button from "../ui/Button.jsx";
 
-export const BannedScreen = () => {
+export const BannedScreen = () =>
+{
     const { user, logout } = useContext(AuthContext);
     const { t } = useTranslation();
 
@@ -15,117 +16,154 @@ export const BannedScreen = () => {
     const [isLoadingStatus, setIsLoadingStatus] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        if (!user) return;
+    useEffect(() =>
+    {
+        if (!user)
+        {
+            return;
+        }
 
-        const checkStatus = async () => {
-            const res = await AppealService.checkStatus();
-            if (res.success) {
-                setHasPendingAppeal(res.data?.has_pending_appeal || false);
-            } else {
-                // console.error("Failed to check appeal status:", res.message);
+        const checkStatus = async () =>
+        {
+            try
+            {
+                const res = await AppealService.checkStatus();
+                if (res && res.code === 'SUCCESS')
+                {
+                    setHasPendingAppeal(res.has_pending_appeal || false);
+                }
+            } catch (error)
+            {
+                console.log(error)
+            } finally
+            {
+                setIsLoadingStatus(false);
             }
-            setIsLoadingStatus(false);
         };
 
         checkStatus();
     }, [user]);
 
-    const handleAppealSubmit = async () => {
-        if (!appealText.trim()) return;
+    const handleAppealSubmit = async () =>
+    {
+        if (!appealText.trim())
+        {
+            return;
+        }
         setIsSubmitting(true);
 
-        const res = await AppealService.submitAppeal(appealText);
+        try
+        {
+            const res = await AppealService.submitAppeal(appealText);
 
-        if (res.success) {
-            notifySuccess(res.message || t('banned.appeal_success'));
-            setHasPendingAppeal(true);
-            setIsAppealing(false);
-        } else {
-            notifyError(res.message || t('banned.appeal_error'));
+            if (res && res.code === 'APPEAL_SUBMITTED')
+            {
+                notifySuccess(t('banned.appeal_success'));
+                setHasPendingAppeal(true);
+                setIsAppealing(false);
+            }
+            else
+            {
+                notifyError(t('banned.appeal_error'));
+            }
+        } catch (error)
+        {
+            notifyError(t('banned.appeal_error'));
+        } finally
+        {
+            setIsSubmitting(false);
         }
-
-        setIsSubmitting(false);
     };
 
-    if (!user) return null;
+    if (!user)
+    {
+        return null;
+    }
 
     return (
-        <div className="tetrone-fullscreen-center">
-            <div className="tetrone-card-wrapper banned-card">
-                <h1 className="banned-title">{t('banned.title')}</h1>
-
-                <p className="banned-message">
-                    {t('banned.message', {
-                        name: user.first_name,
-                        username: user.username
-                    })}
-                </p>
-
-                <div className="banned-reason-box">
-                    <h4 className="banned-reason-label">{t('banned.reason_label')}</h4>
-                    <p className="banned-reason-text">
-                        {user.ban_reason || t('banned.reason_not_specified')}
-                    </p>
+        <div className="tetrone-banned-page">
+            <div className="tetrone-banned-box">
+                <div className="tetrone-banned-header">
+                    { t('banned.title') }
                 </div>
 
-                {isLoadingStatus ? (
-                    <div className="tetrone-empty-state">{t('common.loading')}</div>
-                ) : (
-                    <>
-                        {hasPendingAppeal ? (
-                            <div className="tetrone-info-block banned-appeal-pending-box">
-                                <span className="tetrone-value banned-appeal-pending-text">
-                                    {t('banned.appeal_pending')}
-                                </span>
-                            </div>
-                        ) : (
-                            <div className="banned-actions banned-actions-vertical">
+                <div className="tetrone-banned-content">
+                    <div className="tetrone-banned-message">
+                        { t('banned.message', {
+                            name: user.first_name,
+                            username: user.username
+                        }) }
+                    </div>
 
-                                {isAppealing ? (
-                                    <div className="banned-appeal-form">
-                                        <h4 className="banned-reason-label banned-appeal-form-title">
-                                            {t('banned.appeal_form_title')}
-                                        </h4>
-                                        <textarea
-                                            className="tetrone-form-textarea"
-                                            rows="4"
-                                            value={appealText}
-                                            onChange={(e) => setAppealText(e.target.value)}
-                                            placeholder={t('banned.appeal_placeholder')}
-                                            disabled={isSubmitting}
-                                        />
-                                        <div className="banned-appeal-buttons">
+                    <div className="tetrone-banned-reason-wrap">
+                        <div className="tetrone-banned-reason-label">
+                            { t('banned.reason_label') }:
+                        </div>
+                        <div className="tetrone-banned-reason-text">
+                            { user.ban_reason || t('banned.reason_not_specified') }
+                        </div>
+                    </div>
+
+                    { isLoadingStatus ? (
+                        <div className="tetrone-empty-state-compact">{ t('common.loading') }</div>
+                    ) : (
+                        <div className="tetrone-banned-actions">
+                            { hasPendingAppeal ? (
+                                <div className="tetrone-banned-info-box">
+                                    { t('banned.appeal_pending') }
+                                </div>
+                            ) : (
+                                <>
+                                    { isAppealing ? (
+                                        <div className="tetrone-banned-form">
+                                            <div className="tetrone-banned-form-title">
+                                                { t('banned.appeal_form_title') }:
+                                            </div>
+                                            <textarea
+                                                className="tetrone-form-textarea tetrone-banned-textarea"
+                                                value={ appealText }
+                                                onChange={ (e) => setAppealText(e.target.value) }
+                                                placeholder={ t('banned.appeal_placeholder') }
+                                                disabled={ isSubmitting }
+                                            />
+                                            <div className="tetrone-banned-buttons">
+                                                <Button
+                                                    variant={ "primary" }
+                                                    onClick={ handleAppealSubmit }
+                                                    disabled={ isSubmitting || !appealText.trim() }
+                                                >
+                                                    { isSubmitting ? t('action.saving') : t('action.submit') }
+                                                </Button>
+                                                <Button
+                                                    variant={ "reject" }
+                                                    onClick={ () => setIsAppealing(false) }
+                                                    disabled={ isSubmitting }
+                                                >
+                                                    { t('action.cancel') }
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="tetrone-banned-buttons">
                                             <Button
-                                                onClick={handleAppealSubmit}
-                                                disabled={isSubmitting || !appealText.trim()}
-                                                className="banned-btn-flex"
+                                                variant={ "primary" }
+                                                onClick={ () => setIsAppealing(true) }
                                             >
-                                                {isSubmitting ? t('action.saving') : t('action.submit')}
+                                                { t('banned.appeal_btn') }
                                             </Button>
                                             <Button
-                                                variant="secondary"
-                                                onClick={() => setIsAppealing(false)}
-                                                disabled={isSubmitting}
+                                                variant={ "secondary" }
+                                                onClick={ logout }
                                             >
-                                                {t('action.cancel')}
+                                                { t('action.logout') }
                                             </Button>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="banned-default-buttons">
-                                        <Button onClick={() => setIsAppealing(true)} className="banned-btn-appeal banned-btn-flex">
-                                            {t('banned.appeal_btn')}
-                                        </Button>
-                                        <Button onClick={logout} className="admin-btn-danger">
-                                            {t('action.logout')}
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </>
-                )}
+                                    ) }
+                                </>
+                            ) }
+                        </div>
+                    ) }
+                </div>
             </div>
         </div>
     );
