@@ -176,6 +176,13 @@ const AdminService = {
     {
         return fetchClient(`/admin/staff-logs/charts`);
     },
+
+    closeTicket: async (id, reason = '') => {
+        return fetchClient(`/admin/tickets/${id}/close`, {
+            method: 'POST',
+            body: { reason }
+        });
+    },
 };
 
 export default AdminService;

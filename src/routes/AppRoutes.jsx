@@ -51,6 +51,8 @@ export default function AppRoutes() {
                 <Route path="/post/:id" element={<PostPage />} />
                 {/* правила */}
                 <Route path="/rules" element={<RulesPage />} />
+                {/* підтримка */}
+                <Route path="/support" element={<SupportPage />} />
 
                 {/* маршрути для користувачів які ввійшли */}
                 <Route element={<AuthGuard />}>
@@ -62,7 +64,6 @@ export default function AppRoutes() {
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/activity" element={<ActivityPage />} />
                     <Route path="/stickers-shop" element={<StickerShopPage />} />
-                    <Route path="/support" element={<SupportPage />} />
                     <Route path="/spaces" element={<SpacesPage />} />
 
                     <Route path="/support-panel" element={

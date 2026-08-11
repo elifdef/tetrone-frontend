@@ -29,6 +29,7 @@ import "./styles/space.css";
 import "./styles/landing.css";
 import "./styles/editor.css";
 import "./styles/banned.css";
+import "./styles/support.css";
 
 if (import.meta.env.VITE_APP_ENV)
 {

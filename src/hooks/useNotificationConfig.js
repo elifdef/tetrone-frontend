@@ -2,12 +2,14 @@ import { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGender } from './useGender';
 import { AuthContext } from '../context/AuthContext';
+import { useDateFormatter } from "./useDateFormatter.js";
 
 export const useNotificationConfig = () =>
 {
     const { t } = useTranslation();
     const { getGenderMap } = useGender(null);
     const { user: currentUser } = useContext(AuthContext);
+    const formatDate = useDateFormatter(); // ДОДАНО ФОРМАТЕР
 
     const getConfig = (type, actor, target) =>
     {
@@ -183,6 +185,15 @@ export const useNotificationConfig = () =>
                 snippetText: null,
                 mediaPreview: null
             }),
+            ticket_reply: () => ({
+                actionText: '',
+                linkText: t('notifications.ticket_reply_click', {
+                    date: target.ticket_date ? formatDate(target.ticket_date) : ''
+                }),
+                linkUrl: `/support?view=ticket_detail&ticket_id=${target.ticket_id}&message_id=${target.message_id}`,
+                snippetText: null,
+                mediaPreview: null
+            })
         };
 
         const generateConfig = configs[type];

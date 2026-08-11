@@ -25,8 +25,8 @@ export default function MyCommentsTab({ onCountUpdate }) {
 
         const res = await ActivityService.getMyComments(page);
 
-        if (res.success) {
-            const items = res.data || [];
+        if (res) {
+            const items = res.comments;
             const meta = res.meta;
 
             setComments(prev => {
@@ -38,7 +38,7 @@ export default function MyCommentsTab({ onCountUpdate }) {
 
             setHasMore(meta ? meta.current_page < meta.last_page : false);
         } else {
-            notifyError(res.message || t('error.load_failed'));
+            notifyError(t('error.load_failed'));
             setError(true);
         }
 
@@ -62,11 +62,11 @@ export default function MyCommentsTab({ onCountUpdate }) {
 
         const res = await CommentService.delete(commentId);
 
-        if (res.success) {
+        if (res) {
             setComments(prev => prev.filter(c => c.uid !== commentId));
             if (onCountUpdate) onCountUpdate(-1);
         } else {
-            notifyError(res.message || t('error.delete_failed'));
+            notifyError(t('error.delete_failed'));
         }
     };
 

@@ -463,6 +463,269 @@
     color: var(--theme-error);
 }
 
+.tetrone-admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    background-color: var(--theme-bg-box);
+}
+
+.tetrone-admin-table th {
+    background-color: var(--theme-header-bg);
+    color: var(--theme-text-muted);
+    font-weight: bold;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--theme-border);
+}
+
+.tetrone-admin-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--theme-bg-page);
+    color: var(--theme-text-main);
+    vertical-align: top;
+}
+
+.tetrone-admin-table-row {
+    cursor: pointer;
+}
+
+.tetrone-admin-table-row:hover td {
+    background-color: var(--theme-bg-page);
+}
+
+.tetrone-ticket-chat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tetrone-ticket-msg-box {
+    border: 1px solid var(--theme-border);
+    background-color: var(--theme-bg-box);
+    font-size: 12px;
+}
+
+.tetrone-ticket-msg-header {
+    background-color: var(--theme-header-bg);
+    border-bottom: 1px solid var(--theme-border);
+    padding: 6px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tetrone-ticket-msg-author {
+    font-weight: bold;
+    color: var(--theme-link);
+}
+
+.tetrone-ticket-msg-date {
+    font-size: 10px;
+    color: var(--theme-text-muted);
+}
+
+.tetrone-ticket-msg-body {
+    padding: 10px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    color: var(--theme-text-main);
+}
+
+.msg-admin {
+    border-color: #a3c2e0;
+}
+
+.msg-admin .tetrone-ticket-msg-header {
+    background-color: #eef5fc;
+    border-bottom-color: #a3c2e0;
+}
+
+.msg-admin .tetrone-ticket-msg-body {
+    background-color: #f7fafd;
+}
+
+.msg-internal {
+    border-color: #d39e00;
+}
+
+.msg-internal .tetrone-ticket-msg-header {
+    background-color: #fff9e6;
+    border-bottom-color: #d39e00;
+    color: #8a6d3b;
+}
+
+.msg-internal .tetrone-ticket-msg-body {
+    background-color: #fffdf5;
+    color: #333333;
+}
+
+.tetrone-internal-badge {
+    color: #cc0000;
+    font-weight: bold;
+    margin-left: 5px;
+    font-size: 10px;
+}
+
+.tetrone-ticket-attachments {
+    border-top: 1px dotted var(--theme-border);
+    background-color: var(--theme-bg-page);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tetrone-ticket-attach-link {
+    font-size: 11px;
+    color: var(--theme-link);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.tetrone-ticket-attach-link:hover {
+    text-decoration: underline;
+}
+
+.tetrone-ticket-textarea {
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 10px;
+    resize: vertical;
+}
+
+.tetrone-ticket-form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dotted var(--theme-border);
+    padding-top: 10px;
+}
+
+.tetrone-ticket-internal-check {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    color: #cc0000;
+    cursor: pointer;
+}
+
+.msg-admin {
+    border-color: #2b4b6b;
+}
+
+.msg-admin .tetrone-ticket-msg-header {
+    background-color: #1a2a3a;
+    border-bottom-color: #2b4b6b;
+}
+
+.msg-admin .tetrone-ticket-msg-body {
+    background-color: #15202b;
+}
+
+.msg-internal {
+    border-color: #664d00;
+}
+
+.msg-internal .tetrone-ticket-msg-header {
+    background-color: #332600;
+    border-bottom-color: #664d00;
+    color: #d4a017;
+}
+
+.msg-internal .tetrone-ticket-msg-body {
+    background-color: #1a1400;
+    color: #e0e0e0;
+}
+
+.tetrone-internal-badge {
+    color: #ff4d4d;
+    font-weight: bold;
+    margin-left: 5px;
+    font-size: 10px;
+}
+
+.tetrone-admin-status-progress {
+    color: #5b9bd5;
+    border-color: #5b9bd5;
+}
+
+.tetrone-admin-ticket-meta-content {
+    padding: 10px 15px;
+}
+
+.tetrone-admin-meta-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dotted var(--theme-border);
+}
+
+.tetrone-admin-meta-label-compact {
+    margin-bottom: 4px;
+}
+
+.tetrone-admin-ticket-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.tetrone-admin-closed-meta-box {
+    border: 1px solid var(--theme-border);
+    background: var(--theme-bg-box);
+}
+
+.tetrone-admin-closed-meta {
+    margin-top: 5px;
+    font-size: 10px;
+}
+
+.tetrone-admin-ticket-sender {
+    font-size: 10px;
+    color: var(--theme-text-muted);
+    margin-top: 3px;
+}
+
+.tetrone-admin-filters-compact {
+    margin-bottom: 0;
+}
+
+.tetrone-admin-subcat {
+    margin-left: 5px;
+}
+
+[data-theme="light"] .msg-admin {
+    border-color: #a3c2e0;
+}
+
+[data-theme="light"] .msg-admin .tetrone-ticket-msg-header {
+    background-color: #eef5fc;
+    border-bottom-color: #a3c2e0;
+}
+
+[data-theme="light"] .msg-admin .tetrone-ticket-msg-body {
+    background-color: #f7fafd;
+}
+
+[data-theme="light"] .msg-internal {
+    border-color: #d39e00;
+}
+
+[data-theme="light"] .msg-internal .tetrone-ticket-msg-header {
+    background-color: #fff9e6;
+    border-bottom-color: #d39e00;
+    color: #8a6d3b;
+}
+
+[data-theme="light"] .msg-internal .tetrone-ticket-msg-body {
+    background-color: #fffdf5;
+    color: #333333;
+}
+
+[data-theme="light"] .tetrone-internal-badge {
+    color: #cc0000;
+}
+
 @media (max-width: 768px) {
     .tetrone-admin-grid-2 {
         grid-template-columns: 1fr;
