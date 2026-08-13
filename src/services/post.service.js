@@ -24,7 +24,7 @@ class PostService {
             if (requestData.target_user_id) formData.append('target_user_id', requestData.target_user_id);
             if (requestData.original_post_id) formData.append('original_post_id', requestData.original_post_id);
 
-            data.images.forEach((file, index) => formData.append(`media[${index}]`, file));
+            data.images.forEach((file) => formData.append('media_files[]', file));
 
             return await fetchClient('/posts', { method: 'POST', body: formData });
         }
@@ -52,12 +52,11 @@ class PostService {
         }
 
         if (data.images && data.images.length > 0) {
-            data.images.forEach((file, index) => formData.append(`media[${index}]`, file));
+            data.images.forEach((file) => formData.append('new_media_files[]', file));
         }
         if (data.deletedMedia && data.deletedMedia.length > 0) {
-            data.deletedMedia.forEach((mediaId, index) => formData.append(`deleted_media[${index}]`, mediaId));
+            data.deletedMedia.forEach((mediaId) => formData.append('deleted_media_ids[]', mediaId));
         }
-
         return await fetchClient(`/posts/${id}`, { method: 'POST', body: formData });
     }
 

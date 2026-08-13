@@ -7,7 +7,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import SetupProfilePage from "../pages/SetupProfilePage";
 import IndexPage from "../pages/IndexPage";
-import HomePage from "../pages/HomePage";
+import FeedPage from "../pages/FeedPage.jsx";
 import ProfilePage from "../pages/ProfilePage";
 import FriendsPage from "../pages/FriendsPage";
 import PostPage from "../pages/PostPage";
@@ -56,10 +56,10 @@ export default function AppRoutes() {
 
                 {/* маршрути для користувачів які ввійшли */}
                 <Route element={<AuthGuard />}>
-                    <Route path="/" element={<HomePage />} />
+                    <Route path="/" element={<FeedPage />} />
                     <Route path="/friends" element={<FriendsPage />} />
                     <Route path="/messages" element={<MessagesPage />} />
-                    <Route path="/email-verify/:id/:hash" element={<HomePage />} />
+                    <Route path="/email-verify/:id/:hash" element={<FeedPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/activity" element={<ActivityPage />} />

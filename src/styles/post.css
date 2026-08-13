@@ -27,6 +27,90 @@
     justify-content: center;
 }
 
+.tetrone-mode-description {
+    background-color: #f9f9ca;
+    border: 1px solid #e1e194;
+    padding: 8px 10px;
+    font-size: 11px;
+    color: #333;
+    line-height: 1.4;
+}
+
+[data-theme="dark"] .tetrone-mode-description {
+    background-color: #2d2d20;
+    border-color: #4a4a2b;
+    color: #ccc;
+}
+
+.tetrone-tabs-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--theme-border);
+    margin-bottom: 15px;
+}
+
+.tetrone-tabs {
+    display: flex;
+}
+
+.tetrone-settings-btn {
+    padding: 6px 8px;
+    color: var(--theme-link);
+    opacity: 0.8;
+}
+
+.tetrone-settings-btn:hover {
+    opacity: 1;
+}
+
+.tetrone-info-box {
+    background-color: #eef3f7;
+    border: 1px solid #c9d8e7;
+    padding: 10px 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 5px;
+}
+
+[data-theme="dark"] .tetrone-info-box {
+    background-color: rgba(93, 129, 171, 0.1);
+    border-color: #3a5068;
+}
+
+.tetrone-info-box-icon {
+    color: #5c82ab;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .tetrone-info-box-icon {
+    color: #71aaeb;
+}
+
+.tetrone-info-box-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tetrone-info-box-content strong {
+    font-size: 11px;
+    color: #36638e;
+}
+
+[data-theme="dark"] .tetrone-info-box-content strong {
+    color: #71aaeb;
+}
+
+.tetrone-info-box-content p {
+    margin: 0;
+    font-size: 11px;
+    color: var(--theme-text-main);
+    line-height: 1.4;
+}
+
 .tetrone-empty-state {
     text-align: center;
     color: var(--theme-text-muted);

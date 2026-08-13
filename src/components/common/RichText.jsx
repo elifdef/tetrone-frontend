@@ -21,9 +21,9 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { Highlight } from '@tiptap/extension-highlight';
-
 import { useTranslation } from 'react-i18next';
 import hljs from 'highlight.js';
+import { useNavigate } from 'react-router';
 
 const SpoilerMark = Mark.create({
     name: 'spoiler',
@@ -55,6 +55,19 @@ const FontSize = Extension.create({
     },
 });
 
+const HashtagMark = Mark.create({
+    name: 'hashtag',
+    addAttributes() {
+        return {
+            'data-hashtag': { default: null }
+        };
+    },
+    parseHTML() { return [{ tag: 'span[data-hashtag]' }]; },
+    renderHTML({ HTMLAttributes }) {
+        return ['span', mergeAttributes(HTMLAttributes, { class: 'tetrone-hashtag-link tetrone-link' }), 0];
+    },
+});
+
 const RICH_TEXT_EXTENSIONS = [
     StarterKit.configure(),
     TextStyle.configure(),
@@ -76,7 +89,8 @@ const RICH_TEXT_EXTENSIONS = [
     SummaryNode.configure(),
     Subscript.configure(),
     Superscript.configure(),
-    Highlight.configure({ multicolor: true })
+    Highlight.configure({ multicolor: true }),
+    HashtagMark.configure(),
 ];
 
 const decodeHtmlEntities = (text) => {
@@ -102,10 +116,57 @@ export const decodeTipTapContent = (content) => {
     return content;
 };
 
+const processHashtags = (content) => {
+    if (!content) return content;
+    if (Array.isArray(content)) return content.map(processHashtags);
+
+    if (typeof content === 'object') {
+        const newObj = { ...content };
+
+        if (newObj.content && Array.isArray(newObj.content)) {
+            const newChildren = [];
+
+            newObj.content.forEach(child => {
+                if (child.type === 'text' && typeof child.text === 'string' &&
+                    (!child.marks || !child.marks.some(m => m.type === 'link' || m.type === 'hashtag'))) {
+
+                    const regex = /(#[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9_]+)/gu;
+                    const parts = child.text.split(regex);
+
+                    if (parts.length === 1) {
+                        newChildren.push(processHashtags(child));
+                    } else {
+                        parts.forEach(part => {
+                            if (part.match(regex)) {
+                                const marks = child.marks ? [...child.marks] : [];
+                                marks.push({
+                                    type: 'hashtag',
+                                    attrs: {
+                                        'data-hashtag': part.slice(1).toLowerCase()
+                                    }
+                                });
+                                newChildren.push({ type: 'text', text: part, marks: marks });
+                            } else if (part) {
+                                newChildren.push({ ...child, text: part });
+                            }
+                        });
+                    }
+                } else {
+                    newChildren.push(processHashtags(child));
+                }
+            });
+            newObj.content = newChildren;
+        }
+        return newObj;
+    }
+    return content;
+};
+
 const RichText = React.memo(function RichText({ text, className = "tetrone-post-text" }) {
     const { t } = useTranslation();
     const containerRef = useRef(null);
     const tooltipRef = useRef(null);
+    const navigate = useNavigate();
 
     const [activeStickerId, setActiveStickerId] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
@@ -116,7 +177,8 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
         if (!text || typeof text !== 'object') return null;
         try {
             const decodedText = decodeTipTapContent(text);
-            return generateHTML(decodedText, RICH_TEXT_EXTENSIONS);
+            const withHashtags = processHashtags(decodedText);
+            return generateHTML(withHashtags, RICH_TEXT_EXTENSIONS);
         } catch (error) {
             return null;
         }
@@ -214,6 +276,14 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
         const target = e.target;
         if (target && target.classList.contains('tetrone-spoiler')) {
             target.classList.toggle('revealed');
+            return;
+        }
+
+        if (target && target.classList.contains('tetrone-hashtag-link')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const tag = target.getAttribute('data-hashtag');
+            navigate(`/?tab=global&hashtag=${tag}`);
             return;
         }
 

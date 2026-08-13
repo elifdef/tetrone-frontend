@@ -651,6 +651,137 @@ body.modal-open {
     padding-left: 10px;
 }
 
+[data-theme="dark"] .tetrone-form-group label {
+    color: #71aaeb;
+}
+
+.tetrone-hint {
+    color: #777;
+    font-weight: normal;
+}
+
+.tetrone-classic-input {
+    border: 1px solid var(--theme-border, #c0c6cc);
+    background: var(--theme-input-bg, #ffffff);
+    color: var(--theme-text-main, #000000);
+    padding: 3px 5px;
+    font-size: 11px;
+    font-family: tahoma, verdana, arial, sans-serif;
+    outline: none;
+    box-sizing: border-box;
+    height: 22px;
+}
+
+.tetrone-classic-input:focus {
+    border-color: #5c82ab;
+}
+
+.tetrone-classic-range {
+    flex: 1;
+    cursor: pointer;
+}
+
+.tetrone-classic-divider {
+    border-bottom: 1px solid var(--theme-border, #cad5e0);
+    margin: 5px 0;
+}
+
+.tetrone-section-title {
+    display: block;
+    font-size: 11px;
+    font-weight: bold;
+    color: #36638e;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--theme-border, #e4e8ed);
+}
+
+.tetrone-rule-builder {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 12px;
+    align-items: center;
+}
+
+.tetrone-rule-text-input {
+    flex: 1;
+}
+
+.tetrone-rules-list {
+    background: var(--theme-input-bg, #ffffff);
+    border: 1px solid var(--theme-border, #c0c6cc);
+    height: 150px;
+    overflow-y: auto;
+}
+
+.tetrone-rule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--theme-border, #e4e8ed);
+    background: var(--theme-input-bg, #ffffff);
+}
+
+.tetrone-rule-item:last-child {
+    border-bottom: none;
+}
+
+.tetrone-rule-item:hover {
+    background: var(--theme-bg-hover, #f0f2f5);
+}
+
+[data-theme="dark"] .tetrone-rule-item:hover {
+    background: #2a2a2a;
+}
+
+.tetrone-rule-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.tetrone-rule-badge {
+    color: #2b587a;
+    font-weight: bold;
+}
+
+[data-theme="dark"] .tetrone-rule-badge {
+    color: #71aaeb;
+}
+
+.tetrone-rule-status {
+    color: var(--theme-text-muted, #777777);
+}
+
+.tetrone-rule-delete-btn {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tetrone-rule-delete-btn:hover {
+    color: #c95151;
+}
+
+.tetrone-rules-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--theme-text-muted, #777777);
+    font-size: 11px;
+}
+
+.tetrone-classic-footer {
+    background: var(--theme-bg-page, #f7f7f7);
+    border-top: 1px solid var(--theme-border, #cad5e0);
+}
+
 @media (max-width: 768px) {
     .tetrone-modal-overlay {
         padding: 10px;

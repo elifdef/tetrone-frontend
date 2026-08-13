@@ -1,10 +1,16 @@
-import fetchClient from '../api/client';
+import fetchClient from "../api/client";
 
-class FeedService {
-    async getFeed(type = 'feed', page = 1, signal = null) {
-        const endpoint = type === 'global' ? '/feed/global' : '/feed';
-        return await fetchClient(`${endpoint}?page=${page}`, { signal });
+const FeedService = {
+    getFeed: async (tab, pageNumber = 1, signal, hashtag = null) => {
+        let url = tab === 'global' ? `/feed/global?page=${pageNumber}` : `/feed?page=${pageNumber}`;
+
+        if (hashtag)
+        {
+            url += `&hashtag=${encodeURIComponent(hashtag)}`;
+        }
+
+        return fetchClient(url, {signal});
     }
 }
 
-export default new FeedService();
+export default FeedService;
