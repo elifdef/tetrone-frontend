@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useCallback } from 'react';
-import GlobalModal from '../components/modals/GlobalModal';
+import Modal from '../components/modals/Modal.jsx';
 import i18n from '../i18n';
 
 const ModalContext = createContext();
@@ -60,7 +60,7 @@ export const ModalProvider = ({ children }) => {
     return (
         <ModalContext.Provider value={{ openConfirm, openPrompt, openPassword, openCustom, closeModal: closeAndReset }}>
             {children}
-            <GlobalModal
+            <Modal
                 isOpen={modalState.isOpen}
                 onClose={closeAndReset}
                 type={modalState.type}
@@ -75,7 +75,7 @@ export const ModalProvider = ({ children }) => {
                 onResolve={modalState.resolve}
             >
                 {modalState.customContent}
-            </GlobalModal>
+            </Modal>
         </ModalContext.Provider>
     );
 };

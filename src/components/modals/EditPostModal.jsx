@@ -10,7 +10,7 @@ import { PollIcon, SettingsIcon, EditIcon, SearchIcon } from '../ui/Icons';
 import PostService from '../../services/post.service';
 import StickerService from '../../services/sticker.service';
 import { notifySuccess, notifyError } from '../common/Notify';
-import GlobalModal from './GlobalModal';
+import Modal from './Modal.jsx';
 
 export default function EditPostModal({ isOpen, onClose, post, onSaveSuccess }) {
     const { t } = useTranslation();
@@ -110,7 +110,7 @@ export default function EditPostModal({ isOpen, onClose, post, onSaveSuccess }) 
     };
 
     return (
-        <GlobalModal isOpen={isOpen} onClose={onClose} onResolve={onClose} type="custom">
+        <Modal isOpen={isOpen} onClose={onClose} onResolve={onClose} type="custom">
             <div
                 className={`tetrone-modal-dialog tetrone-edit-modal-wide ${isDragging ? 'drag-active' : ''}`}
                 onClick={(e) => e.stopPropagation()}
@@ -264,6 +264,6 @@ export default function EditPostModal({ isOpen, onClose, post, onSaveSuccess }) 
                     )}
                 </div>
             </div>
-        </GlobalModal>
+        </Modal>
     );
 }

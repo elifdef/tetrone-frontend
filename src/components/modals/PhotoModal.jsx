@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useCallback } from "react";
-import CommentsSection from "../comments/CommentsSection";
-import PostFooter from "../post/PostFooter";
-import PostHeader from "../post/PostHeader";
-import RichText from "../common/RichText";
-import { usePostMedia } from "../post/hooks/usePostMedia";
-import VideoPlayer from "./VideoPlayer";
-import { usePostActions } from "../post/hooks/usePostActions";
+import { useTranslation } from "react-i18next";
+import CommentsSection from "../comments/CommentsSection.jsx";
+import PostFooter from "../post/PostFooter.jsx";
+import PostHeader from "../post/PostHeader.jsx";
+import RichText from "../common/RichText.jsx";
+import { usePostMedia } from "../post/hooks/usePostMedia.js";
+import VideoPlayer from "../ui/VideoPlayer.jsx";
+import { usePostActions } from "../post/hooks/usePostActions.js";
+import './PhotoModal.css';
 
 export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, onNext, onPrev, listCurrent, listTotal }) {
+    const { t } = useTranslation();
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const {
@@ -102,45 +105,55 @@ export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, o
 
     const currentMedia = mediaFiles[currentIndex];
 
+    const displayCurrent = hasExternalNav ? listCurrent : currentIndex + 1;
+    const displayTotal = hasExternalNav ? listTotal : mediaFiles.length;
+
     return (
-        <div className="tetrone-modal-fullscreen-overlay" onClick={onClose}>
-            <button className="tetrone-modal-close-fullscreen" onClick={onClose}>✕</button>
-
-            <div className="tetrone-modal-fullscreen-layout" onClick={(e) => e.stopPropagation()}>
-
-                <div className="tetrone-modal-media-section">
-                    {showNav && (
-                        <>
-                            <button className="tetrone-modal-nav-btn left" onClick={clickPrev}>‹</button>
-                            <button className="tetrone-modal-nav-btn right" onClick={clickNext}>›</button>
-                            <div className="tetrone-modal-counter">
-                                {hasExternalNav ? `${listCurrent} / ${listTotal}` : `${currentIndex + 1} / ${mediaFiles.length}`}
-                            </div>
-                        </>
-                    )}
-
-                    {currentMedia?.type === 'image' && (
-                        <img src={currentMedia.url} className="tetrone-modal-fullscreen-image" alt="" />
-                    )}
-
-                    {currentMedia?.type === 'video' && (
-                        <VideoPlayer src={currentMedia.url} controls className="tetrone-modal-fullscreen-video" />
-                    )}
-
-                    {currentMedia?.videoId && (
-                        <div className="tetrone-modal-fullscreen-youtube">
-                            <VideoPlayer src={currentMedia.videoId} provider="youtube" />
-                        </div>
-                    )}
+        <div className="tetrone-modal-overlay" onClick={onClose}>
+            <div className="tetrone-modal-dialog modal-lg" onClick={(e) => e.stopPropagation()}>
+                <div className="tetrone-modal-header">
+                    <h3>{t('common.photo')} {displayCurrent} {t('common.from')} {displayTotal}</h3>
+                    <button className="tetrone-modal-close" onClick={onClose}>✖</button>
                 </div>
 
-                <div className="tetrone-modal-sidebar-section">
-                    <div className="tetrone-modal-sidebar-scroll">
+                <div className="tetrone-modal-body tetrone-photo-modal-body">
+
+                    <div className="tetrone-classic-photo-container">
+                        {showNav && (
+                            <>
+                                <div className="tetrone-photo-nav-zone left" onClick={clickPrev}>
+                                    <div className="tetrone-photo-nav-arrow">‹</div>
+                                </div>
+                                <div className="tetrone-photo-nav-zone right" onClick={clickNext}>
+                                    <div className="tetrone-photo-nav-arrow">›</div>
+                                </div>
+                            </>
+                        )}
+
+                        {currentMedia?.type === 'image' && (
+                            <img src={currentMedia.url} className="tetrone-classic-photo" alt="" />
+                        )}
+
+                        {currentMedia?.type === 'video' && (
+                            <VideoPlayer src={currentMedia.url} controls className="tetrone-classic-photo" />
+                        )}
+
+                        {currentMedia?.videoId && (
+                            <div className="tetrone-classic-photo">
+                                <VideoPlayer src={currentMedia.videoId} provider="youtube" />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Інформація про пост і коментарі знизу (як у класичному ВК) */}
+                    <div className="tetrone-photo-modal-info">
                         <PostHeader post={modalPost} isOwner={false} />
 
-                        <div className="tetrone-post-content">
-                            <RichText text={modalPost.content} />
-                        </div>
+                        {modalPost.content && (
+                            <div className="tetrone-post-content tetrone-mt-15">
+                                <RichText text={modalPost.content} />
+                            </div>
+                        )}
 
                         <PostFooter
                             postId={modalPost.id}
@@ -149,6 +162,8 @@ export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, o
                             commentsCount={modalPost.comments_count}
                             onLike={handleModalLike}
                         />
+
+                        <div className="tetrone-classic-divider"></div>
 
                         <CommentsSection
                             postId={modalPost.id}

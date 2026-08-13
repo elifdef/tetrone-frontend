@@ -1,0 +1,57 @@
+.tetrone-sticker-editor-layout {
+    display: flex;
+    background: var(--theme-bg-box);
+}
+
+.tetrone-sticker-editor-form {
+    width: 300px;
+    padding: 20px;
+    border-right: 1px solid var(--theme-border);
+    flex-shrink: 0;
+}
+
+.tetrone-sticker-editor-preview {
+    flex: 1;
+    padding: 20px;
+    background: var(--theme-bg-page);
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.tetrone-sticker-upload-preview {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 15px auto;
+    border: 1px solid var(--theme-border);
+    background: var(--theme-bg-page);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.tetrone-sticker-upload-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.tetrone-sticker-preview-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    pointer-events: none; /* Щоб юзер не міг клікати по фейкових постах */
+}
+
+/* Адаптив для редактора стікерів */
+@media (max-width: 768px) {
+    .tetrone-sticker-editor-layout {
+        flex-direction: column;
+    }
+
+    .tetrone-sticker-editor-form {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--theme-border);
+    }
+}

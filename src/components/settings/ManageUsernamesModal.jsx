@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import GlobalModal from '../modals/GlobalModal';
+import Modal from '../modals/Modal.jsx';
 import Button from '../ui/Button';
 import UserService from '../../services/user.service';
 import { notifySuccess, notifyError } from '../common/Notify';
@@ -89,7 +89,7 @@ export default function ManageUsernamesModal({
     );
 
     return (
-        <GlobalModal isOpen={isOpen} onClose={handleClose} type="custom">
+        <Modal isOpen={isOpen} onClose={handleClose} type="custom">
             <div className="tetrone-modal-dialog" onClick={e => e.stopPropagation()}>
                 <div className="tetrone-modal-header">
                     <h3>{view === 'list' ? t('settings.manage_usernames') : t('settings.add_alias_title')}</h3>
@@ -107,6 +107,6 @@ export default function ManageUsernamesModal({
                     />
                 )}
             </div>
-        </GlobalModal>
+        </Modal>
     );
 }

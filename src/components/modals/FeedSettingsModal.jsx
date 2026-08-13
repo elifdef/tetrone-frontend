@@ -3,9 +3,9 @@ import {useTranslation} from "react-i18next";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 
 import SettingsService from "../../services/settings.service";
-import GlobalModal from "./GlobalModal";
+import Modal from "./Modal.jsx";
 import Button from "../ui/Button";
-import {CloseIcon, InfoIcon} from "../ui/icons";
+import {InfoIcon} from "../ui/icons";
 
 export default function FeedSettingsModal({isOpen, onClose}) {
     const {t} = useTranslation();
@@ -105,7 +105,7 @@ export default function FeedSettingsModal({isOpen, onClose}) {
     };
 
     return (
-        <GlobalModal isOpen={isOpen} onClose={onClose} onResolve={() => {
+        <Modal isOpen={isOpen} onClose={onClose} onResolve={() => {
         }} type="custom">
             <div className="tetrone-modal-dialog tetrone-feed-settings-dialog">
                 <div className="tetrone-modal-header">
@@ -226,6 +226,6 @@ export default function FeedSettingsModal({isOpen, onClose}) {
                     </Button>
                 </div>
             </div>
-        </GlobalModal>
+        </Modal>
     );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import PollCreator from '../post/components/PollCreator';
+import "./PollCreatorModal.css";
 
 export default function PollCreatorModal({ isOpen, onClose, pollData, onSave }) {
     const { t } = useTranslation();

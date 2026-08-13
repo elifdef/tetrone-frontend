@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import GlobalModal from './GlobalModal';
+import Modal from './Modal.jsx';
 import Button from '../ui/Button.jsx';
 
 const InfoRow = ({ label, children }) => (
@@ -50,7 +50,7 @@ export default function ReportResultModal({ payload, onClose }) {
         const isDeleted = type === 'content_deleted';
 
         return (
-            <GlobalModal isOpen={true} onClose={onClose} onResolve={onClose} type="custom">
+            <Modal isOpen={true} onClose={onClose} onResolve={onClose} type="custom">
                 <div className="tetrone-modal-dialog">
                     <div className="tetrone-modal-header">
                         <h3>{isDeleted ? t('reports.content_deleted_title') : t('reports.content_restored_title')}</h3>
@@ -88,7 +88,7 @@ export default function ReportResultModal({ payload, onClose }) {
                         <Button variant="secondary" onClick={onClose}>{t('action.close')}</Button>
                     </div>
                 </div>
-            </GlobalModal>
+            </Modal>
         );
     }
 
@@ -97,7 +97,7 @@ export default function ReportResultModal({ payload, onClose }) {
         const isResolved = target.report_status === 'resolved';
 
         return (
-            <GlobalModal isOpen={true} onClose={onClose} onResolve={onClose} type="custom">
+            <Modal isOpen={true} onClose={onClose} onResolve={onClose} type="custom">
                 <div className="tetrone-modal-dialog">
                     <div className="tetrone-modal-header">
                         <h3>{isReverted ? t('reports.report_reverted_title') : t('reports.review_result_title')}</h3>
@@ -145,7 +145,7 @@ export default function ReportResultModal({ payload, onClose }) {
                         <Button variant="secondary" onClick={onClose}>{t('action.close')}</Button>
                     </div>
                 </div>
-            </GlobalModal>
+            </Modal>
         );
     }
 

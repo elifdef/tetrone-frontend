@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import GlobalModal from './GlobalModal';
+import Modal from './Modal.jsx';
 import PrivacyService from '../../services/privacy.service';
 import UserService from '../../services/user.service';
 import Button from '../ui/Button';
@@ -138,7 +138,7 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
     }, [searchResults, initialExceptions, context, search]);
 
     return (
-        <GlobalModal
+        <Modal
             isOpen={isOpen}
             onClose={onClose}
             onResolve={onClose}
@@ -222,6 +222,6 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
                     </Button>
                 </div>
             </div>
-        </GlobalModal>
+        </Modal>
     );
 }

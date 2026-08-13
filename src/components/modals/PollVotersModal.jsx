@@ -3,31 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import Button from "../ui/Button";
 import Avatar from '../ui/Avatar';
-import InfiniteScrollList from '../common/InfiniteScrollList'; // Перевір шлях до твого компонента
+import InfiniteScrollList from '../common/InfiniteScrollList';
+import "./PollVotersModal.css";
 
 export default function PollVotersModal({
-    isOpen,
-    onClose,
-    pollData,
-    optionsToRender,
-    results,
-    pollQuestion,
-    totalVoters,
-    scrollToOptionId, // Замість activeTab: ID варіанту, до якого треба проскролити
-    isLoadingInitial,
-    isLoadingMore,
-    hasMore,
-    onLoadMore,
-    error,
-    onRetry
+    isOpen, onClose, pollData, optionsToRender, results, pollQuestion, totalVoters,
+    scrollToOptionId, isLoadingInitial, isLoadingMore, hasMore, onLoadMore, error, onRetry
 }) {
     const { t } = useTranslation();
     const modalBodyRef = useRef(null);
 
-    // Автоматичний скрол до потрібного якоря (варіанту відповіді)
     useEffect(() => {
         if (isOpen && scrollToOptionId && !isLoadingInitial) {
-            // Використовуємо таймаут, щоб дати DOM час на рендер списку
             const timer = setTimeout(() => {
                 const element = document.getElementById(`poll-option-group-${scrollToOptionId}`);
                 if (element && modalBodyRef.current) {
@@ -40,7 +27,6 @@ export default function PollVotersModal({
 
     if (!isOpen) return null;
 
-    // Рахуємо скільки юзерів вже завантажено для InfiniteScrollList
     const loadedVotersCount = optionsToRender.reduce((sum, opt) => {
         return sum + (pollData?.[opt.id]?.length || 0);
     }, 0);
@@ -83,7 +69,6 @@ export default function PollVotersModal({
                                         <span className="tetrone-poll-option-badge">{totalCountForOption}</span>
                                     </div>
 
-                                    {/* Список тих, хто проголосував за цей варіант */}
                                     <div className="tetrone-poll-voters-list">
                                         {voters.length > 0 ? (
                                             voters.map(voter => (

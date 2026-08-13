@@ -1,0 +1,126 @@
+/* Modal.css */
+
+body.modal-open {
+    overflow: hidden;
+}
+
+.tetrone-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.tetrone-modal-dialog {
+    background: var(--theme-bg-box, #ffffff);
+    border: 1px solid #555;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    width: 500px;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    color: var(--theme-text-main, #000000);
+    margin: auto;
+    font-family: tahoma, verdana, arial, sans-serif;
+    font-size: 11px;
+}
+
+.tetrone-modal-dialog.modal-sm {
+    width: 350px;
+}
+
+.tetrone-modal-dialog.modal-md {
+    width: 500px;
+}
+
+.tetrone-modal-dialog.modal-lg {
+    width: 700px;
+}
+
+.tetrone-modal-header {
+    background: #597DA3;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tetrone-modal-header h3 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.tetrone-modal-close {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.7;
+}
+
+.tetrone-modal-close:hover {
+    opacity: 1;
+}
+
+.tetrone-modal-body {
+    padding: 15px;
+    overflow-y: auto;
+    max-height: 60vh;
+    background: var(--theme-bg-box, #ffffff);
+}
+
+.tetrone-modal-message {
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0 0 15px 0;
+}
+
+.tetrone-modal-footer {
+    background: var(--theme-bg-page, #f7f7f7);
+    border-top: 1px solid var(--theme-border, #cad5e0);
+    padding: 10px 15px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
+[data-theme="dark"] .tetrone-modal-footer {
+    background: #222222;
+    border-color: #333333;
+}
+
+.tetrone-modal-input {
+    margin-top: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tetrone-password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .tetrone-modal-overlay {
+        padding: 10px;
+    }
+
+    .tetrone-modal-dialog {
+        width: 100%;
+        margin: auto;
+    }
+}

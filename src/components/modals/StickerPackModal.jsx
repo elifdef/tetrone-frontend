@@ -4,6 +4,7 @@ import { notifyError, notifySuccess } from '../common/Notify';
 import StickerService from '../../services/sticker.service';
 import { DotsIcon, ReportIcon } from '../ui/Icons';
 import Button from '../ui/Button';
+import './StickerPackModal.css';
 
 export default function StickerPackModal({ pack, onClose, onRefresh }) {
     const { t } = useTranslation();

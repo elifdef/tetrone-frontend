@@ -16,7 +16,6 @@ import "./styles/friends.css";
 import "./styles/global.css";
 import "./styles/landing.css";
 import "./styles/layout.css";
-import "./styles/modal.css";
 import "./styles/notifications.css";
 import "./styles/poll.css";
 import "./styles/post.css";

@@ -2,7 +2,7 @@ import { useState } from "react";
 import PostService from "../../../services/post.service";
 import { notifyError } from "../../common/Notify";
 import { useTranslation } from "react-i18next";
-import PhotoModal from "../../ui/PhotoModal";
+import PhotoModal from "../../modals/PhotoModal.jsx";
 import Avatar from "../../ui/Avatar";
 
 export default function ProfileAvatar({ user, isPreview, isBlocked })

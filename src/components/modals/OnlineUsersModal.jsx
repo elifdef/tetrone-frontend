@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import Avatar from '../ui/Avatar';
-import GlobalModal from './GlobalModal';
+import Modal from './Modal.jsx';
 
 export default function OnlineUsersModal({ isOpen, onClose, users })
 {
@@ -13,7 +13,7 @@ export default function OnlineUsersModal({ isOpen, onClose, users })
     }
 
     return (
-        <GlobalModal
+        <Modal
             isOpen={ isOpen }
             onClose={ onClose }
             onResolve={ onClose }
@@ -65,6 +65,6 @@ export default function OnlineUsersModal({ isOpen, onClose, users })
                     ) }
                 </div>
             </div>
-        </GlobalModal>
+        </Modal>
     );
 }

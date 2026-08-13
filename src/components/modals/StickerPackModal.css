@@ -1,0 +1,119 @@
+/* StickerPackModal.css */
+
+.tetrone-pack-info-block {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.tetrone-pack-cover-img {
+    width: 80px;
+    height: 80px;
+    border: 1px solid var(--theme-border);
+    background: var(--theme-bg-page);
+    padding: 2px;
+    flex-shrink: 0;
+}
+
+.tetrone-pack-text-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.tetrone-pack-title-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--theme-link);
+}
+
+.tetrone-pack-meta-label {
+    color: var(--theme-text-muted);
+    font-size: 11px;
+}
+
+.tetrone-sticker-grid-scroll {
+    background: var(--theme-bg-page);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+}
+
+.tetrone-grid-item {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.tetrone-grid-item:hover {
+    background: var(--theme-bg-hover, rgba(255, 255, 255, 0.05));
+    border-color: #adbcd0;
+}
+
+.tetrone-grid-item img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+/* Спливаюче вікно при кліку на стікер */
+.tetrone-sticker-detail-popover {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 220px;
+    background: var(--theme-bg-box);
+    z-index: 2100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.tetrone-detail-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.tetrone-detail-big-img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 10px;
+}
+
+.tetrone-detail-row {
+    font-size: 11px;
+    margin-top: 5px;
+    width: 100%;
+}
+
+.tetrone-detail-label {
+    color: var(--theme-text-muted);
+    display: block;
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
+.tetrone-detail-value {
+    font-weight: bold;
+    color: var(--theme-text-main);
+}
+
+/* Адаптив для цієї модалки */
+@media (max-width: 768px) {
+    .tetrone-pack-info-block {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .tetrone-sticker-grid-scroll {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

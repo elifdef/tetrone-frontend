@@ -5,7 +5,7 @@ import { useDateFormatter } from "../../../hooks/useDateFormatter";
 import PostService from "../../../services/post.service";
 import MessageService from "../../../services/chat.service";
 import { notifyError } from "../../common/Notify";
-import PhotoModal from "../../../components/ui/PhotoModal";
+import PhotoModal from "../../modals/PhotoModal.jsx";
 import Button from "../../ui/Button";
 import Avatar from "../../ui/Avatar";
 

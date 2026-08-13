@@ -99,9 +99,9 @@ export default function PollCreator({ initialData, onSave, onCancel }) {
                             onChange={(e) => handleOptionChange(option.id, e.target.value)}
                             maxLength={100}
                         />
-                        <Button type="button" onClick={() => handleRemoveOption(option.id)} variant="danger" className="tetrone-poll-remove-btn">
+                        <button onClick={() => handleRemoveOption(option.id)} className="tetrone-poll-remove-btn">
                             ✖
-                        </Button>
+                        </button>
                     </div>
                 ))}
             </div>
