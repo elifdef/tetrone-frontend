@@ -706,3 +706,20 @@
 .hljs-link {
     text-decoration: underline;
 }
+
+.tetrone-show-more-link {
+    display: inline-block;
+    color: #45688e;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.tetrone-show-more-link:hover {
+    text-decoration: underline;
+}
+
+[data-theme="dark"] .tetrone-show-more-link {
+    color: #71aaeb;
+}

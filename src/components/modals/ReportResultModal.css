@@ -1,0 +1,64 @@
+.tetrone-report-info-row {
+    margin-bottom: 10px;
+}
+
+.tetrone-report-label {
+    font-weight: bold;
+    margin-right: 10px;
+    color: #36638E;
+}
+
+[data-theme="dark"] .tetrone-report-label {
+    color: #71aaeb;
+}
+
+.tetrone-report-label.block-label {
+    display: block;
+    margin-bottom: 5px;
+    margin-right: 0;
+}
+
+.tetrone-report-reason-box {
+    margin-top: 15px;
+    padding: 12px;
+    border: 1px solid #dae1e8;
+    background: #f7f9fc;
+}
+
+[data-theme="dark"] .tetrone-report-reason-box {
+    background: #1a1a1a;
+    border-color: #333;
+}
+
+.tetrone-report-reason-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.tetrone-report-reason-label.error-text {
+    color: #c95151;
+}
+
+.tetrone-report-reason-label.success-text {
+    color: #45688E;
+}
+
+[data-theme="dark"] .tetrone-report-reason-label.success-text {
+    color: #71aaeb;
+}
+
+.tetrone-report-reason-text {
+    color: var(--theme-text-main, #000);
+}
+
+.tetrone-settings-quote {
+    background: #f7f9fc;
+    padding: 10px;
+    border-left: 3px solid #45688E;
+    color: var(--theme-text-muted, #777);
+}
+
+[data-theme="dark"] .tetrone-settings-quote {
+    background: #1a1a1a;
+    border-left-color: #71aaeb;
+}

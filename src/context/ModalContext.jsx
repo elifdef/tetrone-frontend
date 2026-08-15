@@ -1,56 +1,67 @@
-import { createContext, useState, useContext, useCallback } from 'react';
-import Modal from '../components/modals/Modal.jsx';
+import {createContext, useState, useContext, useCallback} from 'react';
+import ConfirmModal from '../components/modals/ConfirmModal.jsx';
+import PromptModal from '../components/modals/PromptModal.jsx';
 import i18n from '../i18n';
 
 const ModalContext = createContext();
 
 export const useModal = () => useContext(ModalContext);
 
-export const ModalProvider = ({ children }) => {
+export const ModalProvider = ({children}) =>
+{
     const [modalState, setModalState] = useState({
-        isOpen: false,
-        type: null,
-        title: '',
-        message: '',
-        placeholder: '',
-        inputValue: '',
-        btnSubmit: '',
-        btnCancel: '',
+        isOpen:           false,
+        type:             null,
+        title:            '',
+        message:          '',
+        placeholder:      '',
+        inputValue:       '',
+        btnSubmit:        '',
+        btnCancel:        '',
         allowEmptyPrompt: false,
-        resolve: null,
-        customContent: null
+        resolve:          null,
+        customContent:    null
     });
 
-    const closeAndReset = () => {
-        setModalState(prev => ({ ...prev, isOpen: false, inputValue: '', customContent: null }));
+    const closeAndReset = () =>
+    {
+        setModalState(prev => ({...prev, isOpen: false, inputValue: '', customContent: null}));
     };
 
-    const openConfirm = useCallback((message, title = i18n.t('action.confirm'), btnYes = i18n.t('common.yes'), btnNo = i18n.t('action.cancel')) => {
-        return new Promise((resolve) => {
+    const openConfirm = useCallback((message, title = i18n.t('action.confirm'), btnYes = i18n.t('common.yes'), btnNo = i18n.t('action.cancel')) =>
+    {
+        return new Promise((resolve) =>
+        {
             setModalState({
                 isOpen: true, type: 'confirm', title, message, btnSubmit: btnYes, btnCancel: btnNo, resolve, inputValue: '', customContent: null
             });
         });
     }, []);
 
-    const openPrompt = useCallback((message, title, placeholder = '', allowEmpty = false, btnSubmit = i18n.t('action.save'), btnCancel = i18n.t('action.cancel')) => {
-        return new Promise((resolve) => {
+    const openPrompt = useCallback((message, title, placeholder = '', allowEmpty = false, btnSubmit = i18n.t('action.save'), btnCancel = i18n.t('action.cancel')) =>
+    {
+        return new Promise((resolve) =>
+        {
             setModalState({
                 isOpen: true, type: 'prompt', title, message, placeholder, allowEmptyPrompt: allowEmpty, btnSubmit, btnCancel, resolve, inputValue: '', customContent: null
             });
         });
     }, []);
 
-    const openPassword = useCallback((message = i18n.t('error.enter_confirm_password'), title = i18n.t('common.security'), btnSubmit = i18n.t('action.confirm')) => {
-        return new Promise((resolve) => {
+    const openPassword = useCallback((message = i18n.t('error.enter_confirm_password'), title = i18n.t('common.security'), btnSubmit = i18n.t('action.confirm')) =>
+    {
+        return new Promise((resolve) =>
+        {
             setModalState({
                 isOpen: true, type: 'password', title, message, placeholder: '********', allowEmptyPrompt: false, btnSubmit, btnCancel: i18n.t('action.cancel'), resolve, inputValue: '', customContent: null
             });
         });
     }, []);
 
-    const openCustom = useCallback((customContent) => {
-        return new Promise((resolve) => {
+    const openCustom = useCallback((customContent) =>
+    {
+        return new Promise((resolve) =>
+        {
             setModalState({
                 isOpen: true, type: 'custom', resolve, customContent, inputValue: ''
             });
@@ -58,24 +69,41 @@ export const ModalProvider = ({ children }) => {
     }, []);
 
     return (
-        <ModalContext.Provider value={{ openConfirm, openPrompt, openPassword, openCustom, closeModal: closeAndReset }}>
+        <ModalContext.Provider value={{openConfirm, openPrompt, openPassword, openCustom, closeModal: closeAndReset}}>
             {children}
-            <Modal
-                isOpen={modalState.isOpen}
-                onClose={closeAndReset}
-                type={modalState.type}
-                title={modalState.title}
-                message={modalState.message}
-                placeholder={modalState.placeholder}
-                inputValue={modalState.inputValue}
-                setInputValue={(val) => setModalState(prev => ({ ...prev, inputValue: val }))}
-                btnSubmit={modalState.btnSubmit}
-                btnCancel={modalState.btnCancel}
-                allowEmptyPrompt={modalState.allowEmptyPrompt}
-                onResolve={modalState.resolve}
-            >
-                {modalState.customContent}
-            </Modal>
+
+            {modalState.isOpen && modalState.type === 'confirm' && (
+                <ConfirmModal
+                    isOpen={modalState.isOpen}
+                    onClose={closeAndReset}
+                    onResolve={modalState.resolve}
+                    title={modalState.title}
+                    message={modalState.message}
+                    btnSubmit={modalState.btnSubmit}
+                    btnCancel={modalState.btnCancel}
+                />
+            )}
+
+            {modalState.isOpen && (modalState.type === 'prompt' || modalState.type === 'password') && (
+                <PromptModal
+                    isOpen={modalState.isOpen}
+                    onClose={closeAndReset}
+                    onResolve={modalState.resolve}
+                    isPassword={modalState.type === 'password'}
+                    title={modalState.title}
+                    message={modalState.message}
+                    placeholder={modalState.placeholder}
+                    inputValue={modalState.inputValue}
+                    setInputValue={(val) => setModalState(prev => ({...prev, inputValue: val}))}
+                    btnSubmit={modalState.btnSubmit}
+                    btnCancel={modalState.btnCancel}
+                    allowEmptyPrompt={modalState.allowEmptyPrompt}
+                />
+            )}
+
+            {modalState.isOpen && modalState.type === 'custom' && (
+                modalState.customContent
+            )}
         </ModalContext.Provider>
     );
 };

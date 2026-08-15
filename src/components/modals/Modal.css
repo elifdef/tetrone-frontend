@@ -78,7 +78,6 @@ body.modal-open {
 .tetrone-modal-body {
     padding: 15px;
     overflow-y: auto;
-    max-height: 60vh;
     background: var(--theme-bg-box, #ffffff);
 }
 

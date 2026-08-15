@@ -1,11 +1,12 @@
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import {useTranslation} from 'react-i18next';
+import {Link} from 'react-router';
 import Avatar from '../ui/Avatar';
 import Modal from './Modal.jsx';
+import './OnlineUsersModal.css';
 
-export default function OnlineUsersModal({ isOpen, onClose, users })
+export default function OnlineUsersModal({isOpen, onClose, users})
 {
-    const { t } = useTranslation();
+    const {t} = useTranslation();
 
     if (!isOpen)
     {
@@ -14,57 +15,48 @@ export default function OnlineUsersModal({ isOpen, onClose, users })
 
     return (
         <Modal
-            isOpen={ isOpen }
-            onClose={ onClose }
-            onResolve={ onClose }
-            type="custom"
+            isOpen={isOpen}
+            onClose={onClose}
+            title={t('admin.dashboard.users_online')}
+            sizeClass="modal-md"
         >
-            <div className="tetrone-modal-dialog modal-md">
-                <div className="tetrone-modal-header">
-                    <h3>{ t('admin.dashboard.users_online') }</h3>
-                    <button className="tetrone-modal-close" onClick={ onClose }>✖</button>
+            {users.length === 0 ? (
+                <div className="tetrone-empty-state">
+                    {t('admin.dashboard.no_one_online')}
                 </div>
+            ) : (
+                <div className="tetrone-admin-online-modal-list">
+                    {users.map(user =>
+                    {
+                        const nameColor = user.personalization?.username_color;
 
-                <div className="tetrone-modal-body" style={ { maxHeight: '60vh', overflowY: 'auto', padding: '15px' } }>
-                    { users.length === 0 ? (
-                        <div className="tetrone-empty-state">
-                            { t('admin.dashboard.no_one_online') }
-                        </div>
-                    ) : (
-                        <div className="tetrone-admin-online-modal-list">
-                            { users.map(user =>
-                            {
-                                const nameColor = user.personalization?.username_color;
+                        return (
+                            <Link
+                                key={user.id}
+                                to={`/${user.username}`}
+                                className="tetrone-admin-online-modal-item"
+                                onClick={onClose}
+                            >
+                                <Avatar user={user} className="tetrone-admin-online-modal-avatar"/>
 
-                                return (
-                                    <Link
-                                        key={ user.id }
-                                        to={ `/${ user.username }` }
-                                        className="tetrone-admin-online-modal-item"
-                                        onClick={ onClose }
+                                <div className="tetrone-admin-online-modal-details">
+                                    <span
+                                        className="tetrone-admin-online-modal-name"
+                                        style={nameColor ? {color: nameColor} : undefined}
                                     >
-                                        <Avatar user={ user } className="tetrone-admin-online-modal-avatar"/>
+                                        {user.first_name} {user.last_name}
+                                    </span>
+                                    <span className="tetrone-admin-online-modal-nick">
+                                        @{user.username}
+                                    </span>
+                                </div>
 
-                                        <div className="tetrone-admin-online-modal-details">
-                                            <span
-                                                className="tetrone-admin-online-modal-name"
-                                                style={ nameColor ? { color: nameColor } : {} }
-                                            >
-                                                { user.first_name } { user.last_name }
-                                            </span>
-                                            <span className="tetrone-admin-online-modal-nick">
-                                                @{ user.username }
-                                            </span>
-                                        </div>
-
-                                        <div className="tetrone-admin-online-modal-indicator"></div>
-                                    </Link>
-                                );
-                            }) }
-                        </div>
-                    ) }
+                                <div className="tetrone-admin-online-modal-indicator"></div>
+                            </Link>
+                        );
+                    })}
                 </div>
-            </div>
+            )}
         </Modal>
     );
 }

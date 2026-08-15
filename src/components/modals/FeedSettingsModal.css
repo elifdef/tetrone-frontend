@@ -1,0 +1,165 @@
+.tetrone-feed-settings-dialog {
+    width: 550px;
+}
+
+.tetrone-feed-settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tetrone-info-box {
+    background-color: #f7f9fc;
+    border: 1px solid #dae1e8;
+    padding: 10px 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+[data-theme="dark"] .tetrone-info-box {
+    background-color: #1a1a1a;
+    border-color: #333;
+}
+
+.tetrone-info-box-icon {
+    color: #45688E;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .tetrone-info-box-icon {
+    color: #71aaeb;
+}
+
+.tetrone-info-box-content strong {
+    font-size: 11px;
+    color: #36638E;
+    display: block;
+    margin-bottom: 4px;
+}
+
+[data-theme="dark"] .tetrone-info-box-content strong {
+    color: #71aaeb;
+}
+
+.tetrone-info-box-content p {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--theme-text-main);
+}
+
+.tetrone-mode-description {
+    background-color: #fff9e6;
+    border: 1px solid #e1d4b5;
+    padding: 8px 10px;
+    font-size: 11px;
+    color: #333;
+    margin-top: 8px;
+}
+
+[data-theme="dark"] .tetrone-mode-description {
+    background-color: #2d2d20;
+    border-color: #4a4a2b;
+    color: #ccc;
+}
+
+.tetrone-section-title {
+    display: block;
+    font-weight: bold;
+    color: #45688E;
+    border-bottom: 1px solid #dae1e8;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+[data-theme="dark"] .tetrone-section-title {
+    color: #71aaeb;
+    border-color: #333;
+}
+
+.tetrone-rule-builder {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.tetrone-rule-text-input {
+    flex: 1;
+}
+
+.tetrone-rules-list {
+    background: var(--theme-input-bg, #ffffff);
+    border: 1px solid var(--theme-border, #c0c6cc);
+    height: 160px;
+    overflow-y: auto;
+}
+
+.tetrone-rule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--theme-border, #e4e8ed);
+}
+
+.tetrone-rule-item:last-child {
+    border-bottom: none;
+}
+
+.tetrone-rule-item:hover {
+    background: var(--theme-bg-hover, #f0f2f5);
+}
+
+[data-theme="dark"] .tetrone-rule-item:hover {
+    background: #2a2a2a;
+}
+
+.tetrone-rule-badge {
+    font-weight: bold;
+    color: #36638E;
+    margin-right: 5px;
+}
+
+[data-theme="dark"] .tetrone-rule-badge {
+    color: #71aaeb;
+}
+
+.tetrone-rule-status {
+    color: var(--theme-text-muted, #777);
+}
+
+.tetrone-rule-delete-btn {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tetrone-rule-delete-btn:hover {
+    color: #c95151;
+}
+
+.tetrone-rules-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--theme-text-muted, #777);
+    font-style: italic;
+}
+
+.tetrone-classic-divider {
+    border-bottom: 1px solid var(--theme-border, #dae1e8);
+    margin: 5px 0;
+}
+
+.tetrone-hint {
+    color: var(--theme-text-muted, #777);
+    font-weight: normal;
+}

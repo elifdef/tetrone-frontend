@@ -1,42 +1,44 @@
-/* PrivacyModal.css */
-
-.tetrone-exceptions-modal {
-    display: flex;
-    flex-direction: column;
-    max-height: 80vh;
-}
-
 .tetrone-exceptions-modal-body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding-bottom: 0;
+    padding-bottom: 5px;
 }
 
 .tetrone-exceptions-list-container {
     overflow-y: auto;
     flex-grow: 1;
     padding-right: 5px;
-    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    min-height: 250px;
 }
 
 .tetrone-mini-user-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
-    background: var(--theme-bg-box);
-    border: 1px solid var(--theme-border);
+    padding: 8px 10px;
+    background: #f7f9fc;
+    border: 1px solid #dae1e8;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+[data-theme="dark"] .tetrone-mini-user-card {
+    background: #1a1a1a;
+    border-color: #333;
 }
 
 .tetrone-mini-user-card:hover {
-    border-color: var(--theme-primary);
-    background: var(--theme-bg-hover);
+    background: #eef3f7;
+    border-color: #45688E;
+}
+
+[data-theme="dark"] .tetrone-mini-user-card:hover {
+    background: #2a2a2a;
+    border-color: #71aaeb;
 }
 
 .tetrone-mini-user-info {
@@ -48,10 +50,15 @@
 }
 
 .tetrone-mini-user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     object-fit: cover;
     flex-shrink: 0;
+    border: 1px solid #c0c6cc;
+}
+
+[data-theme="dark"] .tetrone-mini-user-avatar {
+    border-color: #444;
 }
 
 .tetrone-mini-user-text {
@@ -61,21 +68,30 @@
 }
 
 .tetrone-mini-user-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--theme-text-main);
+    font-size: 11px;
+    font-weight: bold;
+    color: #36638E;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+[data-theme="dark"] .tetrone-mini-user-name {
+    color: #71aaeb;
 }
 
 .tetrone-mini-user-username {
-    font-size: 12px;
-    color: var(--theme-text-muted);
+    font-size: 10px;
+    color: var(--theme-text-muted, #777);
 }
 
 .tetrone-mini-user-action {
     display: flex;
     align-items: center;
     padding-left: 10px;
+}
+
+.tetrone-w-full {
+    width: 100%;
 }

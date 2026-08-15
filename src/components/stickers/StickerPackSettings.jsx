@@ -19,7 +19,7 @@ export default function StickerPackSettings({
     return (
         <div className="tetrone-setup-layout">
             <div className="tetrone-setup-form-col">
-                <label className="tetrone-form-label">{t('stickers.pack_title')}</label>
+                <label className="">{t('stickers.pack_title')}</label>
                 <input
                     type="text"
                     className="tetrone-form-input tetrone-setup-form-input-wrapper"

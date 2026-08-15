@@ -5,6 +5,7 @@ import Mention from '@tiptap/extension-mention';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Extension, Mark, mergeAttributes } from '@tiptap/core';
+import truncate from 'truncate-html';
 
 import { CustomStickerNode } from '../editor/CustomStickerNode';
 import StickerTooltip from '../editor/StickerTooltip';
@@ -47,7 +48,7 @@ const FontSize = Extension.create({
                     parseHTML: element => element.style.fontSize?.replace(/['"]+/g, ''),
                     renderHTML: attributes => {
                         if (!attributes.fontSize || !ALLOWED_FONT_SIZES.includes(attributes.fontSize)) return {};
-                        return { style: `font-size: ${attributes.fontSize}` }; // Динамічні дані залишаємо в інлайні
+                        return { style: `font-size: ${attributes.fontSize}` };
                     },
                 },
             },
@@ -162,7 +163,7 @@ const processHashtags = (content) => {
     return content;
 };
 
-const RichText = React.memo(function RichText({ text, className = "tetrone-post-text" }) {
+const RichText = React.memo(function RichText({ text, className = "tetrone-post-text", limit = 500 }) {
     const { t } = useTranslation();
     const containerRef = useRef(null);
     const tooltipRef = useRef(null);
@@ -173,16 +174,29 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
     const [isPinned, setIsPinned] = useState(false);
     const hideTimeoutRef = useRef(null);
 
-    const htmlContent = useMemo(() => {
-        if (!text || typeof text !== 'object') return null;
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const { finalHtml, requiresExpansion } = useMemo(() => {
+        if (!text || typeof text !== 'object') return { finalHtml: null, requiresExpansion: false };
+
         try {
             const decodedText = decodeTipTapContent(text);
             const withHashtags = processHashtags(decodedText);
-            return generateHTML(withHashtags, RICH_TEXT_EXTENSIONS);
+            const rawHtml = generateHTML(withHashtags, RICH_TEXT_EXTENSIONS);
+
+            const plainTextLength = rawHtml.replace(/<[^>]+>/g, '').length;
+            const needsExp = plainTextLength > limit;
+
+            if (needsExp && !isExpanded) {
+                const truncatedHtml = truncate(rawHtml, limit, { byWords: true, ellipsis: '...' });
+                return { finalHtml: truncatedHtml, requiresExpansion: true };
+            }
+
+            return { finalHtml: rawHtml, requiresExpansion: needsExp };
         } catch (error) {
-            return null;
+            return { finalHtml: null, requiresExpansion: false };
         }
-    }, [text]);
+    }, [text, isExpanded, limit]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -193,25 +207,21 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
             const codeBlock = pre.querySelector('code');
             if (!codeBlock) return;
 
-            // 1. Підсвічуємо код
             if (!codeBlock.classList.contains('hljs')) {
                 hljs.highlightElement(codeBlock);
             }
 
-            // Щоб не дублювати шапку при перерендерах
             if (pre.querySelector('.tetrone-code-header')) return;
 
-            // 2. Визначаємо мову
             let langName = 'text';
             const langClass = Array.from(codeBlock.classList).find(c => c.startsWith('language-'));
 
             if (langClass) {
                 langName = langClass.replace('language-', '');
             } else if (codeBlock.result?.language) {
-                langName = codeBlock.result.language; // Підтягує автовизначення від highlight.js
+                langName = codeBlock.result.language;
             }
 
-            // 3. Створюємо DOM-елементи для шапки
             const header = document.createElement('div');
             header.className = 'tetrone-code-header';
 
@@ -223,7 +233,6 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
             copyBtn.className = 'tetrone-code-copy-btn';
             copyBtn.innerText = t('action.copy');
 
-            // Обробник копіювання
             copyBtn.onclick = () => {
                 navigator.clipboard.writeText(codeBlock.innerText).then(() => {
                     copyBtn.innerText = t('action.copied');
@@ -235,11 +244,9 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
 
             header.appendChild(langSpan);
             header.appendChild(copyBtn);
-
-            // 4. Вставляємо шапку всередину <pre> перед <code>
             pre.insertBefore(header, codeBlock);
         });
-    }, [htmlContent, t]);
+    }, [finalHtml, t]);
 
     const showTooltip = (target, pinned = false) => {
         clearTimeout(hideTimeoutRef.current);
@@ -299,7 +306,7 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
                 showTooltip(target, true);
             }
         }
-    }, [isPinned, activeStickerId]);
+    }, [isPinned, activeStickerId, navigate]);
 
     useEffect(() => {
         const handleGlobalClick = (e) => {
@@ -331,18 +338,28 @@ const RichText = React.memo(function RichText({ text, className = "tetrone-post-
         }
     };
 
-    if (!htmlContent) return null;
+    if (!finalHtml) return null;
 
     return (
         <>
             <div
                 ref={containerRef}
                 className={className}
-                dangerouslySetInnerHTML={{ __html: htmlContent }}
+                dangerouslySetInnerHTML={{ __html: finalHtml }}
                 onMouseOver={handleMouseOver}
                 onMouseOut={handleMouseOut}
                 onClick={handleClick}
             />
+
+            {requiresExpansion && !isExpanded && (
+                <div
+                    className="tetrone-show-more-link"
+                    onClick={() => setIsExpanded(true)}
+                >
+                    {t('action.show_more')}
+                </div>
+            )}
+
             {activeStickerId && (
                 <div
                     ref={tooltipRef}

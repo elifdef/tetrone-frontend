@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import StickerPackManager from './StickerPackManager';
+import React, {useState} from 'react';
+import {useTranslation} from 'react-i18next';
+import CreateStickerPackModal from '../modals/CreateStickerPackModal.jsx';
 import StickerPackModal from '../modals/StickerPackModal';
 
-export default function MyPacksTab({ packs, onRefresh }) {
-    const { t } = useTranslation();
+export default function MyPacksTab({packs, onRefresh})
+{
+    const {t} = useTranslation();
     const [isCreating, setIsCreating] = useState(false);
 
     const [editingPackId, setEditingPackId] = useState(null);
@@ -13,10 +14,13 @@ export default function MyPacksTab({ packs, onRefresh }) {
     const editingPack = packs.find(p => p.id === editingPackId);
     const viewingPack = packs.find(p => p.id === viewingPackId);
 
-    const handlePackClick = (pack) => {
-        if (pack.is_owner) {
+    const handlePackClick = (pack) =>
+    {
+        if (pack.is_owner)
+        {
             setEditingPackId(pack.id);
-        } else {
+        } else
+        {
             setViewingPackId(pack.id);
         }
     };
@@ -55,14 +59,17 @@ export default function MyPacksTab({ packs, onRefresh }) {
 
                         <div className="tetrone-modal-header">
                             <h3>{t('action.create')}</h3>
-                            <button className="tetrone-modal-close" onClick={() => {
+                            <button className="tetrone-modal-close" onClick={() =>
+                            {
                                 setIsCreating(false);
                                 if (onRefresh) onRefresh();
-                            }}>✖</button>
+                            }}>✖
+                            </button>
                         </div>
 
-                        <StickerPackManager
-                            onSuccess={() => {
+                        <CreateStickerPackModal
+                            onSuccess={() =>
+                            {
                                 setIsCreating(false);
                                 if (onRefresh) onRefresh();
                             }}
@@ -79,15 +86,18 @@ export default function MyPacksTab({ packs, onRefresh }) {
 
                         <div className="tetrone-modal-header">
                             <h3>{t('stickers.edit_pack')}</h3>
-                            <button className="tetrone-modal-close" onClick={() => {
+                            <button className="tetrone-modal-close" onClick={() =>
+                            {
                                 setEditingPackId(null);
                                 if (onRefresh) onRefresh();
-                            }}>✖</button>
+                            }}>✖
+                            </button>
                         </div>
 
-                        <StickerPackManager
+                        <CreateStickerPackModal
                             existingPack={editingPack}
-                            onSuccess={() => {
+                            onSuccess={() =>
+                            {
                                 setEditingPackId(null);
                                 if (onRefresh) onRefresh();
                             }}
