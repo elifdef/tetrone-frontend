@@ -105,7 +105,8 @@ export const AuthProvider = ({ children }) =>
         {
             localStorage.setItem('lang', getSystemLanguage());
         }
-        localStorage.setItem('dark_theme', 'true');
+        localStorage.setItem('app_theme', JSON.stringify({ name: 'default', isDark: true }));
+        window.dispatchEvent(new Event('storage'));
         setUser(newUser);
         setInitError(false);
         setCheckSession(false);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import PollCreator from '../post/components/PollCreator';
-import "./PollCreatorModal.css";
+import Modal from './Modal';
 
 export default function PollCreatorModal({ isOpen, onClose, pollData, onSave }) {
     const { t } = useTranslation();
@@ -9,23 +9,17 @@ export default function PollCreatorModal({ isOpen, onClose, pollData, onSave }) 
     if (!isOpen) return null;
 
     return (
-        <div className="tetrone-modal-overlay" onClick={onClose}>
-            <div className="tetrone-modal-dialog" onClick={e => e.stopPropagation()}>
-
-                <div className="tetrone-modal-header">
-                    <h3>{t('poll.create_title')}</h3>
-                    <button className="tetrone-modal-close" onClick={onClose}>✖</button>
-                </div>
-
-                <div className="tetrone-modal-body">
-                    <PollCreator
-                        initialData={pollData}
-                        onSave={onSave}
-                        onCancel={onClose}
-                    />
-                </div>
-
-            </div>
-        </div>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={t('poll.create_title')}
+            sizeClass="modal-md"
+        >
+            <PollCreator
+                initialData={pollData}
+                onSave={onSave}
+                onCancel={onClose}
+            />
+        </Modal>
     );
 }

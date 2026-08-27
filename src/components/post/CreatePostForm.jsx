@@ -1,15 +1,27 @@
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import { useCreatePost } from "./hooks/useCreatePost";
-import Editor from '../editor/Editor';
+import SmartEditor from '../editor/SmartEditor';
+import IdentitySwitcher from '../editor/IdentitySwitcher';
+import PublishButton from '../editor/PublishButton';
 import AttachBar from './components/AttachBar';
 import MediaPreviews from './components/MediaPreviews';
 import YouTubePreviews from './components/YouTubePreviews';
 import PollCreatorModal from '../modals/PollCreatorModal';
-import { PollIcon } from '../ui/Icons';
-import Button from '../ui/Button';
+import { PollIcon, CloseIcon } from '../ui/Icons';
 
-export default function CreatePostForm({ onSubmitSuccess, spaceId = null}) {
+export default function CreatePostForm({
+                                           onSubmitSuccess,
+                                           space = null,
+                                           isSpaceAdmin = false,
+                                           targetUsername = null,
+                                           currentUser
+                                       }) {
     const { t } = useTranslation();
+
+    // За замовчуванням пишемо від свого імені
+    const [authorUsername, setAuthorUsername] = useState(currentUser?.username || '');
+    const [publishedAt, setPublishedAt] = useState(null);
 
     const {
         content, setContent,
@@ -19,75 +31,105 @@ export default function CreatePostForm({ onSubmitSuccess, spaceId = null}) {
         external, handleSubmit,
         files, previews, isDragging,
         handleDragOver, handleDragLeave, handleDrop,
-        handleFileSelect, handlePaste, removeFile
-    } = useCreatePost(onSubmitSuccess, spaceId);
+        handleFileSelect, handlePaste, removeFile,
+        isSubmitting, toggleMediaFlag
+    } = useCreatePost(onSubmitSuccess, {
+        author_username: authorUsername,
+        target_username: targetUsername || null,
+        published_at: publishedAt
+    });
+
+    const handlePublish = () => {
+        setPublishedAt(null);
+        setTimeout(handleSubmit, 0); // Даємо React час оновити стейт перед сабмітом
+    };
+
+    const handleSchedule = (date) => {
+        setPublishedAt(date);
+        setTimeout(handleSubmit, 0);
+    };
+
+    const ownedSpaces = isSpaceAdmin && space ? [space] : [];
 
     return (
         <div
-            className={`tetrone-wall-input ${isDragging ? 'drag-active' : ''}`}
+            className={`flex flex-col gap-[10px] w-full bg-bg-box border border-border p-[12px] rounded-[2px] shadow-sm transition-colors ${isDragging ? 'bg-input-bg' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onPaste={handlePaste}
         >
-            <Editor
-                preset="post"
-                placeholder={isDragging ? t('wall.drop_files_here') : t('action.write_post')}
-                value={content}
-                onChange={setContent}
-                onAddPoll={!pollData ? () => setShowPollCreator(true) : null}
-            />
+            <div className="flex items-start gap-[10px]">
+                {/* Аватарка / Вибір автора */}
+                {isSpaceAdmin && currentUser ? (
+                    <IdentitySwitcher
+                        currentUser={currentUser}
+                        ownedSpaces={ownedSpaces}
+                        selectedUsername={authorUsername}
+                        onChangeIdentity={setAuthorUsername}
+                    />
+                ) : currentUser ? (
+                    <div className="shrink-0 w-[38px] h-[38px] rounded-[4px] border border-border overflow-hidden">
+                        <img
+                            src={currentUser.avatar || '/default-avatar.png'}
+                            alt={currentUser.username}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                ) : null}
 
+                {/* Редактор */}
+                <div className="flex-1 min-w-0">
+                    <SmartEditor
+                        preset="post"
+                        placeholder={isDragging ? t('wall.drop_files_here') : t('action.write_post')}
+                        value={content}
+                        onChange={setContent}
+                        onAddPoll={!pollData ? () => setShowPollCreator(true) : null}
+                    />
+                </div>
+            </div>
+
+            {/* Опитування */}
             {pollData && (
                 <div
-                    className="tetrone-attached-poll-preview"
+                    className="bg-bg-page border border-border p-[8px_12px] flex items-center justify-between cursor-pointer hover:bg-input-bg transition-colors text-[12px] text-text-main rounded-[2px]"
                     onClick={() => setShowPollCreator(true)}
                     title={t('poll.click_to_edit')}
                 >
-                    <span className="tetrone-poll-preview-title">
-                        <PollIcon width={16} height={16} className="tetrone-poll-icon-inline" /> {pollData.question}
+                    <span className="flex items-center gap-[6px] font-bold text-theme-link">
+                        <PollIcon width={16} height={16} /> {pollData.question}
                     </span>
                     <button
                         type="button"
-                        className="tetrone-remove-poll-btn"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setPollData(null);
-                        }}
+                        className="bg-transparent border-none text-text-muted hover:text-theme-error cursor-pointer p-[4px] flex items-center justify-center outline-none transition-colors"
+                        onClick={(e) => { e.stopPropagation(); setPollData(null); }}
                         title={t('poll.remove_poll')}
                     >
-                        ✖
+                        <CloseIcon width={14} height={14} />
                     </button>
                 </div>
             )}
 
-            <MediaPreviews previews={previews} onRemove={removeFile} />
+            {/* Прев'ю медіа та YouTube */}
+            <MediaPreviews previews={previews} onRemove={removeFile} onToggleFlag={toggleMediaFlag}/>
+            <YouTubePreviews youtubeLinks={external.youtube} removedPreviews={removedPreviews} onToggle={toggleYouTubePreview} />
 
-            <YouTubePreviews
-                youtubeLinks={external.youtube}
-                removedPreviews={removedPreviews}
-                onToggle={toggleYouTubePreview}
-            />
-
-            <div className="tetrone-wall-actions">
-                <div className="tetrone-wall-actions-left">
-                    <AttachBar onFileSelect={handleFileSelect} />
-                    {/* Кнопку Poll звідси ми ПРИБРАЛИ, бо вона тепер у скріпці */}
-                </div>
-
-                <Button onClick={handleSubmit}>
-                    {t('action.send')}
-                </Button>
+            {/* Нижня панель */}
+            <div className="flex justify-between items-center mt-[4px] pt-[8px] border-t border-border">
+                <AttachBar onFileSelect={handleFileSelect} />
+                <PublishButton
+                    onPublish={handlePublish}
+                    onSchedule={handleSchedule}
+                    isSubmitting={isSubmitting}
+                />
             </div>
 
             <PollCreatorModal
                 isOpen={showPollCreator}
                 onClose={() => setShowPollCreator(false)}
                 pollData={pollData}
-                onSave={(data) => {
-                    setPollData(data);
-                    setShowPollCreator(false);
-                }}
+                onSave={(data) => { setPollData(data); setShowPollCreator(false); }}
             />
         </div>
     );

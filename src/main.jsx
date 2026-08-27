@@ -8,27 +8,8 @@ import { ModalProvider } from './context/ModalContext';
 import { SocketProvider } from './context/SocketContext.jsx';
 import './i18n'
 
-import "./styles/admin.css";
-import "./styles/auth.css";
-import "./styles/comments.css";
-import "./styles/sticker.css";
-import "./styles/friends.css";
 import "./styles/global.css";
-import "./styles/landing.css";
-import "./styles/layout.css";
-import "./styles/notifications.css";
-import "./styles/poll.css";
-import "./styles/post.css";
-import "./styles/profile-classic.css";
-import "./styles/profile-modern.css";
-import "./styles/settings.css";
-import "./styles/ui.css";
-import "./styles/video.css";
-import "./styles/space.css";
-import "./styles/landing.css";
-import "./styles/editor.css";
-import "./styles/banned.css";
-import "./styles/support.css";
+import {ThemeProvider} from "./context/ThemeContext.jsx";
 
 if (import.meta.env.VITE_APP_ENV)
 {
@@ -42,7 +23,7 @@ const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             refetchOnWindowFocus: false, // Не робити запит, коли юзер згорнув/розгорнув браузер
-            staleTime: 1000 * 60,    // Дані вважаються "свіжими" 1 хвилину
+            staleTime: 1000 * 60,        // Дані вважаються "свіжими" 1 хвилину
         },
     },
 });
@@ -50,15 +31,17 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={ queryClient }>
         <BrowserRouter>
-            <AuthProvider>
-                <SocketProvider>
-                    <NotificationProvider>
-                        <ModalProvider>
-                            <App/>
-                        </ModalProvider>
-                    </NotificationProvider>
-                </SocketProvider>
-            </AuthProvider>
+            <ThemeProvider>
+                <AuthProvider>
+                    <SocketProvider>
+                        <NotificationProvider>
+                            <ModalProvider>
+                                <App/>
+                            </ModalProvider>
+                        </NotificationProvider>
+                    </SocketProvider>
+                </AuthProvider>
+            </ThemeProvider>
         </BrowserRouter>
     </QueryClientProvider>
 );

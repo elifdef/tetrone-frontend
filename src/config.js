@@ -17,12 +17,5 @@ export const SOUND_OPTIONS = [
     { value: 1, label: 'settings.sounds.faaaaah' },
     { value: 2, label: 'settings.sounds.whistle' },
     { value: 3, label: 'settings.sounds.vine_boom' },
-    { value: 4, label: 'settings.sounds.longhorn' },
-    { value: 6, label: 'settings.sounds.longhorn' },
-    { value: 7, label: 'settings.sounds.longhorn' },
-    { value: 8, label: 'settings.sounds.longhorn' },
-    { value: 9, label: 'settings.sounds.longhorn' },
-    { value: 10, label: 'settings.sounds.longhorn' },
-    { value: 11, label: 'settings.sounds.longhorn' },
-    { value: 12, label: 'settings.sounds.longhorn' },
+    { value: 4, label: 'settings.sounds.weird_route' },
 ];

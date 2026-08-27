@@ -1,44 +1,40 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { useTranslation } from 'react-i18next';
-import MessageService from "../../../services/chat.service";
 import Button from "../../ui/Button";
-import { notifyError } from "../../common/Notify.jsx";
 
 export default function ProfileActions({
-    sameUser, userId, loading, status, isBlockedByMe, isBlockedByTarget,
-    onFriendAction, onBlockAction, onReportAction, permissions
-}) {
+                                           user, sameUser, loading, status, isBlockedByMe, isBlockedByTarget,
+                                           onFriendAction, onBlockAction, onReportAction, isBanned
+                                       }) {
     const { t } = useTranslation();
-    const navigate = useNavigate();
-
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isChatLoading, setIsChatLoading] = useState(false);
     const menuRef = useRef(null);
 
+    // Закриття дропдауну при кліку ззовні (єдиний локальний UI-стейт)
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setIsMenuOpen(false);
-            }
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) setIsMenuOpen(false);
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    if (sameUser)
+    if (sameUser) {
         return (
-            <div className="tetrone-actions">
-                <Link to="/settings" className="tetrone-btn tetrone-btn-primary">{t('action.edit')}</Link>
+            <div className="flex flex-col gap-2">
+                <Link to="/settings" className="no-underline">
+                    <Button variant="primary" className="w-full">{t('action.edit')}</Button>
+                </Link>
             </div>
         );
+    }
 
-    if (isBlockedByTarget) return null;
+    if (isBlockedByTarget || isBanned) return null;
 
     const getStatusLabel = () => {
         if (loading) return "...";
         if (isBlockedByMe) return t('profile.menu.you_have_blocked');
-
         switch (status) {
             case 'friends': return `${t('friends.your_contacts')} ✓`;
             case 'pending_sent': return t('friends.request_sent');
@@ -56,36 +52,23 @@ export default function ProfileActions({
         }
     };
 
-    const handleSendMessage = async () => {
-        setIsChatLoading(true);
-        notifyError("now work now");
-        return;
-        const res = await MessageService.initChat(userId);
-
-        if (res.success && res.data?.chat_slug) {
-            navigate(`/messages?dm=${res.data.chat_slug}`);
-        } else {
-            notifyError(res.message);
-        }
-        setIsChatLoading(false);
+    const handleAction = (actionFn) => {
+        actionFn();
+        setIsMenuOpen(false);
     };
 
     return (
-        <div className="tetrone-actions">
-            {!isBlockedByMe && permissions?.can_message && (
-                <Button
-                    variant={"primary"}
-                    onClick={handleSendMessage}
-                    disabled={isChatLoading || loading}
-                >
-                    {isChatLoading ? '...' : t('messages.send_message')}
+        <div className="flex flex-col gap-2">
+            {!isBlockedByMe && user.permissions?.can_message && (
+                <Button variant="primary" className="w-full" disabled={loading}>
+                    {t('messages.send_message')}
                 </Button>
             )}
 
-            <div className="tetrone-dropdown-wrapper" ref={menuRef}>
+            <div className="relative" ref={menuRef}>
                 <Button
-                    variant={"primary"}
-                    className="tetrone-btn-dropdown-trigger"
+                    variant="primary"
+                    className="w-full text-left flex justify-between items-center after:content-['▼'] after:text-[8px] after:ml-2"
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     disabled={loading}
                 >
@@ -93,28 +76,17 @@ export default function ProfileActions({
                 </Button>
 
                 {isMenuOpen && (
-                    <div className="tetrone-menu-list">
+                    <div className="absolute top-full left-0 w-full bg-bg-box border border-border shadow-[2px_2px_5px_rgba(0,0,0,0.3)] z-50 flex flex-col p-1 mt-1">
                         {!isBlockedByMe && (
-                            <button className="tetrone-menu-item" onClick={() => { onFriendAction(); setIsMenuOpen(false); }}>
+                            <button className="bg-transparent border-none text-left px-2 py-1 text-[11px] text-text-main cursor-pointer hover:bg-theme-link hover:text-white" onClick={() => handleAction(onFriendAction)}>
                                 {getFriendActionLabel()}
                             </button>
                         )}
-
-                        <button
-                            className="tetrone-menu-item"
-                            onClick={() => { onReportAction(); setIsMenuOpen(false); }}
-                        >
+                        <button className="bg-transparent border-none text-left px-2 py-1 text-[11px] text-text-main cursor-pointer hover:bg-theme-link hover:text-white" onClick={() => handleAction(onReportAction)}>
                             {t('reports.title')}
                         </button>
-
-                        <button
-                            className={`tetrone-menu-item ${!isBlockedByMe ? 'danger' : ''}`}
-                            onClick={() => { onBlockAction(); setIsMenuOpen(false); }}
-                        >
-                            {isBlockedByMe
-                                ? t('action.unblock')
-                                : t('action.block')
-                            }
+                        <button className={`bg-transparent border-none text-left px-2 py-1 text-[11px] cursor-pointer hover:bg-theme-error hover:text-white ${!isBlockedByMe ? 'text-theme-error' : 'text-text-main hover:bg-theme-link'}`} onClick={() => handleAction(onBlockAction)}>
+                            {isBlockedByMe ? t('action.unblock') : t('action.block')}
                         </button>
                     </div>
                 )}

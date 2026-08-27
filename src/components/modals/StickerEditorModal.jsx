@@ -7,7 +7,6 @@ import {ImageIcon} from '../ui/Icons';
 import PostItem from '../post/PostItem';
 import Button from '../ui/Button';
 import Modal from './Modal';
-import "./StickerEditorModal.css";
 
 export default function StickerEditorModal({stickerToEdit = null, onClose, onSuccess, onDelete})
 {

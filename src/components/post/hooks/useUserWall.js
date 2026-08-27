@@ -31,7 +31,7 @@ export const useUserWall = (profileUser) =>
     const countPosts = data?.pages[0]?.meta?.total || 0;
 
     const createMutation = useMutation({
-        mutationFn: ({ payload, images }) => PostService.create({ payload, images, target_user_id: profileUser.id }),
+        mutationFn: ({ payload, images }) => PostService.create({ payload, images, target_username: profileUser.username }),
         onSuccess: (res) =>
         {
             if (res)

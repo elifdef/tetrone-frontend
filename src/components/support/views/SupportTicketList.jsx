@@ -25,50 +25,52 @@ export default function SupportTicketList({ navigateTo }) {
     }, []);
 
     const getStatusBadge = (status) => {
-        let cls = 'tetrone-support-status-badge ';
-        if (status === 'open' || status === 'in_progress') cls += 'status-pending';
-        else if (status === 'resolved') cls += 'status-resolved';
-        else if (status === 'closed') cls += 'status-rejected';
+        let cls = 'inline-block px-[6px] py-[2px] text-[10px] font-bold border ';
+        if (status === 'open' || status === 'in_progress') cls += 'bg-[rgba(255,204,0,0.1)] border-[#e5a43b] text-[#e5a43b]';
+        else if (status === 'resolved') cls += 'bg-[rgba(75,179,75,0.1)] border-[#4bb34b] text-[#4bb34b]';
+        else if (status === 'closed') cls += 'bg-[rgba(255,51,71,0.1)] border-[#ff3347] text-[#ff3347]';
         return <span className={cls}>{t(`support.status_${status}`)}</span>;
     };
 
     return (
-        <div className="tetrone-support-block">
-            <div className="tetrone-support-block-header tetrone-flex-between">
+        <div>
+            <div className="flex justify-between items-center bg-theme-header-bg text-theme-link text-[11px] font-bold p-[8px_10px] -mt-[20px] -mx-[20px] mb-[15px] border-b border-border max-md:-mt-[10px] max-md:-mx-[10px]">
                 <span>{t('support.tab_my_tickets')}</span>
-                <div className="tetrone-support-actions-mini">
+                <div className="flex gap-[5px]">
                     <Button variant="primary" onClick={() => navigateTo('form')}>{t('support.create_ticket')}</Button>
                     <Button variant="secondary" onClick={() => navigateTo('home')}>{t('action.go_back')}</Button>
                 </div>
             </div>
 
             {loading ? (
-                <div className="tetrone-support-empty">{t('common.loading')}</div>
+                <div className="p-[20px] text-center text-text-muted italic border border-border bg-[rgba(128,128,128,0.02)]">{t('common.loading')}</div>
             ) : tickets.length === 0 ? (
-                <div className="tetrone-support-empty">{t('support.no_tickets')}</div>
+                <div className="p-[20px] text-center text-text-muted italic border border-border bg-[rgba(128,128,128,0.02)]">{t('support.no_tickets')}</div>
             ) : (
-                <table className="tetrone-support-table">
-                    <thead>
-                    <tr>
-                        <th width="50">{t('common.id')}</th>
-                        <th>{t('support.field_subject')}</th>
-                        <th width="150">{t('support.field_category')}</th>
-                        <th width="120">{t('common.status')}</th>
-                        <th width="140">{t('common.date')}</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {tickets.map(ticket => (
-                        <tr key={ticket.id} onClick={() => navigateTo('ticket_detail', { ticket_id: ticket.id })}>
-                            <td>#{ticket.id}</td>
-                            <td><strong>{ticket.subject}</strong></td>
-                            <td>{t(`support.cat_${ticket.category}`)}</td>
-                            <td>{getStatusBadge(ticket.status)}</td>
-                            <td className="text-muted">{formatDate(ticket.created_at)}</td>
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-border text-[11px] min-w-[500px]">
+                        <thead>
+                        <tr>
+                            <th className="border border-border p-[6px_10px] bg-[rgba(128,128,128,0.05)] text-left font-bold text-text-muted w-[50px]">{t('common.id')}</th>
+                            <th className="border border-border p-[6px_10px] bg-[rgba(128,128,128,0.05)] text-left font-bold text-text-muted">{t('support.field_subject')}</th>
+                            <th className="border border-border p-[6px_10px] bg-[rgba(128,128,128,0.05)] text-left font-bold text-text-muted w-[150px]">{t('support.field_category')}</th>
+                            <th className="border border-border p-[6px_10px] bg-[rgba(128,128,128,0.05)] text-left font-bold text-text-muted w-[120px]">{t('common.status')}</th>
+                            <th className="border border-border p-[6px_10px] bg-[rgba(128,128,128,0.05)] text-left font-bold text-text-muted w-[140px]">{t('common.date')}</th>
                         </tr>
-                    ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {tickets.map(ticket => (
+                            <tr key={ticket.id} className="hover:bg-bg-hover cursor-pointer transition-colors" onClick={() => navigateTo('ticket_detail', { ticket_id: ticket.id })}>
+                                <td className="border border-border p-[6px_10px]">#{ticket.id}</td>
+                                <td className="border border-border p-[6px_10px]"><strong>{ticket.subject}</strong></td>
+                                <td className="border border-border p-[6px_10px]">{t(`support.cat_${ticket.category}`)}</td>
+                                <td className="border border-border p-[6px_10px]">{getStatusBadge(ticket.status)}</td>
+                                <td className="border border-border p-[6px_10px] text-text-muted">{formatDate(ticket.created_at)}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );

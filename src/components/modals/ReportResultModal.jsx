@@ -1,41 +1,42 @@
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import Modal from './Modal.jsx';
 import Button from '../ui/Button.jsx';
-import './ReportResultModal.css';
 
-const InfoRow = ({label, children}) => (
-    <div className="tetrone-report-info-row">
-        <span className="tetrone-report-label">
+const InfoRow = ({ label, children }) => (
+    <div className="flex justify-between items-center py-[6px] border-b border-dashed border-border last:border-b-0 text-[11px]">
+        <span className="text-text-muted">
             {label}:
         </span>
-        {children}
+        <div className="font-bold text-text-main text-right ml-[10px]">
+            {children}
+        </div>
     </div>
 );
 
-const ReasonBox = ({label, text, isError}) =>
-{
+const ReasonBox = ({ label, text, isError }) => {
     if (!text) return null;
+    const borderColorClass = isError ? 'border-theme-error' : 'border-theme-success';
+    const textColorClass = isError ? 'text-theme-error' : 'text-theme-success';
+
     return (
-        <div className="tetrone-report-reason-box">
-            <div className={`tetrone-report-reason-label ${isError ? 'error-text' : 'success-text'}`}>
+        <div className={`mt-[15px] p-[10px] border bg-[rgba(128,128,128,0.05)] ${borderColorClass}`}>
+            <div className={`font-bold text-[11px] mb-[4px] ${textColorClass}`}>
                 {label}:
             </div>
-            <div className="tetrone-report-reason-text">{text}</div>
+            <div className="text-[11px] text-text-main leading-[1.4]">{text}</div>
         </div>
     );
 };
 
-export default function ReportResultModal({payload, onClose})
-{
-    const {t} = useTranslation();
+export default function ReportResultModal({ payload, onClose }) {
+    const { t } = useTranslation();
 
     if (!payload) return null;
 
-    const {type, actor = {}, target = {}} = payload;
+    const { type, actor = {}, target = {} } = payload;
 
     let moderatorLabel = t('reports.system_moderator');
-    if (actor.first_name && actor.first_name !== 'System')
-    {
+    if (actor.first_name && actor.first_name !== 'System') {
         const fullName = `${actor.first_name} ${actor.last_name || ''}`.trim();
         const roleName = t(`roles.${actor.role}`);
         moderatorLabel = `${fullName} (${roleName})`;
@@ -44,11 +45,9 @@ export default function ReportResultModal({payload, onClose})
     const contentTypeKey = target.reported_type || target.target_type;
 
     let contentDisplay = target.reported_content;
-    if (!contentDisplay && target.has_media)
-    {
+    if (!contentDisplay && target.has_media) {
         contentDisplay = `[${t('reports.media_content')}]`;
-    } else if (!contentDisplay)
-    {
+    } else if (!contentDisplay) {
         contentDisplay = t('reports.content_unavailable');
     }
 
@@ -56,8 +55,7 @@ export default function ReportResultModal({payload, onClose})
         <Button variant="secondary" onClick={onClose}>{t('action.close')}</Button>
     );
 
-    if (type === 'content_deleted' || type === 'content_restored')
-    {
+    if (type === 'content_deleted' || type === 'content_restored') {
         const isDeleted = type === 'content_deleted';
 
         return (
@@ -67,20 +65,20 @@ export default function ReportResultModal({payload, onClose})
                 title={isDeleted ? t('reports.content_deleted_title') : t('reports.content_restored_title')}
                 footer={footerButtons}
             >
-                <div className="tetrone-info-block">
+                <div className="bg-bg-page border border-border p-[10px]">
                     <InfoRow label={t('reports.moderator_label')}>
-                        <span className="tetrone-value">{moderatorLabel}</span>
+                        <span>{moderatorLabel}</span>
                     </InfoRow>
 
                     <InfoRow label={t('reports.deleted_type_label')}>
-                        <strong className="tetrone-value">{t(`reports.reported_${contentTypeKey}`)}</strong>
+                        <strong>{t(`reports.reported_${contentTypeKey}`)}</strong>
                     </InfoRow>
 
-                    <div className="tetrone-report-info-row">
-                        <span className="tetrone-report-label block-label">
+                    <div className="py-[6px] border-b border-dashed border-border last:border-b-0 text-[11px] flex flex-col">
+                        <span className="text-text-muted mb-[4px]">
                             {t('reports.content_label')}:
                         </span>
-                        <div className="tetrone-settings-quote">
+                        <div className="italic text-text-muted text-[11px] border-l-[2px] border-border pl-[8px] whitespace-pre-line leading-[1.4]">
                             "{contentDisplay}"
                         </div>
                     </div>
@@ -95,8 +93,7 @@ export default function ReportResultModal({payload, onClose})
         );
     }
 
-    if (type === 'report_reviewed' || type === 'report_reverted')
-    {
+    if (type === 'report_reviewed' || type === 'report_reverted') {
         const isReverted = type === 'report_reverted';
         const isResolved = target.report_status === 'resolved';
 
@@ -107,30 +104,30 @@ export default function ReportResultModal({payload, onClose})
                 title={isReverted ? t('reports.report_reverted_title') : t('reports.review_result_title')}
                 footer={footerButtons}
             >
-                <div className="tetrone-info-block">
+                <div className="bg-bg-page border border-border p-[10px]">
                     <InfoRow label={t('reports.status_label')}>
                         {isReverted ? (
-                            <strong className="tetrone-value admin-status-orange">{t('reports.status_pending_again')}</strong>
+                            <span className="text-[#e5a43b]">{t('reports.status_pending_again')}</span>
                         ) : (
-                            <strong className={`tetrone-value ${isResolved ? 'admin-status-green' : 'admin-status-red'}`}>
+                            <span className={isResolved ? 'text-theme-success' : 'text-theme-error'}>
                                 {isResolved ? t('reports.status_deleted') : t('reports.status_kept')}
-                            </strong>
+                            </span>
                         )}
                     </InfoRow>
 
                     <InfoRow label={t('reports.moderator_label')}>
-                        <span className="tetrone-value">{moderatorLabel}</span>
+                        <span>{moderatorLabel}</span>
                     </InfoRow>
 
                     <InfoRow label={t('reports.deleted_type_label')}>
-                        <strong className="tetrone-value">{t(`reports.reported_${contentTypeKey}`)}</strong>
+                        <strong>{t(`reports.reported_${contentTypeKey}`)}</strong>
                     </InfoRow>
 
-                    <div className="tetrone-report-info-row">
-                        <span className="tetrone-report-label block-label">
+                    <div className="py-[6px] border-b border-dashed border-border last:border-b-0 text-[11px] flex flex-col">
+                        <span className="text-text-muted mb-[4px]">
                             {t('reports.content_label')}:
                         </span>
-                        <div className="tetrone-settings-quote">
+                        <div className="italic text-text-muted text-[11px] border-l-[2px] border-border pl-[8px] whitespace-pre-line leading-[1.4]">
                             "{contentDisplay}"
                         </div>
                     </div>

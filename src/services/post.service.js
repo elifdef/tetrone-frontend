@@ -6,10 +6,11 @@ class PostService {
 
         const requestData = {
             payload: data.payload || null,
-            space_id: data.space_id || (data.payload && data.payload.space_id) || null,
-            is_posted_as_space: data.is_posted_as_space || (data.payload && data.payload.is_posted_as_space) || false,
-            target_user_id: data.target_user_id || null,
+            space_username: data.space_username || null,
+            is_posted_as_space: data.is_posted_as_space || false,
+            target_username: data.target_username || null,
             original_post_id: data.original_post_id || null,
+            published_at: data.published_at || null,
         };
 
         if (hasFiles) {
@@ -19,12 +20,18 @@ class PostService {
                 formData.append('payload', JSON.stringify(requestData.payload));
             }
 
-            if (requestData.space_id) formData.append('space_id', requestData.space_id);
+            if (requestData.space_username) formData.append('space_username', requestData.space_username);
             if (requestData.is_posted_as_space) formData.append('is_posted_as_space', '1');
-            if (requestData.target_user_id) formData.append('target_user_id', requestData.target_user_id);
+            if (requestData.target_username) formData.append('target_username', requestData.target_username);
             if (requestData.original_post_id) formData.append('original_post_id', requestData.original_post_id);
+            if (requestData.published_at) formData.append('published_at', requestData.published_at);
 
-            data.images.forEach((file) => formData.append('media_files[]', file));
+            // ФІКС: Повернули цикл forEach
+            data.images.forEach((file, index) => {
+                formData.append('media[]', file);
+                formData.append(`media_spoiler[${index}]`, file.is_spoiler ? '1' : '0');
+                formData.append(`media_nsfw[${index}]`, file.is_nsfw ? '1' : '0');
+            });
 
             return await fetchClient('/posts', { method: 'POST', body: formData });
         }
@@ -40,23 +47,22 @@ class PostService {
         formData.append('_method', 'PUT');
 
         if (data.payload) {
-            if (data.payload.text) {
-                formData.append('payload[text]', typeof data.payload.text === 'object' ? JSON.stringify(data.payload.text) : data.payload.text);
-            }
-            if (data.payload.poll) {
-                formData.append('payload[poll]', JSON.stringify(data.payload.poll));
-            }
-            if (data.payload.youtube) {
-                formData.append('payload[youtube]', JSON.stringify(data.payload.youtube));
-            }
+            formData.append('payload', JSON.stringify(data.payload));
         }
 
         if (data.images && data.images.length > 0) {
-            data.images.forEach((file) => formData.append('new_media_files[]', file));
+            // ФІКС: Додали прапорці і для методу оновлення
+            data.images.forEach((file, index) => {
+                formData.append('media[]', file);
+                formData.append(`media_spoiler[${index}]`, file.is_spoiler ? '1' : '0');
+                formData.append(`media_nsfw[${index}]`, file.is_nsfw ? '1' : '0');
+            });
         }
+
         if (data.deletedMedia && data.deletedMedia.length > 0) {
-            data.deletedMedia.forEach((mediaId) => formData.append('deleted_media_ids[]', mediaId));
+            data.deletedMedia.forEach((mediaId) => formData.append('deleted_media[]', mediaId));
         }
+
         return await fetchClient(`/posts/${id}`, { method: 'POST', body: formData });
     }
 

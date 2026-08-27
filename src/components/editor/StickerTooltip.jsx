@@ -1,153 +1,61 @@
-import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import StickerService from '../../services/sticker.service';
 
-// щоб не довбати сервер до долбаного отказа своїми стікерами
-const stickerInfoCache = {};
-
-export default function StickerTooltip({ shortcode, position, onMouseLeave })
-{
+export default function StickerTooltip({ info, samples, isLoading, position, onMouseLeave, onInstall }) {
     const { t } = useTranslation();
-    const [info, setInfo] = useState(null);
-    const [samples, setSamples] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() =>
-    {
-        let isMounted = true;
-
-        const fetchInfo = async () =>
-        {
-            if (stickerInfoCache[shortcode])
-            {
-                setInfo(stickerInfoCache[shortcode].pack);
-                setSamples(stickerInfoCache[shortcode].samples);
-                setIsLoading(false);
-                return;
-            }
-
-            try
-            {
-                const response = await StickerService.getStickerInfo(shortcode);
-                if (isMounted && response)
-                {
-                    stickerInfoCache[shortcode] = response;
-                    setInfo(response.pack);
-                    setSamples(response.samples);
-                }
-            } catch (error)
-            {
-                // error handling
-            } finally
-            {
-                if (isMounted)
-                {
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        if (shortcode)
-        {
-            fetchInfo();
-        }
-
-        return () =>
-        {
-            isMounted = false;
-        };
-    }, [shortcode]);
-
-    const handleInstall = async () =>
-    {
-        if (!info?.pack?.short_name)
-        {
-            return;
-        }
-        try
-        {
-            const response = await StickerService.installPack(info.pack.short_name);
-            if (response)
-            {
-                const updatedInfo = {
-                    ...info,
-                    pack: { ...info.pack, is_installed: true }
-                };
-                stickerInfoCache[shortcode] = updatedInfo;
-                setInfo(updatedInfo);
-            }
-        } catch (error)
-        {
-            // error handling
-        }
-    };
 
     return (
         <div
-            className="tetrone-sticker-hover-tooltip"
-            style={ { top: position.y, left: position.x } }
-            onMouseLeave={ onMouseLeave }
+            className="absolute z-[99999] bg-bg-box border border-border shadow-[0_4px_15px_rgba(0,0,0,0.3)] p-[10px] w-[220px] rounded"
+            style={{ top: position.y, left: position.x }}
+            onMouseLeave={onMouseLeave}
         >
-            { isLoading ? (
-                <div className="tetrone-sticker-tooltip-loader">{ t('common.loading') }</div>
+            {isLoading ? (
+                <div className="text-[11px] text-text-muted italic">{t('common.loading')}</div>
             ) : info ? (
                 <>
-                    <div className="tetrone-sticker-tooltip-header">
-                        <div className="tetrone-sticker-tooltip-pack-info">
-                            <span className="tetrone-sticker-tooltip-title">
-                                { info.title }
-                                { info.is_published === false && (
-                                    <span className="tetrone-badge tetrone-bg-danger">
-                                        { t('sticker.pack_private') }
+                    <div className="mb-[10px]">
+                        <div className="flex flex-col">
+                            <span className="font-bold text-[13px] text-text-main flex items-center gap-[5px]">
+                                {info.title}
+                                {info.is_published === false && (
+                                    <span className="inline-block bg-theme-error text-white text-[10px] font-bold px-[5px] py-[2px] leading-none align-middle ml-[6px]">
+                                        {t('sticker.pack_private')}
                                     </span>
-                                ) }
+                                )}
                             </span>
-                            <span className="tetrone-sticker-tooltip-author">
-        { t('stickers.by_author') } { info.author }
-    </span>
+                            <span className="text-[11px] text-text-muted mt-[4px]">
+                                {t('stickers.by_author')} {info.author}
+                            </span>
                         </div>
-
                     </div>
 
-                    <div className="tetrone-sticker-tooltip-samples">
-                        { samples.map(sample => (
-                            <img
-                                key={ sample.id }
-                                src={ sample.url }
-                                alt={ sample.shortcode }
-                                className="tetrone-sticker-tooltip-sample-img"
-                            />
-                        )) }
+                    <div className="flex flex-wrap gap-[5px] mb-[15px]">
+                        {samples?.map(sample => (
+                            <img key={sample.id} src={sample.url} alt={sample.shortcode} className="w-[40px] h-[40px] object-contain" />
+                        ))}
                     </div>
 
-                    <div className="tetrone-sticker-tooltip-actions">
-                        { info.is_deleted ? (
-                            <span className="tetrone-text-muted tetrone-sticker-tooltip-deleted-text">
-                                { t('stickers.pack_deleted') }
+                    <div className="flex flex-col">
+                        {info.is_deleted ? (
+                            <span className="text-text-muted text-[11px] italic text-center">
+                                {t('stickers.pack_deleted')}
                             </span>
                         ) : (
                             <>
-                                <Link
-                                    to={ `/stickers-shop?tab=catalog&search=${ info.short_name }` }
-                                    className="tetrone-btn  tetrone-btn-ghost tetrone-btn-full-width"
-                                >
-                                    { t('stickers.view_pack') }
+                                <Link to={`/stickers-shop?tab=catalog&search=${info.short_name}`} className="block w-full text-center py-[5px] px-[10px] border border-border text-text-main text-[11px] font-bold no-underline hover:bg-bg-page hover:text-theme-link transition-colors">
+                                    {t('stickers.view_pack')}
                                 </Link>
-
-                                { !info.is_installed && (
-                                    <button
-                                        className="tetrone-btn  tetrone-btn-full-width tetrone-mt-4"
-                                        onClick={ handleInstall }
-                                    >
-                                        { t('action.install') }
+                                {!info.is_installed && (
+                                    <button className="w-full mt-[10px] bg-theme-link text-white border-none py-[6px] px-[12px] font-bold text-[11px] cursor-pointer hover:opacity-90" onClick={onInstall}>
+                                        {t('action.install')}
                                     </button>
-                                ) }
+                                )}
                             </>
-                        ) }
+                        )}
                     </div>
                 </>
-            ) : null }
+            ) : null}
         </div>
     );
 }

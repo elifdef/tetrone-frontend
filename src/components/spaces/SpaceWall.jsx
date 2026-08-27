@@ -5,6 +5,7 @@ import InfiniteScrollList from '../common/InfiniteScrollList';
 import PostItem from '../post/PostItem';
 import CreatePostForm from '../post/CreatePostForm';
 import PostService from '../../services/post.service';
+import { notifyError } from '../common/Notify';
 
 const SpaceWall = ({ space }) => {
     const { t } = useTranslation();
@@ -21,11 +22,14 @@ const SpaceWall = ({ space }) => {
         setError(false);
 
         try {
-            const res = await SpaceService.getSpacePosts(space.nickname, pageNum);
-            if (res.success) {
-                const newPosts = res.data || [];
+            const res = await SpaceService.getSpacePosts(space.username, pageNum);
+
+            if (res.code === 'SPACE_POSTS_RETRIEVED') {
+                const newPosts = res.posts || [];
                 setPosts(prev => pageNum === 1 ? newPosts : [...prev, ...newPosts]);
-                setHasMore(res.meta ? res.meta.current_page < res.meta.last_page : false);
+
+                const meta = res.posts?.meta;
+                setHasMore(meta ? meta.current_page < meta.last_page : false);
             } else {
                 setError(true);
             }
@@ -35,7 +39,7 @@ const SpaceWall = ({ space }) => {
             setIsLoadingInitial(false);
             setIsLoadingMore(false);
         }
-    }, [space.nickname]);
+    }, [space.username]);
 
     useEffect(() => {
         fetchPosts(1);
@@ -49,24 +53,29 @@ const SpaceWall = ({ space }) => {
         }
     };
 
-    // У SpaceWall.jsx
     const handlePostCreated = async (payload, files) => {
         try {
+            const cleanPayload = {};
+            if (payload.text) cleanPayload.text = payload.text;
+            if (payload.poll) cleanPayload.poll = payload.poll;
+            if (payload.youtube) cleanPayload.youtube = payload.youtube;
+
             const res = await PostService.create({
-                payload: payload,
+                payload: Object.keys(cleanPayload).length > 0 ? cleanPayload : null,
                 images: files,
-                space_id: space.id,
-                is_posted_as_space: payload.is_posted_as_space
+                space_username: space.username,
+                is_posted_as_space: payload.is_posted_as_space,
+                published_at: payload.published_at
             });
 
-            if (res) {
+            if (res && res.post) {
                 setPosts(prev => [res.post, ...prev]);
                 return true;
             }
-            notifyError(t('api.error.ERR_SERVER'));
+            notifyError(t('error.server'));
             return false;
         } catch (error) {
-            notifyError(t('api.error.ERR_NETWORK'));
+            notifyError(t('error.network'));
             return false;
         }
     };
@@ -76,12 +85,8 @@ const SpaceWall = ({ space }) => {
     return (
         <>
             {space.is_member && (
-                <div style={{ marginBottom: '15px' }}>
-                    <CreatePostForm
-                        spaceId={space.id}
-                        canPostAsSpace={canPostAsSpace}
-                        onSubmitSuccess={handlePostCreated}
-                    />
+                <div className="mb-[15px]">
+                    <CreatePostForm space={space} isSpaceAdmin={canPostAsSpace} onSubmitSuccess={handlePostCreated} />
                 </div>
             )}
 
@@ -93,9 +98,9 @@ const SpaceWall = ({ space }) => {
                 onLoadMore={loadMore}
                 error={error}
                 onRetry={() => fetchPosts(1)}
-                className="tetrone-feed-list"
+                className="tetrone-feed-list flex flex-col gap-[10px]"
                 emptyState={
-                    <div className="space-block-content text-center">
+                    <div className="p-[20px] text-center text-text-muted border border-border bg-bg-box">
                         {t('spaces.wall_empty')}
                     </div>
                 }

@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useContext } from "react";
 import { Outlet } from "react-router";
 import { AuthContext } from "../../context/AuthContext";
 import { AudioProvider } from "../../context/AudioContext";
@@ -9,25 +9,14 @@ import EmailVerificationBanner from "./EmailVerificationBanner";
 
 export default function MainLayout() {
     const { user } = useContext(AuthContext);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-    const closeMenu = () => setIsMobileMenuOpen(false);
 
     return (
         <AudioProvider>
             {user && <EmailVerificationBanner user={user} />}
 
-            <button className="mobile-menu-btn" onClick={toggleMenu}>
-                {isMobileMenuOpen ? '✖' : '☰'}
-            </button>
-
-            {isMobileMenuOpen && (
-                <div className="mobile-menu-overlay" onClick={closeMenu}></div>
-            )}
-            <div className="tetrone-app-layout">
+            <div className="flex justify-center w-full max-w-[1536px] mx-auto gap-5 px-[15px] box-border min-h-screen max-md:flex-col max-md:p-0">
                 <LeftSidebar />
-                <main className="tetrone-main-content">
+                <main className="w-[50%] shrink min-w-0 pt-[15px] max-md:w-full max-md:pt-[60px] max-md:px-[10px] max-md:pb-[10px] max-md:box-border">
                     <Outlet />
                 </main>
                 <RightSidebar />

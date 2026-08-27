@@ -4,22 +4,24 @@ import PasswordStrengthBar from '../ui/PasswordStrengthBar';
 import Button from '../ui/Button';
 
 const PasswordChangeForm = ({
-    currentPassword, setCurrentPassword,
-    newPassword, setNewPassword,
-    confirmPassword, setConfirmPassword,
-    loading, onSubmit, t
-}) => {
+                                currentPassword, setCurrentPassword,
+                                newPassword, setNewPassword,
+                                confirmPassword, setConfirmPassword,
+                                loading, onSubmit, t
+                            }) => {
     const [newPasswordScore, setNewPasswordScore] = useState(0);
 
     return (
-        <div className="tetrone-settings-box">
-            <strong>{t('settings.change_password')}</strong>
-            <form onSubmit={onSubmit}>
-                <div className="tetrone-form-group">
-                    <label className="tetrone-form-label">{t('settings.current_password')}</label>
+        <div className="p-[12px_15px] border-b border-border last:border-b-0">
+            <h2 className="m-0 mb-[10px] text-[11px] font-bold text-theme-link border-b border-border pb-[4px]">
+                {t('settings.change_password')}
+            </h2>
+
+            <form onSubmit={onSubmit} className="flex flex-col">
+                <div className="mb-[12px]">
                     <Input
+                        label={t('settings.current_password')}
                         type="password"
-                        className="tetrone-form-input"
                         required
                         placeholder="********"
                         value={currentPassword}
@@ -27,11 +29,10 @@ const PasswordChangeForm = ({
                     />
                 </div>
 
-                <div className="tetrone-form-group">
-                    <label className="tetrone-form-label">{t('settings.new_password')}</label>
+                <div className="mb-[12px]">
                     <Input
+                        label={t('settings.new_password')}
                         type="password"
-                        className="tetrone-form-input"
                         required
                         placeholder="********"
                         value={newPassword}
@@ -39,11 +40,10 @@ const PasswordChangeForm = ({
                     />
                 </div>
 
-                <div className="tetrone-form-group">
-                    <label className="tetrone-form-label">{t('auth.password_confirmation')}</label>
+                <div className="mb-[12px]">
                     <Input
+                        label={t('auth.password_confirmation')}
                         type="password"
-                        className="tetrone-form-input"
                         required
                         placeholder="********"
                         value={confirmPassword}
@@ -51,17 +51,21 @@ const PasswordChangeForm = ({
                     />
                 </div>
 
+                {/* Якщо PasswordStrengthBar має свої margins, він стане ідеально,
+                    якщо ні — можна огорнути його в <div className="mb-[12px]"> */}
                 <PasswordStrengthBar
                     password={newPassword}
                     onScoreChange={setNewPasswordScore}
                 />
 
-                <Button
-                    type="submit"
-                    disabled={loading || (newPassword && newPasswordScore < 5)}
-                >
-                    {loading ? t('action.saving') : t('action.save')}
-                </Button>
+                <div className="flex justify-end mt-[5px]">
+                    <Button
+                        type="submit"
+                        disabled={loading || (newPassword && newPasswordScore < 5)}
+                    >
+                        {loading ? t('action.saving') : t('action.save')}
+                    </Button>
+                </div>
             </form>
         </div>
     );

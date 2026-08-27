@@ -35,20 +35,16 @@ export default function PrivacySettings() {
         try {
             const res = await PrivacyService.getSettings();
 
-            // ВИПРАВЛЕНО: Читаємо дані з правильного шляху res.privacy
             if (res && res.privacy) {
-                // 1. Захист від порожнього масиву з PHP
                 const rawSettings = Array.isArray(res.privacy.settings) && res.privacy.settings.length === 0
                     ? {}
                     : (res.privacy.settings || {});
 
-                // 2. Нормалізація: гарантуємо, що ВСІ ключі існують у стейті
-                // Це наш фронтенд-фаллбек, оскільки ми відмовились від нього на бекенді
                 const normalizedSettings = {};
                 PRIVACY_CONTEXTS.forEach(context => {
                     normalizedSettings[context] = rawSettings[context] !== undefined
                         ? parseInt(rawSettings[context], 10)
-                        : 0; // 0 = Everyone (дефолтне значення)
+                        : 0;
                 });
 
                 setInitialSettings(normalizedSettings);
@@ -64,8 +60,6 @@ export default function PrivacySettings() {
         }
     };
 
-    // Оскільки тепер обидва об'єкти (initial і local) мають однаковий набір
-    // відсортованих ключів, JSON.stringify працюватиме ідеально і без багів.
     const isDirty = useMemo(() => {
         return JSON.stringify(initialSettings) !== JSON.stringify(localSettings);
     }, [initialSettings, localSettings]);
@@ -86,7 +80,6 @@ export default function PrivacySettings() {
                 key => localSettings[key] !== initialSettings[key]
             );
 
-            // ВИПРАВЛЕНО: Зберігаємо послідовно (Sequential), щоб уникнути Race Condition у базі
             for (const context of changedKeys) {
                 await PrivacyService.updateSetting(context, localSettings[context]);
             }
@@ -100,32 +93,31 @@ export default function PrivacySettings() {
         }
     };
 
-    if (isLoading) return <div className="tetrone-loading">{t('common.loading')}</div>;
+    if (isLoading) return <div className="text-[11px] text-text-muted italic p-[20px] text-center">{t('common.loading')}</div>;
 
     return (
-        <div className="tetrone-settings-form">
-            <div className="tetrone-sessions-header">
-                <h3 className="tetrone-sessions-main-title">{t('settings.privacy_title')}</h3>
-                <p className="tetrone-sessions-desc">{t('settings.privacy_desc')}</p>
+        <div className="flex flex-col gap-[15px]">
+            <div className="mb-[5px]">
+                <h3 className="m-0 mb-[5px] text-[12px] font-bold text-theme-link border-b border-border pb-[5px]">{t('settings.privacy_title')}</h3>
+                <p className="m-0 text-[11px] text-text-muted">{t('settings.privacy_desc')}</p>
             </div>
 
-            <div className="tetrone-settings-box tetrone-sessions-box-no-margin">
-                <div className="tetrone-sessions-list">
+            <div className="bg-bg-box border border-border mb-0">
+                <div className="flex flex-col">
                     {PRIVACY_CONTEXTS.map(context => {
-                        // Тепер localSettings гарантовано містить значення для кожного context
                         const currentValue = localSettings[context];
 
                         return (
-                            <div key={context} className="tetrone-privacy-row">
-                                <div className="tetrone-privacy-label-wrapper">
-                                    <span className="tetrone-privacy-label">
+                            <div key={context} className="flex justify-between items-center py-[8px] px-[15px] border-b border-dashed border-border last:border-b-0 max-md:flex-col max-md:items-start max-md:gap-[8px]">
+                                <div className="flex flex-col gap-[2px]">
+                                    <span className="text-[11px] text-text-main">
                                         {t(`privacy.context_${context}`)}
                                     </span>
                                 </div>
 
-                                <div className="tetrone-privacy-controls">
+                                <div className="flex items-center gap-[10px] max-md:w-full max-md:justify-end">
                                     <select
-                                        className="tetrone-form-select tetrone-privacy-select"
+                                        className="bg-input-bg border border-input-border text-text-main p-[4px] text-[11px] outline-none min-w-[150px] focus:border-theme-link max-md:flex-1"
                                         value={currentValue}
                                         onChange={(e) => handleLocalChange(context, e.target.value)}
                                     >
@@ -150,9 +142,9 @@ export default function PrivacySettings() {
                 </div>
             </div>
 
-            <div className="tetrone-privacy-footer">
+            <div className="mt-[10px] flex justify-end">
                 <Button
-                    variant="primary"
+                    variant="save"
                     onClick={handleSaveAll}
                     disabled={!isDirty || isSaving}
                 >

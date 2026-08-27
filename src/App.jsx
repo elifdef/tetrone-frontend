@@ -8,39 +8,37 @@ import { BannedScreen } from './components/auth/BannedScreen';
 import { audioManager } from './utils/audioManager';
 import CookieBanner from "./components/common/CookieBanner";
 
-const GlobalLoading = () =>
-{
+const GlobalLoading = () => {
     const { t } = useTranslation();
     return (
-        <div className="tetrone-fullscreen-center">
-            <div className="tetrone-empty-state">{ t('common.loading') }</div>
+        <div className="fixed inset-0 flex items-center justify-center bg-bg-page z-[9999]">
+            <div className="p-[20px] text-center text-text-muted italic bg-bg-box border border-border text-[11px] font-tahoma">
+                {t('common.loading')}
+            </div>
         </div>
     );
 };
 
-const GlobalErrorScreen = ({ title, desc, onRetry, showButton= true }) =>
-{
+const GlobalErrorScreen = ({ title, desc, onRetry, showButton= true }) => {
     return (
-        <div className="tetrone-fullscreen-center">
+        <div className="fixed inset-0 flex items-center justify-center bg-bg-page z-[9999] p-[20px]">
             <ErrorState
-                title={ title }
-                description={ desc }
-                onRetry={ onRetry }
-                showButton={ showButton }
+                title={title}
+                description={desc}
+                onRetry={onRetry}
+                showButton={showButton}
             />
         </div>
     );
 };
 
-export default function App()
-{
+export default function App() {
     const { user, loading, initError } = useContext(AuthContext);
     const { t } = useTranslation();
 
     const [globalServerState, setGlobalServerState] = useState(null);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         const handleOffline = () => setGlobalServerState('offline');
         const handleError = () => setGlobalServerState('error');
         const handleMaintenance = () => setGlobalServerState('maintenance');
@@ -49,112 +47,74 @@ export default function App()
         window.addEventListener('server-error', handleError);
         window.addEventListener('server-maintenance', handleMaintenance);
 
-        return () =>
-        {
+        return () => {
             window.removeEventListener('server-offline', handleOffline);
             window.removeEventListener('server-error', handleError);
             window.removeEventListener('server-maintenance', handleMaintenance);
         };
     }, []);
 
-    // Теми
-    useEffect(() =>
-    {
-        const isDark = localStorage.getItem('dark_theme');
-        if (isDark === 'false')
-        {
-            document.body.setAttribute('data-theme', 'light');
-        }
-        else
-        {
-            document.body.removeAttribute('data-theme');
-        }
-
-        if (isDark === null)
-        {
-            localStorage.setItem('dark_theme', 'true');
-        }
-    }, []);
-
     // звук для сповіщень
-    useEffect(() =>
-    {
-        const unlockAudio = () =>
-        {
+    useEffect(() => {
+        const unlockAudio = () => {
             audioManager.unlock();
-            // після першого успішного кліку видаляємо слухач
             document.removeEventListener('click', unlockAudio);
             document.removeEventListener('keydown', unlockAudio);
         };
 
-        // слухаємо кліки та натискання клавіш
         document.addEventListener('click', unlockAudio);
         document.addEventListener('keydown', unlockAudio);
 
-        return () =>
-        {
+        return () => {
             document.removeEventListener('click', unlockAudio);
             document.removeEventListener('keydown', unlockAudio);
         };
     }, []);
 
-    // 1. Помилка мережі (Бекенд лежить)
-    if (globalServerState === 'offline')
-    {
+    if (globalServerState === 'offline') {
         return <GlobalErrorScreen
-            title={ t("api.error.CRITICAL_SERVER_ERROR") }
-            desc={ t("easter_eggs.server_down_desc") }
-            onRetry={ () => window.location.reload() }
+            title={t("api.error.CRITICAL_SERVER_ERROR")}
+            desc={t("easter_eggs.server_down_desc")}
+            onRetry={() => window.location.reload()}
         />;
     }
 
-    // 2. Фатальна помилка бекенда (500)
-    if (globalServerState === 'error')
-    {
+    if (globalServerState === 'error') {
         return <GlobalErrorScreen
-            title={ t("api.error.CRITICAL_SERVER_ERROR") }
-            desc={ t("easter_eggs.server_err_desc") }
-            onRetry={ () => setGlobalServerState(null) }
+            title={t("api.error.CRITICAL_SERVER_ERROR")}
+            desc={t("easter_eggs.server_err_desc")}
+            onRetry={() => setGlobalServerState(null)}
         />;
     }
 
-    // 3. Технічні роботи (503)
-    if (globalServerState === 'maintenance')
-    {
+    if (globalServerState === 'maintenance') {
         const desc = t('easter_eggs.server_maintenance_desc' , { returnObjects: true });
-
-
         return <GlobalErrorScreen
-            title={ t("api.error.SERVER_MAINTENANCE") }
-            desc={ desc[Math.floor(Math.random() * desc.length)] }
-            onRetry={ () => window.location.reload() }
-            showButton={ false }
+            title={t("api.error.SERVER_MAINTENANCE")}
+            desc={desc[Math.floor(Math.random() * desc.length)]}
+            onRetry={() => window.location.reload()}
+            showButton={false}
         />;
     }
 
-    if (loading)
-    {
-        return <GlobalLoading/>;
-    }
+    if (loading) return <GlobalLoading/>;
 
-    if (user && user.is_banned)
-    {
-        return <BannedScreen/>;
-    }
+    if (user && user.is_banned) return <BannedScreen/>;
 
     return (
         <>
             <Toaster
                 position="bottom-left"
-                toastOptions={ {
+                toastOptions={{
+                    className: '!bg-transparent !shadow-none !p-0 !m-0 !max-w-none !border-none',
                     style: {
-                        background: 'var(--theme-bg-box)',
-                        color: 'var(--theme-text-main)',
-                        border: '1px solid var(--theme-border)',
-                        borderRadius: '0px',
-                        fontSize: '12px'
+                        background: 'transparent',
+                        boxShadow: 'none',
+                        padding: 0,
+                        borderRadius: 0,
+                        border: 'none'
                     },
-                } }
+                }}
             />
             <AppRoutes/>
             <CookieBanner/>

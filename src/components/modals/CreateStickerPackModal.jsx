@@ -6,7 +6,6 @@ import StickerEditorModal from './StickerEditorModal.jsx';
 import {useModal} from '../../context/ModalContext.jsx';
 import Button from '../ui/Button.jsx';
 import Modal from './Modal.jsx';
-import './CreateStickerPackModal.css';
 
 export default function CreateStickerPackModal({existingPack = null, onSuccess, onCancel, onRefresh})
 {
@@ -33,12 +32,7 @@ export default function CreateStickerPackModal({existingPack = null, onSuccess, 
     const [stickersChanged, setStickersChanged] = useState(false);
     const fileInputRef = useRef(null);
 
-    const hasChanges =
-        title !== initialState.title ||
-        isPublished !== initialState.isPublished ||
-        coverFile !== null ||
-        stickersChanged ||
-        deletedStickerIds.length > 0;
+    const hasChanges = title !== initialState.title || isPublished !== initialState.isPublished || coverFile !== null || stickersChanged || deletedStickerIds.length > 0;
 
     const handleCloseAttempt = async () =>
     {
@@ -82,7 +76,6 @@ export default function CreateStickerPackModal({existingPack = null, onSuccess, 
     const handleSavePack = async () =>
     {
         if (!title.trim()) return notifyError(t('stickers.err_empty_title'));
-
         setIsSaving(true);
         try
         {
@@ -114,23 +107,13 @@ export default function CreateStickerPackModal({existingPack = null, onSuccess, 
             {
                 if (sticker.isNew && sticker.file)
                 {
-                    await StickerService.addSticker(packShortName, {
-                        file:      sticker.file,
-                        shortcode: sticker.shortcode,
-                        keywords:  sticker.keywords
-                    });
+                    await StickerService.addSticker(packShortName, {file: sticker.file, shortcode: sticker.shortcode, keywords: sticker.keywords});
                 } else if (!sticker.isNew && existingPack)
                 {
                     const original = existingPack.stickers.find(s => s.id === sticker.id);
-                    const hasStickerChanged = original && (original.shortcode !== sticker.shortcode || original.keywords !== sticker.keywords || sticker.file);
-
-                    if (hasStickerChanged)
+                    if (original && (original.shortcode !== sticker.shortcode || original.keywords !== sticker.keywords || sticker.file))
                     {
-                        await StickerService.updateSticker(sticker.id, {
-                            file:      sticker.file,
-                            shortcode: sticker.shortcode,
-                            keywords:  sticker.keywords
-                        });
+                        await StickerService.updateSticker(sticker.id, {file: sticker.file, shortcode: sticker.shortcode, keywords: sticker.keywords});
                     }
                 }
             }
@@ -167,28 +150,17 @@ export default function CreateStickerPackModal({existingPack = null, onSuccess, 
     {
         setStickersChanged(true);
         setLocalStickers(prev => prev.filter(s => s.id !== id));
-        if (existingPack?.stickers?.find(s => s.id === id))
-        {
-            setDeletedStickerIds(prev => [...prev, id]);
-        }
+        if (existingPack?.stickers?.find(s => s.id === id)) setDeletedStickerIds(prev => [...prev, id]);
     };
 
     const footerButtons = (
-        <div className="tetrone-flex-between tetrone-w-full">
+        <div className="flex justify-between w-full items-center">
             <div>
-                {packShortName && (
-                    <Button variant="danger" onClick={executeDeletePack}>
-                        {t('action.delete')}
-                    </Button>
-                )}
+                {packShortName && <Button variant="danger" onClick={executeDeletePack}>{t('action.delete')}</Button>}
             </div>
-            <div className="tetrone-flex tetrone-gap-8">
-                <Button variant="secondary" onClick={handleCloseAttempt}>
-                    {t('action.cancel')}
-                </Button>
-                <Button onClick={handleSavePack} disabled={isSaving || !hasChanges}>
-                    {isSaving ? t('common.loading') : t('action.save')}
-                </Button>
+            <div className="flex gap-[8px]">
+                <Button variant="secondary" onClick={handleCloseAttempt}>{t('action.cancel')}</Button>
+                <Button onClick={handleSavePack} disabled={isSaving || !hasChanges}>{isSaving ? t('common.loading') : t('action.save')}</Button>
             </div>
         </div>
     );
@@ -201,71 +173,64 @@ export default function CreateStickerPackModal({existingPack = null, onSuccess, 
                 title={packShortName ? t('stickers.edit_pack') : t('stickers.create_pack')}
                 sizeClass="modal-lg"
                 footer={footerButtons}
-                bodyClassName="tetrone-pack-manager-body"
             >
-                <div className="tetrone-setup-layout">
-                    <div className="tetrone-setup-form-col">
-                        <label className="tetrone-classic-form-label">{t('stickers.pack_title')}</label>
+                <div className="flex gap-[20px] bg-[rgba(128,128,128,0.05)] border border-border p-[15px] mb-[20px] max-md:flex-col max-md:items-center">
+                    <div className="flex-1 flex flex-col justify-center max-md:w-full">
+                        <label className="font-bold text-[11px] mb-[4px]">{t('stickers.pack_title')}</label>
                         <input
                             type="text"
-                            className="tetrone-classic-input tetrone-w-full"
+                            className="bg-input-bg border border-input-border text-text-main p-[6px] w-full outline-none focus:border-theme-link"
                             value={title}
                             onChange={e => setTitle(e.target.value)}
                             maxLength={50}
                         />
 
-                        <label className="tetrone-checkbox-label tetrone-mt-15">
+                        <label className="flex items-center gap-[6px] cursor-pointer select-none mt-[15px]">
                             <input
                                 type="checkbox"
-                                className="tetrone-checkbox"
+                                className="w-[13px] h-[13px] accent-theme-link m-0"
                                 checked={isPublished}
                                 onChange={e => setIsPublished(e.target.checked)}
                             />
-                            <span className="tetrone-checkbox-text">{t('stickers.publish_in_catalog')}</span>
+                            <span className="text-[11px]">{t('stickers.publish_in_catalog')}</span>
                         </label>
                     </div>
 
-                    <div className="tetrone-setup-preview-col">
-                        <div className="tetrone-preview-label tetrone-text-center">{t('stickers.cover')}</div>
+                    <div className="w-[120px] shrink-0 flex flex-col items-center">
+                        <div className="text-[11px] font-bold text-text-main mb-[5px] text-center">{t('stickers.cover')}</div>
                         <div
-                            className="tetrone-pack-cover-img-preview tetrone-pointer"
+                            className="w-[100px] h-[100px] border border-border bg-bg-box flex items-center justify-center cursor-pointer transition-colors hover:border-theme-link overflow-hidden"
                             onClick={() => fileInputRef.current.click()}
                         >
-                            {coverPreview ? <img src={coverPreview} alt="Cover"/> : <div className="tetrone-pack-cover-placeholder">+</div>}
+                            {coverPreview ? <img src={coverPreview} alt="Cover" className="w-full h-full object-cover"/> : <div className="text-[32px] text-text-muted">+</div>}
                         </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleCoverChange}
-                            accept="image/png, image/jpeg, image/webp"
-                            className="tetrone-hidden"
-                        />
+                        <input type="file" ref={fileInputRef} onChange={handleCoverChange} accept="image/png, image/jpeg, image/webp" className="hidden"/>
                     </div>
                 </div>
 
                 {packShortName && (
-                    <div className="tetrone-pack-items-manager">
-                        <div className="tetrone-preview-label">
+                    <div className="border-t border-border pt-[20px]">
+                        <div className="text-[11px] font-bold mb-[10px]">
                             {t('stickers.stickers_list')} ({localStickers.length})
                         </div>
 
-                        <div className="tetrone-sticker-grid-scroll tetrone-packs-grid">
+                        <div className="grid grid-cols-5 gap-[8px] max-md:grid-cols-4 max-sm:grid-cols-3">
                             <div
-                                className="tetrone-grid-item tetrone-create-pack-card tetrone-pointer"
+                                className="flex flex-col items-center justify-center bg-[rgba(128,128,128,0.05)] border border-dashed border-theme-link cursor-pointer hover:bg-[rgba(128,128,128,0.1)] transition-colors aspect-square"
                                 onClick={() => setEditorModal({isOpen: true, sticker: null})}
                             >
-                                <div className="tetrone-create-pack-icon">+</div>
-                                <div className="tetrone-create-pack-text">{t('stickers.add_sticker')}</div>
+                                <div className="text-[24px] text-theme-link mb-[5px]">+</div>
+                                <div className="text-[11px] text-theme-link text-center px-[5px]">{t('stickers.add_sticker')}</div>
                             </div>
 
                             {localStickers.map(sticker => (
                                 <div
                                     key={sticker.id}
-                                    className="tetrone-grid-item tetrone-pointer tetrone-sticker-item-preview"
+                                    className="border border-border bg-bg-box cursor-pointer flex items-center justify-center aspect-square p-[4px] hover:border-theme-link transition-colors"
                                     onClick={() => setEditorModal({isOpen: true, sticker: sticker})}
                                     title={`:${sticker.shortcode}:`}
                                 >
-                                    <img src={sticker.url} alt={sticker.shortcode}/>
+                                    <img src={sticker.url} alt={sticker.shortcode} className="max-w-full max-h-full object-contain"/>
                                 </div>
                             ))}
                         </div>

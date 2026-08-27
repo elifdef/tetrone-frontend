@@ -42,21 +42,23 @@ export const useFriendsLogic = () => {
 
         setLoading(true);
 
-        const res = await FriendService.getList(tab, query, controller.signal);
+        try {
+            const res = await FriendService.getList(tab, query, controller.signal);
 
-        if (!controller.signal.aborted) {
-            if (res.success) {
-                setUsers(res.data || []);
-            } else {
-                if (res.status === 404) {
-                    setUsers([]);
-                } else {
-                    notifyError(res.message);
-                }
+            if (!controller.signal.aborted) {
+                // Витягуємо масив з data.data (якщо є пагінація) або з data, або напряму з res
+                const usersData = res?.users;
+                setUsers(Array.isArray(usersData) ? usersData : []);
             }
-            setLoading(false);
+        } catch (error) {
+            if (!controller.signal.aborted) {
+                if (error.status === 404) setUsers([]);
+                else notifyError(error.message || t('common.error'));
+            }
+        } finally {
+            if (!controller.signal.aborted) setLoading(false);
         }
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         setSearchQuery("");
@@ -78,24 +80,24 @@ export const useFriendsLogic = () => {
             if (!confirmed) return;
         }
 
-        let res;
+        try {
+            let res;
+            if (action === 'add') res = await addFriend(username);
+            else if (action === 'accept') res = await acceptRequest(username);
+            else if (action === 'delete' || action === 'cancel_request') res = await removeFriend(username);
+            else if (action === 'block') res = await blockUser(username);
+            else if (action === 'unblock') res = await unblockUser(username);
 
-        if (action === 'add') res = await addFriend(username);
-        else if (action === 'accept') res = await acceptRequest(username);
-        else if (action === 'delete' || action === 'cancel_request') res = await removeFriend(username);
-        else if (action === 'block') res = await blockUser(username);
-        else if (action === 'unblock') res = await unblockUser(username);
-
-        if (res?.success) {
-            notifySuccess(res.message);
+            // Якщо запит не впав у catch, вважаємо його успішним
+            notifySuccess(res?.message || t('common.success'));
 
             if (activeTab !== 'all') {
                 setUsers(prev => prev.filter(u => u.username !== username));
             } else {
                 fetchUsers('all', searchQuery.toLowerCase());
             }
-        } else {
-            notifyError(res?.message || t('common.error'));
+        } catch (error) {
+            notifyError(error.message || t('common.error'));
         }
     };
 

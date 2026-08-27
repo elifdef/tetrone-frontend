@@ -7,8 +7,7 @@ import SupportTicketList from '../components/support/views/SupportTicketList';
 import SupportTicketDetail from '../components/support/views/SupportTicketDetail';
 import SupportTicketForm from '../components/support/SupportTicketForm';
 
-const SupportPage = () =>
-{
+const SupportPage = () => {
     const { t } = useTranslation();
     usePageTitle(t('support.page_title'));
 
@@ -17,20 +16,17 @@ const SupportPage = () =>
     const currentCat = searchParams.get('cat');
     const currentTicketId = searchParams.get('ticket_id');
 
-    const navigateTo = (view, extraParams = {}) =>
-    {
+    const navigateTo = (view, extraParams = {}) => {
         setSearchParams({ view, ...extraParams });
     };
 
     return (
-        <div className="tetrone-support-container">
-            { currentView === 'home' && <SupportHome navigateTo={ navigateTo }/> }
-            { currentView === 'form' &&
-                <SupportTicketForm onCancel={ () => navigateTo('home') } onSuccess={ () => navigateTo('tickets') }/> }
-            { currentView === 'category' && <SupportFaq navigateTo={ navigateTo } categoryId={ currentCat }/> }
-            { currentView === 'tickets' && <SupportTicketList navigateTo={ navigateTo }/> }
-            { currentView === 'ticket_detail' &&
-                <SupportTicketDetail navigateTo={ navigateTo } ticketId={ currentTicketId }/> }
+        <div className="w-full max-w-[800px] mx-auto box-border p-[20px] bg-bg-page border border-border font-tahoma text-[11px] text-text-main max-md:p-[10px]">
+            {currentView === 'home' && <SupportHome navigateTo={navigateTo} />}
+            {currentView === 'form' && <SupportTicketForm onCancel={() => navigateTo('home')} onSuccess={() => navigateTo('tickets')} />}
+            {currentView === 'category' && <SupportFaq navigateTo={navigateTo} categoryId={currentCat} />}
+            {currentView === 'tickets' && <SupportTicketList navigateTo={navigateTo} />}
+            {currentView === 'ticket_detail' && <SupportTicketDetail navigateTo={navigateTo} ticketId={currentTicketId} />}
         </div>
     );
 };

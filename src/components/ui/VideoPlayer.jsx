@@ -1,72 +1,26 @@
-import React, { useMemo, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useRef } from 'react';
 import { Plyr } from "plyr-react";
-import "plyr/dist/plyr.css";
+import "plyr-react/plyr.css";
+import "./VideoPlayer.css"; // Підключаємо наш окремий файл зі стилями
+import { useVideoPlayerConfig } from "../../hooks/useVideoPlayerConfig";
 
 const VideoPlayer = React.memo(function VideoPlayer({
-    src,
-    type = 'video/mp4',
-    provider = 'html5',
-    poster = '',
-    className = ''
-}) {
-    const { t } = useTranslation();
+                                                        src,
+                                                        type = 'video/mp4',
+                                                        provider = 'html5',
+                                                        poster = '',
+                                                        className = ''
+                                                    }) {
     const wrapperRef = useRef(null);
     const plyrRef = useRef(null);
 
-    const plyrOptions = useMemo(() => ({
-        controls: [
-            'play-large', 'play', 'progress', 'current-time', 'duration',
-            'mute', 'volume', 'settings', 'pip', 'fullscreen'
-        ],
-        settings: ['quality', 'speed', 'loop'],
-        loop: { active: false },
-        speed: { selected: 1, options: [0.5, 1, 1.25, 1.5, 2, 3, 4] },
-        loadSprite: true,
-        autopause: false,
-        i18n: {
-            restart: t('video.restart'),
-            rewind: t('video.rewind'),
-            play: t('video.play'),
-            pause: t('video.pause'),
-            fastForward: t('video.forward'),
-            seek: t('video.seek'),
-            played: t('video.played'),
-            buffered: t('video.buffered'),
-            currentTime: t('video.currentTime'),
-            duration: t('video.duration'),
-            volume: t('video.volume'),
-            mute: t('video.mute'),
-            unmute: t('video.unmute'),
-            enableCaptions: t('video.enableCaptions'),
-            disableCaptions: t('video.disableCaptions'),
-            enterFullscreen: t('video.enterFullscreen'),
-            exitFullscreen: t('video.exitFullscreen'),
-            frameTitle: t('video.frameTitle'),
-            captions: t('video.captions'),
-            settings: t('video.settings'),
-            speed: t('video.speed'),
-            normal: t('video.normal'),
-            quality: t('video.quality'),
-            loop: t('video.loop'),
-        }
-    }), [t]);
-
-    const plyrSource = useMemo(() => ({
-        type: 'video',
-        sources: [{
-            src,
-            provider,
-            type: provider === 'youtube' ? undefined : type
-        }],
-        poster,
-    }), [src, type, provider, poster]);
+    // Отримуємо конфіг з нашого хука (Швидкість і Loop там уже є)
+    const { options, source } = useVideoPlayerConfig(src, type, provider, poster);
 
     useEffect(() => {
         const wrapper = wrapperRef.current;
         if (!wrapper) return;
 
-        // якщо проскролити вниз то відео зупиняється
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach(entry => {
@@ -81,7 +35,6 @@ const VideoPlayer = React.memo(function VideoPlayer({
             { threshold: 0.2 }
         );
 
-        // при пробілі відео зупиняється
         const handleKeyDown = (e) => {
             const activeTag = document.activeElement.tagName.toLowerCase();
             if (activeTag === 'input' || activeTag === 'textarea') return;
@@ -113,13 +66,13 @@ const VideoPlayer = React.memo(function VideoPlayer({
     return (
         <div
             ref={wrapperRef}
-            className={`tetrone-video-player retro-2012-player ${className}`}
             tabIndex="0"
+            className={`app-video-player focus:outline-none ${className}`}
         >
             <Plyr
                 ref={plyrRef}
-                source={plyrSource}
-                options={plyrOptions}
+                source={source}
+                options={options}
             />
         </div>
     );

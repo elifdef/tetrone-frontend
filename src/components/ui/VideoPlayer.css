@@ -1,0 +1,69 @@
+/* Базові стилі плеєра, які адаптуються під поточну тему через CSS-змінні */
+.app-video-player {
+    --plyr-color-main: var(--theme-link);
+    --plyr-video-background: #000000;
+    --plyr-menu-background: var(--theme-bg-box);
+    --plyr-menu-color: var(--theme-text-main);
+    --plyr-control-radius: 0px;
+    --plyr-menu-radius: 0px;
+    --plyr-tooltip-radius: 0px;
+    --plyr-badge-border-radius: 0px;
+}
+
+/* Рамка і тінь самого плеєра */
+.app-video-player.plyr,
+.app-video-player .plyr {
+    background: #000;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    outline: none;
+    border-radius: 0 !important;
+    overflow: hidden;
+}
+
+/* Панель керування */
+.app-video-player .plyr__controls {
+    border-top: 1px solid #444;
+    padding: 5px 10px !important;
+}
+
+/* Кастомний квадратний повзунок */
+.app-video-player input[type='range']::-webkit-slider-thumb {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+    height: 12px !important;
+    width: 8px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    margin-top: -4px;
+}
+
+.app-video-player input[type='range']::-moz-range-thumb {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+    height: 12px !important;
+    width: 8px !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Велика кнопка Play по центру */
+.app-video-player .plyr__control--overlaid {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #fff;
+    padding: 15px 25px;
+    border-radius: 0 !important;
+    transition: all 0.2s ease;
+}
+
+.app-video-player .plyr__control--overlaid:hover {
+    background: var(--theme-link);
+    border-color: var(--theme-link);
+}
+
+/* Меню налаштувань */
+.app-video-player .plyr__menu__container {
+    border: 1px solid var(--theme-border) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+}

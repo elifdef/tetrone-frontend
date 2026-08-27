@@ -8,7 +8,6 @@ import RegisterPage from "../pages/RegisterPage";
 import SetupProfilePage from "../pages/SetupProfilePage";
 import IndexPage from "../pages/IndexPage";
 import FeedPage from "../pages/FeedPage.jsx";
-import ProfilePage from "../pages/ProfilePage";
 import FriendsPage from "../pages/FriendsPage";
 import PostPage from "../pages/PostPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -25,9 +24,9 @@ import MessagesPage from "../pages/MessagesPage";
 import StickerShopPage from '../pages/StickerShopPage';
 import AdminPage from '../pages/AdminPage';
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
-import SpacePage from "../pages/SpacePage";
 import EntityResolverPage from "../pages/EntityResolverPage";
 import SpacesPage from "../pages/SpacesPage";
+import AboutPage from "../pages/AboutPage.jsx";
 export default function AppRoutes() {
     const { user } = useContext(AuthContext);
 
@@ -53,6 +52,8 @@ export default function AppRoutes() {
                 <Route path="/rules" element={<RulesPage />} />
                 {/* підтримка */}
                 <Route path="/support" element={<SupportPage />} />
+                {/* про проект */}
+                <Route path="/about" element={<AboutPage />} />
 
                 {/* маршрути для користувачів які ввійшли */}
                 <Route element={<AuthGuard />}>
@@ -92,6 +93,7 @@ export default function AppRoutes() {
                 </Route>
 
                 <Route path="/:handle" element={<EntityResolverPage />} />
+
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

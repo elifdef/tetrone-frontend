@@ -1,9 +1,3 @@
-import { useState, useContext } from "react";
-import { useTranslation } from "react-i18next";
-import { useUserProfileLogic } from "../hooks/useUserProfileLogic";
-import { AuthContext } from "../../../context/AuthContext";
-import ReportModal from "../../modals/ReportModal";
-import { userRole } from "../../../config";
 import ProfileAvatar from "./ProfileAvatar";
 import ProfileActions from "./ProfileActions";
 import ProfileHeader from "./ProfileHeader";
@@ -11,78 +5,37 @@ import ProfileStatus from "./ProfileStatus";
 import ProfileInfo from "./ProfileInfo";
 import StaffBanner from "./StaffBanner";
 
-export default function ClassicProfileCard({ currentUser, isPreview = false }) {
-    const { user: authUser } = useContext(AuthContext);
-    const { t } = useTranslation();
-
-    if (!currentUser) return null;
-
-    const {
-        status, loading, sameUser,
-        isBanned, isBlockedByMe, isBlockedByTarget,
-        displayAvatar, displayBio, displayBirth, displayCountry, displayGender,
-        handleFriendshipAction, handleBlockAction
-    } = useUserProfileLogic(currentUser, isPreview);
-
-    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-
-    const isStaff = currentUser.role >= userRole.Support;
-    const isPrivateProfile = currentUser.is_private && !sameUser;
-
-    const effectiveBio = isPrivateProfile ? t('privacy.account_is_private') : displayBio;
+export default function ClassicProfileCard(props) {
+    const { isPreview, isStaff, isBanned, isBlockedByTarget, isPrivateProfile, authUser, sameUser } = props;
 
     return (
-        <div className="tetrone-card-wrapper">
-            {!isPreview && isStaff && !isBanned && <StaffBanner userRole={currentUser.role} />}
-            <div className="tetrone-container">
-                <div className="tetrone-left-col">
-                    <ProfileAvatar
-                        user={{ ...currentUser, avatar: displayAvatar }}
-                        isPreview={isPreview}
-                        isBlocked={isBlockedByTarget || isBanned || isPrivateProfile}
-                    />
+        <div className="w-full max-w-[800px] mx-auto p-[20px] bg-bg-page border border-border text-[11px] text-text-main box-border overflow-visible">
+
+            {!isPreview && isStaff && !isBanned && (
+                <StaffBanner role={props.user.role} />
+            )}
+
+            <div className="flex gap-[15px] flex-nowrap overflow-visible max-md:flex-col max-md:gap-[10px]">
+
+                {/* tetrone-left-col */}
+                <div className="w-[200px] shrink-0 relative z-50 overflow-visible max-md:w-full">
+                    <ProfileAvatar {...props} />
 
                     {!isPreview && authUser && (!isPreview || sameUser) && (
-                        <ProfileActions
-                            sameUser={sameUser}
-                            userId={currentUser.id}
-                            loading={loading}
-                            status={status}
-                            isBlockedByMe={isBlockedByMe}
-                            isBlockedByTarget={isBlockedByTarget}
-                            onFriendAction={handleFriendshipAction}
-                            onBlockAction={handleBlockAction}
-                            isBanned={isBanned}
-                            onReportAction={() => setIsReportModalOpen(true)}
-                            permissions={currentUser.permissions}
-                        />
+                        <ProfileActions {...props} />
                     )}
                 </div>
 
-                <div className="tetrone-right-col">
-                    <ProfileHeader user={currentUser} isPreview={isPreview} />
-
-                    <ProfileStatus bio={effectiveBio} />
+                {/* tetrone-right-col */}
+                <div className="grow min-w-0 pr-[5px] relative z-10 max-md:w-full max-md:pr-0">
+                    <ProfileHeader {...props} />
+                    <ProfileStatus bio={props.effectiveBio} />
 
                     {(isPreview || (!isBlockedByTarget && !isBanned && !isPrivateProfile)) && (
-                        <ProfileInfo
-                            user={currentUser}
-                            displayBirth={displayBirth}
-                            displayCountry={displayCountry}
-                            displayGender={displayGender}
-                            showFriendsBlock={!isPreview}
-                        />
+                        <ProfileInfo {...props} />
                     )}
                 </div>
             </div>
-            {currentUser && (
-                <ReportModal
-                    isOpen={isReportModalOpen}
-                    onClose={() => setIsReportModalOpen(false)}
-                    targetType="user"
-                    targetId={currentUser.id}
-                />
-            )}
         </div>
     );
 }

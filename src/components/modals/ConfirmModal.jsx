@@ -2,16 +2,7 @@ import {useTranslation} from "react-i18next";
 import Button from "../ui/Button";
 import Modal from "./Modal";
 
-export default function ConfirmModal(
-    {
-        isOpen,
-        onClose,
-        onResolve,
-        title,
-        message,
-        btnSubmit,
-        btnCancel
-    })
+export default function ConfirmModal({isOpen, onClose, onResolve, title, message, btnSubmit, btnCancel})
 {
     const {t} = useTranslation();
 
@@ -46,7 +37,9 @@ export default function ConfirmModal(
             sizeClass="modal-sm"
             footer={footerButtons}
         >
-            <div className="tetrone-modal-message">{message}</div>
+            <div className="text-[12px] leading-[1.5] m-0 mb-[15px]">
+                {message}
+            </div>
         </Modal>
     );
 }

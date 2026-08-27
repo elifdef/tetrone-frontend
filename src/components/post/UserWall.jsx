@@ -19,15 +19,15 @@ export default function UserWall({ profileUser, isOwnProfile }) {
     const canWriteOnWall = Boolean(profileUser.permissions?.can_post_on_wall);
 
     return (
-        <div className="tetrone-wall">
+        <div className="bg-bg-box border border-border p-[15px] mt-[15px] max-md:mx-[-10px] max-md:border-x-0">
             <WallHeader postsCount={wallData.countPosts} />
 
             {canWriteOnWall ? (
                 <CreatePostForm onSubmitSuccess={wallData.createPost} />
             ) : (
                 authUser && !isOwnProfile && (
-                    <div className="tetrone-empty-state with-card tetrone-mb-15">
-                        <span className="tetrone-text-muted">{t('privacy.wall_posting_disabled')}</span>
+                    <div className="text-center text-text-muted p-[30px_20px] text-[13px] w-full box-border bg-bg-box my-[20px] mx-auto max-w-[500px]">
+                        <span className="text-text-muted">{t('privacy.wall_posting_disabled')}</span>
                     </div>
                 )
             )}
@@ -39,7 +39,7 @@ export default function UserWall({ profileUser, isOwnProfile }) {
                 hasMore={wallData.hasMore}
                 onLoadMore={wallData.loadMore}
                 emptyState={
-                    <div className="tetrone-empty-state with-card">
+                    <div className="text-center text-text-muted p-[30px_20px] text-[13px] w-full box-border bg-bg-box my-[20px] mx-auto max-w-[500px]">
                         {t('empty.wall')}
                     </div>
                 }

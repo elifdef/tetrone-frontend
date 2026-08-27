@@ -2,7 +2,6 @@ import {useTranslation} from 'react-i18next';
 import {Link} from 'react-router';
 import Avatar from '../ui/Avatar';
 import Modal from './Modal.jsx';
-import './OnlineUsersModal.css';
 
 export default function OnlineUsersModal({isOpen, onClose, users})
 {

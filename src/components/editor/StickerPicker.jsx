@@ -1,82 +1,47 @@
-import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import StickerService from '../../services/sticker.service';
 
-export default function StickerPicker({ onSelect }) {
+export default function StickerPicker({
+                                          packs, favorites, isLoading, searchQuery, onSearchChange, onSelect
+                                      }) {
     const { t } = useTranslation();
-    const [packs, setPacks] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-
-    const [favorites] = useState(() => {
-        const saved = localStorage.getItem('tetrone_favorite_emojis');
-        return saved ? JSON.parse(saved) : [];
-    });
-
-    useEffect(() => {
-        const fetchPacks = async () => {
-            try {
-                const response = await StickerService.getMyPacks();
-                setPacks(response.packs);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchPacks();
-    }, []);
-
-    const handleStickerClick = (sticker, packInfo) => {
-        onSelect({
-            ...sticker,
-            url: sticker.url || sticker.src,
-            pack_short_name: packInfo?.short_name || packInfo?.id
-        });
-    };
-
-    // Фільтрація, якщо є пошук
     const isSearching = searchQuery.trim().length > 0;
     const query = searchQuery.toLowerCase();
 
     return (
-        <div className="tetrone-sticker-picker" onClick={(e) => e.stopPropagation()}>
-            <div className="tetrone-sticker-picker-search-top">
+        <div className="w-[280px] h-[350px] bg-bg-box border border-border shadow-[0_4px_15px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-[8px] border-b border-border">
                 <input
                     type="text"
-                    className="tetrone-form-input"
+                    className="w-full px-[10px] py-[8px] border border-input-border bg-input-bg text-text-main text-[13px] rounded focus:border-theme-link focus:outline-none"
                     placeholder={t('stickers.search_placeholder')}
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => onSearchChange(e.target.value)}
                 />
             </div>
 
-            <div className="tetrone-sticker-picker-content tetrone-sticker-scroll-area">
+            <div className="flex-1 overflow-y-auto p-[10px]">
                 {isLoading ? (
-                    <div className="tetrone-sticker-picker-empty">{t('common.loading')}</div>
+                    <div className="text-[11px] text-text-muted italic pl-[5px]">{t('common.loading')}</div>
                 ) : (
                     <>
-                        {/* БЛОК: Улюблені (ховаємо, якщо йде пошук) */}
                         {!isSearching && (
-                            <div className="tetrone-sticker-pack-section">
-                                <div className="tetrone-sticker-pack-title">⭐ {t('stickers.your_favorites')}</div>
+                            <div className="mb-[15px]">
+                                <div className="text-[11px] text-text-muted mb-[8px] font-bold flex items-center gap-[5px]">⭐ {t('stickers.your_favorites')}</div>
                                 {favorites.length > 0 ? (
-                                    <div className="tetrone-sticker-picker-grid">
+                                    <div className="grid grid-cols-5 gap-[5px]">
                                         {favorites.map(sticker => (
-                                            <button key={`fav-${sticker.id}`} type="button" className="tetrone-sticker-btn" onClick={() => handleStickerClick(sticker, null)} title={`:${sticker.shortcode}:`}>
-                                                <img src={sticker.url || sticker.src} alt={sticker.shortcode} />
+                                            <button key={`fav-${sticker.id}`} type="button" className="bg-transparent border-none cursor-pointer p-[4px] hover:bg-bg-page transition-colors" onClick={() => onSelect(sticker, null)} title={`:${sticker.shortcode}:`}>
+                                                <img src={sticker.url || sticker.src} alt={sticker.shortcode} className="w-full h-auto" />
                                             </button>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="tetrone-sticker-empty-text">{t('stickers.no_favorites')}</div>
+                                    <div className="text-[11px] text-text-muted italic pl-[5px]">{t('stickers.no_favorites')}</div>
                                 )}
                             </div>
                         )}
 
-                        {/* БЛОК: Усі Паки */}
                         {packs.map(pack => {
-                            // Фільтруємо стікери всередині паку, якщо є пошук
                             const filteredStickers = isSearching
                                 ? pack.stickers.filter(s => s.shortcode.toLowerCase().includes(query) || (s.keywords && s.keywords.toLowerCase().includes(query)))
                                 : pack.stickers;
@@ -84,15 +49,15 @@ export default function StickerPicker({ onSelect }) {
                             if (filteredStickers.length === 0) return null;
 
                             return (
-                                <div key={pack.id} className="tetrone-sticker-pack-section">
-                                    <div className="tetrone-sticker-pack-title">
-                                        <img src={pack.cover_url} alt="" className="tetrone-pack-title-icon" />
+                                <div key={pack.id} className="mb-[15px]">
+                                    <div className="text-[11px] text-text-muted mb-[8px] font-bold flex items-center gap-[5px]">
+                                        <img src={pack.cover_url} alt="" className="w-[14px] h-[14px]" />
                                         {pack.title}
                                     </div>
-                                    <div className="tetrone-sticker-picker-grid">
+                                    <div className="grid grid-cols-5 gap-[5px]">
                                         {filteredStickers.map(sticker => (
-                                            <button key={sticker.id} type="button" className="tetrone-sticker-btn" onClick={() => handleStickerClick(sticker, pack)} title={`:${sticker.shortcode}:`}>
-                                                <img src={sticker.url || sticker.src} alt={sticker.shortcode} />
+                                            <button key={sticker.id} type="button" className="bg-transparent border-none cursor-pointer p-[4px] hover:bg-bg-page transition-colors" onClick={() => onSelect(sticker, pack)} title={`:${sticker.shortcode}:`}>
+                                                <img src={sticker.url || sticker.src} alt={sticker.shortcode} className="w-full h-auto" />
                                             </button>
                                         ))}
                                     </div>

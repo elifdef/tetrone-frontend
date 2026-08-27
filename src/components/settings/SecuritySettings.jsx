@@ -17,38 +17,40 @@ const SecuritySettings = () => {
     } = useSecuritySettings();
 
     return (
-        <>
-            <UsernameManager
-                user={user}
-                t={t}
-                onUserUpdate={fetchUserData} 
-            />
+        <div className="flex flex-col gap-[15px] w-full font-tahoma text-[11px] text-text-main">
+            <div className="w-full bg-bg-box border border-border flex flex-col">
+                <UsernameManager
+                    user={user}
+                    t={t}
+                    onUserUpdate={fetchUserData}
+                />
 
-            <EmailChangeForm
-                user={user}
-                email={email}
-                setEmail={setEmail}
-                passwordForEmail={passwordForEmail}
-                setPasswordForEmail={setPasswordForEmail}
-                loading={loadingEmail}
-                onSubmit={handleUpdateEmail}
-                t={t}
-            />
+                <EmailChangeForm
+                    user={user}
+                    email={email}
+                    setEmail={setEmail}
+                    passwordForEmail={passwordForEmail}
+                    setPasswordForEmail={setPasswordForEmail}
+                    loading={loadingEmail}
+                    onSubmit={handleUpdateEmail}
+                    t={t}
+                />
 
-            <PasswordChangeForm
-                currentPassword={currentPassword}
-                setCurrentPassword={setCurrentPassword}
-                newPassword={newPassword}
-                setNewPassword={setNewPassword}
-                confirmPassword={confirmPassword}
-                setConfirmPassword={setConfirmPassword}
-                loading={loadingPass}
-                onSubmit={handleUpdatePassword}
-                t={t}
-            />
+                <PasswordChangeForm
+                    currentPassword={currentPassword}
+                    setCurrentPassword={setCurrentPassword}
+                    newPassword={newPassword}
+                    setNewPassword={setNewPassword}
+                    confirmPassword={confirmPassword}
+                    setConfirmPassword={setConfirmPassword}
+                    loading={loadingPass}
+                    onSubmit={handleUpdatePassword}
+                    t={t}
+                />
 
-            <DangerZone t={t} />
-        </>
+                <DangerZone t={t} />
+            </div>
+        </div>
     );
 };
 

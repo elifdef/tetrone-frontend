@@ -11,7 +11,7 @@ export default function WallPostList({
     const editingPost = posts.find(post => post.id === editingPostId);
 
     return (
-        <div className="tetrone-post-list">
+        <div className="mt-[10px]">
             {posts.map(post => {
                 const isAuthor = authUser && post.user && authUser.username === post.user.username;
 

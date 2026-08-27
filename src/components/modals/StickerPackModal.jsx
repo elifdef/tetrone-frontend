@@ -5,7 +5,6 @@ import StickerService from '../../services/sticker.service';
 import {ReportIcon} from '../ui/Icons';
 import Button from '../ui/Button';
 import Modal from './Modal';
-import './StickerPackModal.css';
 
 export default function StickerPackModal({pack, onClose, onRefresh})
 {

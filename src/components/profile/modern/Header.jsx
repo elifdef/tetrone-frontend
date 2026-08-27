@@ -1,271 +1,66 @@
-import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
 import { useTranslation } from 'react-i18next';
-import { useDateFormatter } from "../../../hooks/useDateFormatter";
-import PostService from "../../../services/post.service";
-import MessageService from "../../../services/chat.service";
-import { notifyError } from "../../common/Notify";
-import PhotoModal from "../../modals/PhotoModal.jsx";
-import Button from "../../ui/Button";
 import Avatar from "../../ui/Avatar";
+import ProfileActions from "../classic/ProfileActions";
 
-export default function Header({
-    currentUser, isPreview, displayAvatar, isBlockedByTarget, isBanned, isDeleted,
-    authUser, sameUser, loading, status, isBlockedByMe,
-    handleFriendshipAction, handleBlockAction, onReportAction,
-    customNameColor, isPrivateProfile
-})
-{
+export default function Header(props) {
+    const {
+        user, isPreview, displayAvatar, isBlockedByTarget, isBanned, isPrivateProfile,
+        authUser, sameUser, statusText, onAvatarClick, isAvatarLoading
+    } = props;
+
     const { t } = useTranslation();
-    const navigate = useNavigate();
-    const formatDate = useDateFormatter();
 
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isChatLoading, setIsChatLoading] = useState(false);
-    const menuRef = useRef(null);
-
-    const [avatarPosts, setAvatarPosts] = useState([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-    const [isLoadingAvatar, setIsLoadingAvatar] = useState(false);
-
-    useEffect(() =>
-    {
-        const handleClickOutside = (event) =>
-        {
-            if (menuRef.current && !menuRef.current.contains(event.target))
-            {
-                setIsMenuOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const getStatusText = () =>
-    {
-        if (currentUser.is_online)
-        {
-            return t('common.online');
-        }
-        if (!currentUser.last_seen)
-        {
-            return t('common.offline');
-        }
-
-        const dateStr = formatDate(currentUser.last_seen);
-        if (currentUser.gender === 1)
-        {
-            return t('profile.status.last_seen_m', { time: dateStr });
-        }
-        if (currentUser.gender === 2)
-        {
-            return t('profile.status.last_seen_f', { time: dateStr });
-        }
-    };
-
-    const getStatusBlock = () =>
-    {
-        if (isPreview || isPrivateProfile)
-        {
-            return null;
-        }
-
-        return (
-            <span className={ `tetrone-modern-status ${ currentUser.is_online ? 'online' : 'offline' }` }>
-                { currentUser.is_online && <span className="tetrone-modern-online-dot"></span> }
-                { getStatusText() }
-            </span>
-        );
-    };
-
-    const getActionBtnLabel = () =>
-    {
-        if (loading)
-        {
-            return "...";
-        }
-        if (isBlockedByMe)
-        {
-            return t('profile.menu.you_have_blocked');
-        }
-        switch (status)
-        {
-            case 'friends':
-                return t('friends.your_contacts');
-            case 'pending_sent':
-                return t('friends.request_sent');
-            case 'pending_received':
-                return t('profile.menu.request_received');
-            default:
-                return t('profile.menu.add_friends');
-        }
-    };
-
-    const getFriendMenuLabel = () =>
-    {
-        switch (status)
-        {
-            case 'friends':
-                return t('action.remove');
-            case 'pending_sent':
-                return t('profile.menu.cancel_request');
-            case 'pending_received':
-                return t('action.accept');
-            default:
-                return t('profile.menu.add_friends');
-        }
-    };
-
-    const handleSendMessage = async () =>
-    {
-        setIsChatLoading(true);
-        const res = await MessageService.initChat(currentUser.id);
-
-        if (res.success && res.data?.chat_slug)
-        {
-            navigate(`/messages?dm=${ res.data.chat_slug }`);
-        }
-        else
-        {
-            notifyError(res.message);
-        }
-        setIsChatLoading(false);
-    };
-
+    // Логіка для аватара
+    const isBlocked = isBlockedByTarget || isBanned || isPrivateProfile;
     const hasCustomAvatar = displayAvatar && !displayAvatar.includes('defaultAvatar');
+    const canViewAvatar = !isPreview && !isBlocked && hasCustomAvatar;
 
-    const canViewAvatar = !isPreview && !(isBlockedByTarget || isBanned || isPrivateProfile) && hasCustomAvatar;
-    const nameStyle = { color: customNameColor };
-
-    const handleAvatarClick = async () =>
-    {
-        if (!canViewAvatar || isLoadingAvatar)
-        {
-            return;
-        }
-
-        setIsLoadingAvatar(true);
-        const res = await PostService.getUserAvatars(currentUser.username);
-
-        if (res)
-        {
-            const posts = res.avatars;
-            if (posts.length > 0)
-            {
-                setAvatarPosts(posts);
-                setCurrentIndex(0);
-                setIsPhotoModalOpen(true);
-            }
-        }
-        else
-        {
-            notifyError(res.message);
-        }
-        setIsLoadingAvatar(false);
-    };
-
-    const nextAvatar = () => setCurrentIndex(prev => (prev + 1) % avatarPosts.length);
-    const prevAvatar = () => setCurrentIndex(prev => (prev - 1 + avatarPosts.length) % avatarPosts.length);
+    const customNameColor = user.personalization?.username_color;
+    const nameStyle = customNameColor && customNameColor.startsWith('#') ? { color: customNameColor } : {};
 
     return (
-        <div className="tetrone-modern-header">
-            <div className="tetrone-modern-header-main">
-                <div className="tetrone-modern-avatar-wrapper">
+        <div className="flex justify-between items-end px-[20px] -mt-[60px] relative z-10 gap-[15px] flex-wrap max-md:flex-col max-md:items-center max-md:-mt-[65px] max-md:px-[15px]">
+
+            <div className="flex items-end gap-[15px] flex-1 min-w-0 max-md:flex-col max-md:items-center max-md:w-full max-md:text-center">
+                {/* Аватарка */}
+                <div className="w-[130px] h-[130px] border-[6px] border-bg-box bg-bg-box overflow-hidden relative z-10 box-border shrink-0 max-md:mx-auto">
                     <Avatar
-                        user={ currentUser }
-                        className={ `tetrone-modern-avatar ${ canViewAvatar ? 'tetrone-clickable' : '' } ${ isLoadingAvatar ? 'tetrone-loading' : '' }` }
-                        onClick={ handleAvatarClick }
+                        user={{ ...user, avatar: displayAvatar }}
+                        className={`w-full h-full object-cover block 
+                            ${isBlocked && !isPreview ? 'opacity-60 grayscale' : ''} 
+                            ${canViewAvatar ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''} 
+                            ${isAvatarLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                        onClick={canViewAvatar ? onAvatarClick : undefined}
                     />
                 </div>
 
-                <div className="tetrone-modern-name-row">
-                    <h1 className="tetrone-modern-name" style={ nameStyle }>
-                        { currentUser.first_name } { currentUser.last_name }
+                {/* Інформація (Ім'я, Нік, Статус) */}
+                <div className="mb-[12px] flex flex-col flex-1 min-w-0">
+                    <h1 className="text-[20px] font-bold m-0 leading-[1.1] text-text-main whitespace-normal overflow-wrap-anywhere break-words" style={nameStyle}>
+                        {user.first_name} {user.last_name}
                     </h1>
-                    <div className="tetrone-modern-nick-row">
-                        <span className="tetrone-modern-nick" style={ nameStyle }>@{ currentUser.username }</span>
-                        { getStatusBlock() }
+
+                    <div className="flex items-center gap-[10px] mt-[4px] flex-wrap max-md:justify-center">
+                        <span className="text-[13px] text-text-muted" style={nameStyle}>@{user.username}</span>
+                        {!isPreview && !user.is_private && (
+                            <span className={`text-[12px] flex items-center gap-[5px] ${user.is_online ? 'text-theme-success font-bold' : 'text-text-muted'}`}>
+                                {user.is_online && <span className="w-[6px] h-[6px] bg-theme-success inline-block"></span>}
+                                {statusText}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
 
-            <div className="tetrone-modern-actions-group">
-                { sameUser && !isPreview && (
-                    <Link to="/settings" className="tetrone-btn tetrone-btn-primary">
-                        { t('action.edit') }
-                    </Link>
-                ) }
-
-                { !sameUser && !isPreview && !isBlockedByTarget && authUser && !isDeleted && (
-                    <>
-                        { !isBlockedByMe && currentUser.permissions?.can_message && (
-                            <Button
-                                className="tetrone-btn modern-action-btn"
-                                onClick={ handleSendMessage }
-                                disabled={ isChatLoading || loading }
-                            >
-                                { isChatLoading ? '...' : t('messages.send_message') }
-                            </Button>
-                        ) }
-
-                        <div className="tetrone-dropdown-wrapper" ref={ menuRef }>
-                            <Button
-                                className="tetrone-btn tetrone-btn-dropdown-trigger modern-trigger"
-                                onClick={ () => setIsMenuOpen(!isMenuOpen) }
-                                disabled={ loading }
-                            >
-                                { getActionBtnLabel() }
-                            </Button>
-
-                            { isMenuOpen && (
-                                <div className="tetrone-menu-list modern-menu-list">
-                                    { !isBlockedByMe && (
-                                        <button className="tetrone-menu-item" onClick={ () =>
-                                        {
-                                            handleFriendshipAction();
-                                            setIsMenuOpen(false);
-                                        } }>
-                                            { getFriendMenuLabel() }
-                                        </button>
-                                    ) }
-
-                                    <button className="tetrone-menu-item modern-menu-item" onClick={ () =>
-                                    {
-                                        onReportAction();
-                                        setIsMenuOpen(false);
-                                    } }>
-                                        { t('reports.title') }
-                                    </button>
-
-                                    <button
-                                        className={ `tetrone-menu-item ${ !isBlockedByMe ? 'danger' : '' }` }
-                                        onClick={ () =>
-                                        {
-                                            handleBlockAction();
-                                            setIsMenuOpen(false);
-                                        } }
-                                    >
-                                        { isBlockedByMe ? t('action.unblock') : t('action.block') }
-                                    </button>
-                                </div>
-                            ) }
-                        </div>
-                    </>
-                ) }
+            {/* Блок з кнопками дій */}
+            <div className="flex gap-[10px] items-end pb-[15px] z-10 max-md:w-full max-md:justify-center max-md:pb-0 max-md:mt-[15px]">
+                {!sameUser && !isPreview && authUser && !user.is_deleted && (
+                    <div className="flex gap-[10px] items-center mb-[12px] max-md:w-full max-md:justify-center max-md:flex-wrap [&_.relative]:w-auto [&_button]:w-auto [&_button]:px-[15px] [&_button]:py-[6px] [&_.absolute]:right-0 [&_.absolute]:left-auto [&_.absolute]:min-w-[180px]">
+                        {/* Ми просто перевикористовуємо логіку кнопок з класичної теми! */}
+                        <ProfileActions {...props} />
+                    </div>
+                )}
             </div>
-
-            { avatarPosts.length > 0 && (
-                <PhotoModal
-                    isOpen={ isPhotoModalOpen }
-                    post={ avatarPosts[currentIndex] }
-                    onClose={ () => setIsPhotoModalOpen(false) }
-                    onNext={ avatarPosts.length > 1 ? nextAvatar : null }
-                    onPrev={ avatarPosts.length > 1 ? prevAvatar : null }
-                    listCurrent={ currentIndex + 1 }
-                    listTotal={ avatarPosts.length }
-                />
-            ) }
         </div>
     );
 }

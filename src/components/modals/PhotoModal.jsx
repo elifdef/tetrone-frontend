@@ -7,30 +7,17 @@ import RichText from "../common/RichText.jsx";
 import { usePostMedia } from "../post/hooks/usePostMedia.js";
 import VideoPlayer from "../ui/VideoPlayer.jsx";
 import { usePostActions } from "../post/hooks/usePostActions.js";
-import './PhotoModal.css';
+import Modal from "./Modal.jsx";
 
 export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, onNext, onPrev, listCurrent, listTotal }) {
     const { t } = useTranslation();
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    const {
-        postData: modalPost,
-        toggleLike,
-        updateLocalPost
-    } = usePostActions(post, false, null, null);
-
-    const { local, external } = usePostMedia(
-        modalPost?.content || '',
-        modalPost?.attachments || [],
-        modalPost?.entities || null
-    );
+    const { postData: modalPost, toggleLike, updateLocalPost } = usePostActions(post, false, null, null);
+    const { local, external } = usePostMedia(modalPost?.content || '', modalPost?.attachments || [], modalPost?.entities || null);
 
     const mediaFiles = React.useMemo(() => {
-        return [
-            ...local.images,
-            ...local.videos,
-            ...external.youtube.filter(yt => !yt.isRemoved)
-        ];
+        return [...local.images, ...local.videos, ...external.youtube.filter(yt => !yt.isRemoved)];
     }, [local.images, local.videos, external.youtube]);
 
     useEffect(() => {
@@ -38,12 +25,6 @@ export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, o
         const index = mediaFiles.findIndex(m => m.id === mediaId || m.videoId === mediaId);
         setCurrentIndex(index !== -1 ? index : 0);
     }, [mediaId, mediaFiles]);
-
-    useEffect(() => {
-        if (isOpen) document.body.classList.add('modal-open');
-        else document.body.classList.remove('modal-open');
-        return () => document.body.classList.remove('modal-open');
-    }, [isOpen]);
 
     useEffect(() => {
         updateLocalPost(post);
@@ -78,13 +59,12 @@ export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, o
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape') onClose();
             if (e.key === 'ArrowRight' && showNav) clickNext();
             if (e.key === 'ArrowLeft' && showNav) clickPrev();
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, onClose, clickNext, clickPrev, showNav]);
+    }, [isOpen, clickNext, clickPrev, showNav]);
 
     const handleModalLike = async () => {
         await toggleLike();
@@ -104,74 +84,71 @@ export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, o
     if (!isOpen || !modalPost) return null;
 
     const currentMedia = mediaFiles[currentIndex];
-
     const displayCurrent = hasExternalNav ? listCurrent : currentIndex + 1;
     const displayTotal = hasExternalNav ? listTotal : mediaFiles.length;
 
     return (
-        <div className="tetrone-modal-overlay" onClick={onClose}>
-            <div className="tetrone-modal-dialog modal-lg" onClick={(e) => e.stopPropagation()}>
-                <div className="tetrone-modal-header">
-                    <h3>{t('common.photo')} {displayCurrent} {t('common.from')} {displayTotal}</h3>
-                    <button className="tetrone-modal-close" onClick={onClose}>✖</button>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={`${t('common.photo')} ${displayCurrent} ${t('common.from')} ${displayTotal}`}
+            sizeClass="modal-lg"
+            bodyClassName="!p-0"
+        >
+            <div className="flex flex-col bg-bg-box">
+                {/* Зона медіа */}
+                <div className="relative bg-black flex justify-center items-center min-h-[300px]">
+                    {showNav && (
+                        <>
+                            <div className="absolute top-0 bottom-0 left-0 w-[40px] flex items-center justify-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity z-[10]" onClick={clickPrev}>
+                                <div className="text-white text-[40px] font-bold select-none drop-shadow-md">‹</div>
+                            </div>
+                            <div className="absolute top-0 bottom-0 right-0 w-[40px] flex items-center justify-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity z-[10]" onClick={clickNext}>
+                                <div className="text-white text-[40px] font-bold select-none drop-shadow-md">›</div>
+                            </div>
+                        </>
+                    )}
+
+                    <div className="max-w-full max-h-[80vh] flex items-center justify-center">
+                        {currentMedia?.type === 'image' && (
+                            <img src={currentMedia.url} className="max-w-full max-h-[80vh] object-contain block m-auto" alt="" />
+                        )}
+                        {currentMedia?.type === 'video' && (
+                            <VideoPlayer src={currentMedia.url} controls className="max-w-full max-h-[80vh]" />
+                        )}
+                        {currentMedia?.videoId && (
+                            <VideoPlayer src={currentMedia.videoId} provider="youtube" className="max-w-full max-h-[80vh]" />
+                        )}
+                    </div>
                 </div>
 
-                <div className="tetrone-modal-body tetrone-photo-modal-body">
+                {/* Зона інформації (пост + коментарі) */}
+                <div className="p-[15px] bg-bg-box border-t border-border">
+                    <PostHeader post={modalPost} isOwner={false} />
 
-                    <div className="tetrone-classic-photo-container">
-                        {showNav && (
-                            <>
-                                <div className="tetrone-photo-nav-zone left" onClick={clickPrev}>
-                                    <div className="tetrone-photo-nav-arrow">‹</div>
-                                </div>
-                                <div className="tetrone-photo-nav-zone right" onClick={clickNext}>
-                                    <div className="tetrone-photo-nav-arrow">›</div>
-                                </div>
-                            </>
-                        )}
+                    {modalPost.content && (
+                        <div className="mt-[10px] mb-[15px]">
+                            <RichText text={modalPost.content} />
+                        </div>
+                    )}
 
-                        {currentMedia?.type === 'image' && (
-                            <img src={currentMedia.url} className="tetrone-classic-photo" alt="" />
-                        )}
+                    <PostFooter
+                        postId={modalPost.id}
+                        isLiked={modalPost.is_liked}
+                        likesCount={modalPost.likes_count}
+                        commentsCount={modalPost.comments_count}
+                        onLike={handleModalLike}
+                        className="!p-0 !pl-0"
+                    />
 
-                        {currentMedia?.type === 'video' && (
-                            <VideoPlayer src={currentMedia.url} controls className="tetrone-classic-photo" />
-                        )}
+                    <div className="border-t border-border my-[10px]"></div>
 
-                        {currentMedia?.videoId && (
-                            <div className="tetrone-classic-photo">
-                                <VideoPlayer src={currentMedia.videoId} provider="youtube" />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Інформація про пост і коментарі знизу (як у класичному ВК) */}
-                    <div className="tetrone-photo-modal-info">
-                        <PostHeader post={modalPost} isOwner={false} />
-
-                        {modalPost.content && (
-                            <div className="tetrone-post-content tetrone-mt-15">
-                                <RichText text={modalPost.content} />
-                            </div>
-                        )}
-
-                        <PostFooter
-                            postId={modalPost.id}
-                            isLiked={modalPost.is_liked}
-                            likesCount={modalPost.likes_count}
-                            commentsCount={modalPost.comments_count}
-                            onLike={handleModalLike}
-                        />
-
-                        <div className="tetrone-classic-divider"></div>
-
-                        <CommentsSection
-                            postId={modalPost.id}
-                            onCountChange={handleCommentCountChange}
-                        />
-                    </div>
+                    <CommentsSection
+                        postId={modalPost.id}
+                        onCountChange={handleCommentCountChange}
+                    />
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 }

@@ -4,16 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { usePageTitle } from '../hooks/usePageTitle';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import Tabs from '../components/ui/Tabs';
 import SpaceService from '../services/space.service';
 import CreateSpaceModal from '../components/modals/CreateSpaceModal';
 import SpaceListItem from '../components/spaces/SpaceListItem';
-
 
 const SpacesPage = () => {
     const { t } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // Беремо активний таб з URL (по замовчуванню 'my')
     const activeTab = searchParams.get('tab') || 'my';
 
     const [inputSearch, setInputSearch] = useState('');
@@ -28,19 +27,22 @@ const SpacesPage = () => {
     useEffect(() => {
         const fetchSpaces = async () => {
             setIsLoading(true);
-            const params = {
-                tab: activeTab
-            };
+            const params = { tab: activeTab };
 
             if (searchQuery) {
                 params['filter[name]'] = searchQuery;
             }
 
-            const res = await SpaceService.getSpacesList(params);
-            if (res) {
-                setSpaces(res.spaces);
+            try {
+                const res = await SpaceService.getSpacesList(params);
+                if (res && res.spaces) {
+                    setSpaces(res.spaces.data || res.spaces);
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
 
         fetchSpaces();
@@ -57,55 +59,60 @@ const SpacesPage = () => {
         setSearchQuery(inputSearch);
     };
 
-    const handleLeaveSpace = async (spaceId) => {
-        // await SpaceService.leaveSpace(spaceId);
-        // setSpaces(prev => prev.filter(s => s.id !== spaceId));
+    const handleLeaveSpace = async (spaceUsername) => {
+        try {
+            await SpaceService.leaveSpace(spaceUsername);
+            setSpaces(prev => prev.filter(s => s.username !== spaceUsername));
+        } catch (error) {
+            console.error(error);
+        }
     };
 
+    const pageTabs = [
+        { id: 'my', label: t('spaces.list_tabs_my') },
+        { id: 'managed', label: t('spaces.list_tabs_managed') },
+        { id: 'global', label: t('spaces.list_tabs_global') }
+    ];
+
     return (
-        <div className="tetrone-card-wrapper">
-            <h1 className="tetrone-section-title">{t('common.spaces')}</h1>
-            <div className="tetrone-tabs">
-                <button
-                    className={activeTab === 'my' ? 'tetrone-tab active' : 'tetrone-tab'}
-                    onClick={() => setActiveTab('my')}
-                >
-                    {t('spaces.list_tabs_my')}
-                </button>
-                <button
-                    className={activeTab === 'managed' ? 'tetrone-tab active' : 'tetrone-tab'}
-                    onClick={() => setActiveTab('managed')}
-                >
-                    {t('spaces.list_tabs_managed')}
-                </button>
-                <button
-                    className={activeTab === 'global' ? 'tetrone-tab active' : 'tetrone-tab'}
-                    onClick={() => setActiveTab('global')}
-                >
-                    {t('spaces.list_tabs_global')}
-                </button>
-            </div>
+        <div className="w-full max-w-[960px] mx-auto p-[15px] font-tahoma text-[11px] text-text-main flex flex-col gap-[15px]">
+            <h1 className="m-0 text-[16px] text-theme-link font-normal">
+                {t('common.spaces')}
+            </h1>
 
-            <div className="space-block-content">
-                <div className="tetrone-search-wrapper">
-                    <Input
-                        type="text"
-                        placeholder={t('spaces.list_search_placeholder')}
-                        value={inputSearch}
-                        onChange={(e) => setInputSearch(e.target.value)}
-                    />
+            <Tabs
+                tabs={pageTabs}
+                activeTab={activeTab}
+                onChange={setActiveTab}
+                className="bg-bg-page p-[5px]"
+            />
 
-                    <Button>
+            <div>
+                <form className="flex gap-[10px] mb-[15px]" onSubmit={handleSearchSubmit}>
+                    <div className="flex-1">
+                        <Input
+                            type="text"
+                            placeholder={t('spaces.list_search_placeholder')}
+                            value={inputSearch}
+                            onChange={(e) => setInputSearch(e.target.value)}
+                        />
+                    </div>
+                    <Button type="submit">
                         {t('action.search')}
                     </Button>
-                </div>
+                </form>
 
-                <div className="space-list-container">
+                <div className="flex flex-col gap-[10px]">
                     {(activeTab === 'managed') && !searchQuery && (
-                        <div className="space-list-item space-create-item" onClick={() => setIsCreateModalOpen(true)}>
-                            <div className="space-list-avatar space-create-avatar">+</div>
-                            <div className="space-list-info" style={{ justifyContent: 'center' }}>
-                                <span className="space-header-link-right" style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                        <div
+                            className="flex items-center gap-[15px] bg-bg-box border border-border p-[10px] cursor-pointer hover:bg-bg-page transition-colors"
+                            onClick={() => setIsCreateModalOpen(true)}
+                        >
+                            <div className="w-[80px] h-[80px] border border-border bg-input-bg flex items-center justify-center text-[24px] text-text-muted shrink-0">
+                                +
+                            </div>
+                            <div className="flex-1">
+                                <span className="font-bold text-[12px] text-theme-link hover:underline">
                                     {t('spaces.create')}
                                 </span>
                             </div>
@@ -113,17 +120,19 @@ const SpacesPage = () => {
                     )}
 
                     {isLoading ? (
-                        <div className="tetrone-empty-state">{t('common.loading')}</div>
+                        <div className="p-[20px] text-center text-text-muted bg-bg-box border border-border">
+                            {t('common.loading')}
+                        </div>
                     ) : spaces.length > 0 ? (
                         spaces.map(space => (
                             <SpaceListItem
-                                key={space.id}
+                                key={space.username}
                                 space={space}
                                 onLeave={handleLeaveSpace}
                             />
                         ))
                     ) : (
-                        <div className="tetrone-empty-state">
+                        <div className="p-[20px] text-center text-text-muted bg-bg-box border border-border">
                             {t('spaces.list_empty')}
                         </div>
                     )}

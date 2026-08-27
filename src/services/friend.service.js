@@ -8,7 +8,11 @@ class FriendService {
             case 'requests': endpoint = '/friends/requests'; break;
             case 'subscriptions': endpoint = '/friends/sent'; break;
             case 'blocked': endpoint = '/friends/blocked'; break;
-            case 'all': endpoint = `/users?search=${query}`; break;
+            case 'all':
+                const params = new URLSearchParams();
+                if (query) params.append('filter[search]', query);
+                endpoint = `/users?${params.toString()}`;
+                break;
             default: endpoint = '/friends'; break;
         }
 

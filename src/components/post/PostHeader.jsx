@@ -1,55 +1,50 @@
-import { useState, useEffect, memo } from 'react';
+import { memo, useState, useRef } from 'react';
 import { Link, useParams } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
+import useOnClickOutside from '../editor/hooks/useOnClickOutside';
 import { EditIcon, DeleteIcon, ReportIcon, DotsIcon } from '../ui/Icons';
 import Avatar from '../ui/Avatar';
 
-const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername }) => {
+const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername, readonly }) => {
     const { t } = useTranslation();
     const formatDate = useDateFormatter();
     const { username: currentProfileUsername } = useParams();
 
     const [showMenu, setShowMenu] = useState(false);
+    const menuRef = useRef(null);
 
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (showMenu && !e.target.closest('.tetrone-post-actions-container')) {
-                setShowMenu(false);
-            }
-        };
-        document.addEventListener('click', handleClickOutside);
-        return () => document.removeEventListener('click', handleClickOutside);
-    }, [showMenu]);
+    useOnClickOutside(menuRef, () => setShowMenu(false));
 
-    if (!post || (!post.user && !post.space)) return null;
+    // Перевіряємо наявність автора (тепер це поліморфний зв'язок)
+    if (!post || !post.author) return null;
 
-    const isSpacePost = post.is_posted_as_space && post.space;
-    const isSpaceContext = !post.is_posted_as_space && post.space;
+    const authorIsSpace = post.author_type?.includes('Space');
+    const targetIsSpace = post.target_type?.includes('Space');
+    const targetIsUser = post.target_type?.includes('User');
 
-    const author = isSpacePost ? post.space : post.user;
+    const author = post.author;
+    const target = post.target;
     const isAvatarUpdate = post.is_avatar_update === true;
-    const showTargetUser = !isAvatarUpdate && !isSpacePost && !isSpaceContext && post.target_user && post.target_user.username !== currentProfileUsername;
 
-    // 2. ВИПРАВЛЕНО: Тепер перевіряємо власника виключно по username
-    const isAuthor = currentUsername ? currentUsername === post.user?.username : false;
+    // ФІКС 1: Строга перевірка авторства через username реального творця або поліморфного автора
+    const actualCreatorUsername = post.user?.username;
+    const isAuthor = currentUsername ? (currentUsername === actualCreatorUsername || currentUsername === author.username) : false;
 
-    const authorLink = isSpacePost ? `/space/${author.username}` : `/${author.username}`;
-    const authorName = isSpacePost ? author.name : `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.username;
+    // Логіка відображення
+    const authorLink = `/${author.username}`;
+    const authorName = authorIsSpace ? author.name : `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.username;
+    const authorNameColor = authorIsSpace ? undefined : author?.personalization?.username_color;
 
-    const authorNameColor = isSpacePost ? undefined : author?.personalization?.username_color;
+    // Чи потрібно показувати ціль (стіну юзера або групу)?
+    // Не показуємо, якщо це своя стіна або якщо ми вже знаходимось на сторінці цієї цілі
+    const isPostedOnOwnWall = target?.username === author.username;
+    const isViewingTargetWall = target?.username === currentProfileUsername;
+    const showTarget = !!target && !isPostedOnOwnWall && !isViewingTargetWall && !isAvatarUpdate;
 
-    const avatarData = isSpacePost ? {
-        avatar: author.avatar_url || author.avatar_path || '/images/default-space.svg',
-        username: author.username,
-        aliases: author.aliases || [],
-        first_name: author.name,
-        last_name: ''
-    } : author;
-
-    const canEdit = onEdit && isAuthor && !isAvatarUpdate;
-    const canDelete = onDelete && (isAuthor || isOwner);
-    const canReport = onReport && !isAuthor;
+    const canEdit = !readonly && onEdit && isAuthor && !isAvatarUpdate;
+    const canDelete = !readonly && onDelete && (isAuthor || isOwner);
+    const canReport = !readonly && onReport && !isAuthor;
 
     const showActions = canEdit || canDelete || canReport;
 
@@ -57,85 +52,85 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
         ? t('post.updated_avatar_female')
         : t('post.updated_avatar_male');
 
+    const menuItemClass = "w-full text-left px-[8px] py-[6px] flex items-center gap-[6px] text-text-main hover:bg-bg-page hover:text-theme-link hover:underline cursor-pointer border-none bg-transparent outline-none text-[11px] font-normal transition-none";
+    const dangerItemClass = "w-full text-left px-[8px] py-[6px] flex items-center gap-[6px] text-theme-error hover:bg-[rgba(255,51,71,0.1)] hover:text-theme-error hover:underline cursor-pointer border-none bg-transparent outline-none text-[11px] font-normal transition-none";
+
     return (
-        <div className="tetrone-post-header">
-            <Link to={authorLink}>
-                <Avatar
-                    user={avatarData}
-                    className="tetrone-post-avatar"
-                />
+        <div className="border-t border-border pt-[5px] flex items-start max-md:px-[10px] max-md:items-center">
+            <Link to={authorLink} className="shrink-0 mr-[10px]" onClick={(e) => readonly && e.preventDefault()}>
+                <Avatar user={author} className="w-[50px] h-[50px] object-cover block rounded-[4px]" />
             </Link>
 
-            <div className="tetrone-post-meta">
-                <div className="tetrone-post-authors-row">
+            <div className="flex flex-col text-[11px] flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-x-[4px] leading-[1.4]">
                     <Link
                         to={authorLink}
-                        className="tetrone-post-author"
+                        className={`font-bold text-[12px] no-underline ${readonly ? 'cursor-default' : 'hover:underline text-theme-link'}`}
                         style={authorNameColor ? { color: authorNameColor } : undefined}
+                        onClick={(e) => readonly && e.preventDefault()}
                     >
                         {authorName}
                     </Link>
 
-                    {isSpacePost && post.user && (
-                        <span className="tetrone-post-admin-hint">
-                            ({t('spaces.posted_by_admin')} <Link to={`/${post.user.username}`} className="tetrone-post-admin-link">{post.user.first_name}</Link>)
+                    {authorIsSpace && post.user && (
+                        <span className="text-text-muted">
+                            ({t('spaces.posted_by_admin')} <Link to={`/${post.user.username}`} className="text-text-muted hover:underline" onClick={(e) => readonly && e.preventDefault()}>{post.user.first_name}</Link>)
                         </span>
                     )}
 
-                    {isAvatarUpdate && !isSpacePost && (
-                        <span className="tetrone-post-target-text">
-                            {' '}{avatarUpdateText}
-                        </span>
+                    {isAvatarUpdate && !authorIsSpace && (
+                        <span className="text-text-main">{avatarUpdateText}</span>
                     )}
 
-                    {showTargetUser && (
-                        <span className="tetrone-post-target-text">
-                            {' '}{t(`post.wrote_on_wall_${post.user?.gender === 2 ? 'female' : 'male'}`)}{' '}
-                            <Link to={`/${post.target_user.username}`} className="tetrone-post-author target">
-                                {post.target_user.first_name} {post.target_user.last_name}
+                    {showTarget && targetIsUser && (
+                        <span className="text-text-main">
+                            {t(`post.wrote_on_wall_${post.user?.gender === 2 ? 'female' : 'male'}`)}
+                            <Link to={`/${target.username}`} className="text-theme-link font-bold hover:underline ml-[4px]" onClick={(e) => readonly && e.preventDefault()}>
+                                {target.first_name} {target.last_name}
                             </Link>
                         </span>
                     )}
 
-                    {isSpaceContext && (
-                        <span className="tetrone-post-target-text">
-                            <span className="tetrone-post-arrow">▶</span>
-                            <Link to={`/space/${post.space.username}`} className="tetrone-post-author target">
-                                {post.space.name}
+                    {showTarget && targetIsSpace && (
+                        <span className="text-text-main flex items-center gap-[4px]">
+                            <span className="text-[10px] text-text-muted">▶</span>
+                            <Link to={`/${target.username}`} className="text-theme-link font-bold hover:underline" onClick={(e) => readonly && e.preventDefault()}>
+                                {target.name}
                             </Link>
                         </span>
                     )}
                 </div>
 
-                <Link to={`/post/${post.id}`} className="tetrone-post-date">
+                <Link to={`/post/${post.id}`} className={`text-[10px] mt-[2px] no-underline ${readonly ? 'text-text-muted cursor-default' : 'text-text-muted hover:underline'}`} onClick={(e) => readonly && e.preventDefault()}>
                     {formatDate(post.created_at)}
                 </Link>
             </div>
 
-            {showActions && (
-                <div className="tetrone-post-actions-container">
+            {showActions && !readonly && (
+                <div className="relative ml-auto" ref={menuRef}>
                     <button
-                        className="tetrone-post-action-btn-trigger"
+                        type="button"
+                        className={`bg-transparent border-none text-text-muted cursor-pointer p-[6px] flex items-center justify-center outline-none transition-none rounded-[2px] ${showMenu ? 'text-theme-link bg-bg-page' : 'hover:bg-bg-page hover:text-text-main'}`}
                         onClick={() => setShowMenu(!showMenu)}
                     >
-                        <DotsIcon width={20} height={20} />
+                        <DotsIcon width={16} height={16} />
                     </button>
 
                     {showMenu && (
-                        <div className="tetrone-actions-dropdown">
+                        <div className="absolute right-0 top-full mt-[2px] bg-bg-box border border-border shadow-sm flex flex-col min-w-[150px] py-[2px] z-[100] rounded-[2px]">
                             {canEdit && (
-                                <button onClick={() => { onEdit(post); setShowMenu(false); }}>
-                                    <EditIcon /> {t('action.edit')}
+                                <button type="button" className={menuItemClass} onClick={() => { onEdit(post); setShowMenu(false); }}>
+                                    <EditIcon width={14} height={14} /> {t('action.edit')}
                                 </button>
                             )}
                             {canDelete && (
-                                <button className="danger" onClick={() => { onDelete(post.id); setShowMenu(false); }}>
-                                    <DeleteIcon /> {t('action.delete')}
+                                <button type="button" className={dangerItemClass} onClick={() => { onDelete(post.id); setShowMenu(false); }}>
+                                    <DeleteIcon width={14} height={14} /> {t('action.delete')}
                                 </button>
                             )}
                             {canReport && (
-                                <button className="warning" onClick={() => { onReport(post.id); setShowMenu(false); }}>
-                                    <ReportIcon /> {t('reports.title')}
+                                <button type="button" className={menuItemClass} onClick={() => { onReport(post.id); setShowMenu(false); }}>
+                                    <ReportIcon width={14} height={14} /> {t('reports.title')}
                                 </button>
                             )}
                         </div>

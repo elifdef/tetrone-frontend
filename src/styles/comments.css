@@ -1,291 +1,54 @@
-.tetrone-comment-form {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    margin-bottom: 15px;
-}
+@layer components {
+    .comment-thread {
+        @apply flex flex-col;
+    }
+    .comment-item {
+        @apply flex py-[8px] relative items-start border-b border-transparent;
+    }
 
-.tetrone-comment-avatar-input {
-    width: 32px;
-    height: 32px;
-    border: 1px solid var(--theme-border);
-    object-fit: cover;
-}
+    /* Вертикальна лінія від батьківської аватарки вниз */
+    .comment-item.has-children::before {
+        content: '';
+        @apply absolute w-[1px] bg-border z-[1] bottom-0 top-[48px] left-[19px]; /* 19px = центр 40px аватарки */
+    }
+    .depth-2 > .has-children::before {
+        @apply top-[40px] left-[15px]; /* 15px = центр 32px аватарки */
+    }
 
-.tetrone-comment-input-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
+    /* Відступи для дітей */
+    .comment-children {
+        @apply flex flex-col ml-[19px];
+    }
+    .depth-2 > .comment-children {
+        @apply ml-[15px];
+    }
+    .depth-3 > .comment-children {
+        @apply ml-0;
+    }
 
-.tetrone-comment-input-row {
-    display: flex;
-    align-items: center;
-    background: var(--theme-input-bg);
-    border: 1px solid var(--theme-border);
-    border-radius: 0;
-    min-height: 32px;
-}
+    /* Лінії збоку від дітей */
+    .comment-children > .comment-thread {
+        @apply relative pl-[16px];
+    }
+    .comment-children > .comment-thread::before {
+        content: '';
+        @apply absolute top-0 left-0 bottom-0 w-[1px] bg-border;
+    }
+    .comment-children > .comment-thread:last-child::before {
+        @apply bottom-auto h-[24px];
+    }
+    .comment-children > .comment-thread::after {
+        content: '';
+        @apply absolute top-[24px] left-0 w-[12px] h-[1px] bg-border;
+    }
 
-.tetrone-comment-input-row .tetrone-editor-outer-container,
-.tetrone-comment-input-row .tetrone-editor-row-wrapper {
-    border: none !important;
-    background: transparent !important;
-    min-height: unset !important;
-}
-
-.tetrone-comment-input-row .tetrone-editor-input-area .ProseMirror {
-    min-height: 20px !important;
-    padding: 6px 10px !important;
-    font-size: 12px;
-    line-height: 1.4;
-}
-
-.tetrone-comment-input-row .tetrone-editor-input-area .ProseMirror p {
-    margin: 0;
-}
-
-.tetrone-send-btn {
-    background: transparent;
-    border: none;
-    color: var(--theme-link);
-    padding: 6px 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.tetrone-comment-thread {
-    display: flex;
-    flex-direction: column;
-}
-
-.tetrone-comment-item {
-    display: flex;
-    padding: 8px 0;
-    position: relative;
-    border-bottom: 1px solid transparent;
-    align-items: flex-start;
-}
-
-.tetrone-comment-avatar-col {
-    flex-shrink: 0;
-    margin-right: 8px;
-}
-
-.tetrone-comment-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 0 !important;
-    border: 1px solid var(--theme-border);
-    object-fit: cover;
-    display: block;
-}
-
-.tetrone-comment-item.has-children::before {
-    content: '';
-    position: absolute;
-    top: 48px;
-    bottom: 0;
-    left: 19px;
-    width: 1px;
-    background-color: var(--theme-border);
-    z-index: 1;
-}
-
-.tetrone-comment-thread.depth-2 > .tetrone-comment-item.has-children::before {
-    top: 40px;
-    left: 15px;
-}
-
-.tetrone-comment-children-container {
-    margin-left: 19px;
-    display: flex;
-    flex-direction: column;
-}
-
-.tetrone-comment-thread.depth-2 > .tetrone-comment-children-container {
-    margin-left: 15px;
-}
-
-.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container {
-    margin-left: 0;
-}
-
-.tetrone-comment-children-container > .tetrone-comment-thread {
-    position: relative;
-    padding-left: 16px;
-}
-
-.tetrone-comment-thread.depth-2 .tetrone-comment-avatar,
-.tetrone-comment-thread.depth-3 .tetrone-comment-avatar {
-    width: 32px;
-    height: 32px;
-}
-
-.tetrone-comment-children-container > .tetrone-comment-thread::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 1px;
-    background-color: var(--theme-border);
-}
-
-.tetrone-comment-children-container > .tetrone-comment-thread:last-child::before {
-    bottom: auto;
-    height: 24px;
-}
-
-
-.tetrone-comment-children-container > .tetrone-comment-thread::after {
-    content: '';
-    position: absolute;
-    top: 24px;
-    left: 0;
-    width: 12px;
-    height: 1px;
-    background-color: var(--theme-border);
-}
-
-.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread::before,
-.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread::after,
-.tetrone-comment-thread.depth-3 > .tetrone-comment-item.has-children::before {
-    display: none;
-}
-
-.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread {
-    padding-left: 0;
-}
-
-.tetrone-comment-children-container > .tetrone-comment-thread::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 1px;
-    background-color: var(--theme-border);
-}
-
-.tetrone-comment-children-container > .tetrone-comment-thread:last-child::before {
-    bottom: auto;
-    height: 24px;
-}
-
-.tetrone-comment-children-container > .tetrone-comment-thread::after {
-    content: '';
-    position: absolute;
-    top: 24px;
-    left: 0;
-    width: 12px;
-    height: 1px;
-    background-color: var(--theme-border);
-}
-
-.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread::before,
-.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread::after {
-    display: none;
-}
-
-.tetrone-comment-thread.depth-3 > .tetrone-comment-children-container > .tetrone-comment-thread {
-    padding-left: 0;
-}
-
-.tetrone-comment-content {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.tetrone-comment-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-    min-height: 16px;
-}
-
-.tetrone-comment-author {
-    color: var(--theme-link);
-    font-weight: bold;
-    font-size: 11px;
-    text-decoration: none;
-}
-
-.tetrone-comment-author:hover {
-    text-decoration: underline;
-}
-
-.tetrone-comment-date {
-    font-size: 10px;
-    color: var(--theme-text-muted);
-}
-
-.tetrone-comment-more-actions {
-    position: relative;
-    cursor: pointer;
-    color: var(--theme-text-muted);
-    margin-left: auto;
-    padding: 0 4px;
-    display: flex;
-    align-items: center;
-}
-
-.tetrone-comment-more-actions:hover {
-    color: var(--theme-text-main);
-}
-
-.tetrone-comment-body {
-    font-size: 12px;
-    line-height: 1.3;
-    margin-bottom: 6px;
-    color: var(--theme-text-main);
-}
-
-.tetrone-comment-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.tetrone-comment-like-btn {
-    background: transparent;
-    border: none;
-    color: var(--theme-text-muted);
-    font-size: 11px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    padding: 0;
-}
-
-.tetrone-comment-like-btn:hover {
-    color: var(--theme-error);
-}
-
-.tetrone-comment-reply-btn {
-    background: transparent;
-    border: none;
-    color: var(--theme-text-muted);
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    padding: 0;
-}
-
-.tetrone-comment-reply-btn:hover {
-    text-decoration: underline;
-}
-
-.tetrone-inline-reply-container {
-    margin-top: 6px;
-    padding-top: 8px;
+    /* Відключаємо лінії на 3+ рівні, щоб уникнути спаму лініями */
+    .depth-3 > .comment-children > .comment-thread::before,
+    .depth-3 > .comment-children > .comment-thread::after,
+    .depth-3 > .comment-item.has-children::before {
+        @apply hidden;
+    }
+    .depth-3 > .comment-children > .comment-thread {
+        @apply pl-0;
+    }
 }

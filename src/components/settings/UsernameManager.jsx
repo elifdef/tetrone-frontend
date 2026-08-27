@@ -35,18 +35,23 @@ export default function UsernameManager({ user, t, onUserUpdate }) {
     };
 
     return (
-        <div className="tetrone-settings-box">
-            <strong>{t('settings.usernames_title')}</strong>
-            <p className="tetrone-text-muted">{t('settings.usernames_desc')}</p>
+        <div className="p-[12px_15px] border-b border-border last:border-b-0">
+            <h2 className="m-0 mb-[10px] text-[11px] font-bold text-theme-link border-b border-border pb-[4px]">
+                {t('settings.usernames_title')}
+            </h2>
 
-            <div className="tetrone-username-item primary">
-                <div className="tetrone-username-info">
-                    <span className="tetrone-badge-primary">Primary</span>
+            <div className="flex items-center justify-between p-[8px_12px] bg-bg-box border border-theme-link mt-[10px] max-md:flex-col max-md:items-start max-md:gap-[8px]">
+                <div className="flex items-center gap-[10px] text-[11px] font-bold text-text-main">
+                    <span className="px-[4px] py-[2px] text-[9px] border border-theme-link text-theme-link bg-transparent uppercase">
+                        {t('settings.username_primary')}
+                    </span>
                     <span>@{primaryUsername}</span>
                 </div>
-                <Button variant="secondary" onClick={() => setIsModalOpen(true)}>
-                    {t('settings.btn_manage_usernames')}
-                </Button>
+                <div className="max-md:w-full">
+                    <Button variant="secondary" onClick={() => setIsModalOpen(true)} className="max-md:w-full">
+                        {t('settings.btn_manage_usernames')}
+                    </Button>
+                </div>
             </div>
 
             <ManageUsernamesModal

@@ -6,7 +6,6 @@ import UserService from '../../services/user.service';
 import Button from '../ui/Button';
 import {notifyError, notifySuccess} from '../common/Notify';
 import Avatar from '../ui/Avatar';
-import './PrivacyExceptionsModal.css';
 
 export default function PrivacyExceptionsModal({isOpen, onClose, context, initialExceptions, onSaveSuccess})
 {

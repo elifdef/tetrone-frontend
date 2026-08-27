@@ -3,77 +3,69 @@ import { useTranslation } from 'react-i18next';
 import isoCountries from "i18n-iso-countries";
 import { useDateFormatter } from "../../../hooks/useDateFormatter";
 
-export default function ProfileInfo({ user, displayBirth, displayCountry, displayGender, showFriendsBlock }) {
+export default function ProfileInfo({ user, displayBirth, displayCountry, displayGender, joinedDate, isPreview }) {
     const { t, i18n } = useTranslation();
     const formatDate = useDateFormatter();
     const langCode = i18n.language || 'en';
 
+    // ФІКС ДАТИ НАРОДЖЕННЯ:
     const hasBirth = user?.birth_date || displayBirth;
+    const formattedBirth = user?.birth_date
+        ? formatDate(user.birth_date, { withTime: false, useRelative: false })
+        : displayBirth;
+
     const hasCountry = user?.country || displayCountry;
-    const hasGender = displayGender;
+
+    // tetrone-info-row + tetrone-label + tetrone-value
+    const InfoRow = ({ label, value }) => (
+        <div className="flex mb-[6px] max-sm:flex-col max-sm:mb-[10px]">
+            <div className="w-[130px] text-text-muted shrink-0">{label}:</div>
+            <div className="text-text-main flex-1">{value}</div>
+        </div>
+    );
 
     return (
         <>
-            <div className="tetrone-info-block">
-                <h4 className="tetrone-section-title">{t('profile.information')}</h4>
+            <div className="mt-[20px]">
+                <h4 className="bg-section-bg text-section-text py-[4px] px-[8px] m-0 mb-[10px] font-bold text-[11px] border-y border-border">
+                    {t('profile.information')}
+                </h4>
 
-                {hasBirth && (
-                    <div className="tetrone-info-row">
-                        <div className="tetrone-label">{t('common.birthday')}:</div>
-                        <div className="tetrone-value">
-                            {user?.birth_date
-                                ? formatDate(user.birth_date, { withTime: false, useRelative: false })
-                                : displayBirth}
-                        </div>
-                    </div>
-                )}
+                {hasBirth && <InfoRow label={t('common.birthday')} value={formattedBirth} />}
 
                 {hasCountry && (
-                    <div className="tetrone-info-row">
-                        <div className="tetrone-label">{t('common.country')}:</div>
-                        <div className="tetrone-value">
-                            {user?.country && user.country.length === 2 ? (
-                                <span className="profile-country-wrapper">
-                                    <span className={`fi fi-${user.country.toLowerCase()}`}></span>
-                                    <span>{isoCountries.getName(user.country, langCode) || user.country}</span>
-                                </span>
-                            ) : (
-                                displayCountry
-                            )}
-                        </div>
-                    </div>
+                    <InfoRow label={t('common.country')} value={
+                        user?.country?.length === 2 ? (
+                            <span className="flex items-center gap-[5px]">
+                                <span className={`fi fi-${user.country.toLowerCase()}`}></span>
+                                <span>{isoCountries.getName(user.country, langCode) || user.country}</span>
+                            </span>
+                        ) : displayCountry
+                    } />
                 )}
 
-                <div className="tetrone-info-row">
-                    <div className="tetrone-label">{t('profile.joined')}:</div>
-                    <div className="tetrone-value">
-                        {user?.created_at ? formatDate(user.created_at, { withTime: true, forceYear: true }) : ''}
-                    </div>
-                </div>
+                <InfoRow label={t('profile.joined')} value={joinedDate} />
 
-                {hasGender && (
-                    <div className="tetrone-info-row">
-                        <div className="tetrone-label">{t('common.gender')}:</div>
-                        <div className="tetrone-value">{displayGender}</div>
-                    </div>
-                )}
+                {displayGender && <InfoRow label={t('common.gender')} value={displayGender} />}
             </div>
 
-            {showFriendsBlock && (
-                <div className="tetrone-info-block">
-                    <h4 className="tetrone-section-title">{t('common.friends')}</h4>
-                    <div className="tetrone-info-row">
-                        <div className="tetrone-label">{t('common.friends')}</div>
-                        <Link to={`/${user.username}/friends`} className="tetrone-value">
+            {!isPreview && (
+                <div className="mt-[20px]">
+                    <h4 className="bg-section-bg text-section-text py-[4px] px-[8px] m-0 mb-[10px] font-bold text-[11px] border-y border-border">
+                        {t('common.friends')}
+                    </h4>
+
+                    <InfoRow label={t('common.friends')} value={
+                        <Link to={`/${user.username}/friends`} className="text-theme-link no-underline hover:underline">
                             {user?.friends_count || 0}
                         </Link>
-                    </div>
-                    <div className="tetrone-info-row">
-                        <div className="tetrone-label">{t('profile.subscribers')}</div>
-                        <Link to={`/${user.username}/followers`} className="tetrone-value">
+                    } />
+
+                    <InfoRow label={t('profile.subscribers')} value={
+                        <Link to={`/${user.username}/followers`} className="text-theme-link no-underline hover:underline">
                             {user?.followers_count || 0}
                         </Link>
-                    </div>
+                    } />
                 </div>
             )}
         </>

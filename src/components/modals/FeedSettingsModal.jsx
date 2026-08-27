@@ -1,12 +1,10 @@
 import {useState, useEffect} from "react";
 import {useTranslation} from "react-i18next";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-
 import SettingsService from "../../services/settings.service";
 import Modal from "./Modal.jsx";
 import Button from "../ui/Button";
-import {CloseIcon, InfoIcon} from "../ui/icons";
-import "./FeedSettingsModal.css";
+import {CloseIcon, InfoIcon} from "../ui/Icons";
 
 export default function FeedSettingsModal({isOpen, onClose})
 {
@@ -15,9 +13,7 @@ export default function FeedSettingsModal({isOpen, onClose})
 
     const [feedMode, setFeedMode] = useState('chrono');
     const [engagementWeight, setEngagementWeight] = useState(0.5);
-
     const [rules, setRules] = useState([]);
-
     const [newRuleText, setNewRuleText] = useState('');
     const [newRuleType, setNewRuleType] = useState('word');
     const [newRuleWeight, setNewRuleWeight] = useState(0);
@@ -51,7 +47,6 @@ export default function FeedSettingsModal({isOpen, onClose})
 
             processRules(preferences.tags_rules, 'tag');
             processRules(preferences.words_rules, 'word');
-
             setRules(loadedRules);
         }
     }, [preferences]);
@@ -73,19 +68,13 @@ export default function FeedSettingsModal({isOpen, onClose})
 
         setRules([
             ...rules, {
-                id:     Date.now(),
-                type:   newRuleType,
-                text:   cleanText,
-                weight: Number(newRuleWeight)
+                id: Date.now(), type: newRuleType, text: cleanText, weight: Number(newRuleWeight)
             }
         ]);
         setNewRuleText('');
     };
 
-    const handleRemoveRule = (idToRemove) =>
-    {
-        setRules(rules.filter(r => r.id !== idToRemove));
-    };
+    const handleRemoveRule = (idToRemove) => setRules(rules.filter(r => r.id !== idToRemove));
 
     const handleSubmit = () =>
     {
@@ -101,8 +90,7 @@ export default function FeedSettingsModal({isOpen, onClose})
         mutation.mutate({
             feed_mode:         feedMode,
             engagement_weight: parseFloat(engagementWeight),
-            tags_rules,
-            words_rules,
+            tags_rules, words_rules,
         });
     };
 
@@ -122,9 +110,7 @@ export default function FeedSettingsModal({isOpen, onClose})
 
     const footerButtons = (
         <>
-            <Button variant="secondary" onClick={onClose} disabled={mutation.isPending}>
-                {t('action.cancel')}
-            </Button>
+            <Button variant="secondary" onClick={onClose} disabled={mutation.isPending}>{t('action.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={mutation.isPending || isLoading}>
                 {mutation.isPending ? t('action.saving') : t('action.save')}
             </Button>
@@ -132,65 +118,57 @@ export default function FeedSettingsModal({isOpen, onClose})
     );
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={t('settings.feed.title')}
-            dialogClassName="tetrone-feed-settings-dialog"
-            footer={footerButtons}
-        >
+        <Modal isOpen={isOpen} onClose={onClose} title={t('settings.feed.title')} sizeClass="modal-md" footer={footerButtons}>
             {isLoading ? (
-                <div className="tetrone-loader-wrapper"><span className="tetrone-loader"></span></div>
+                <div className="flex justify-center p-[20px]"><span className="tetrone-loader"></span></div>
             ) : (
-                <div className="tetrone-feed-settings-form">
+                <div className="flex flex-col gap-[15px]">
 
-                    <div className="tetrone-info-box">
-                        <div className="tetrone-info-box-icon">
-                            <InfoIcon width={20} height={20}/>
-                        </div>
-                        <div className="tetrone-info-box-content">
-                            <strong>{t('settings.feed.philosophy_title')}</strong>
-                            <p>{t('settings.feed.philosophy_text')}</p>
+                    {/* Info Box */}
+                    <div className="bg-[rgba(128,128,128,0.05)] border border-border p-[10px] flex gap-[12px] items-start">
+                        <div className="text-theme-link mt-[2px] shrink-0"><InfoIcon width={20} height={20}/></div>
+                        <div>
+                            <strong className="text-[11px] text-theme-link block mb-[4px]">{t('settings.feed.philosophy_title')}</strong>
+                            <p className="m-0 text-[11px] leading-[1.4] text-text-main">{t('settings.feed.philosophy_text')}</p>
                         </div>
                     </div>
 
-                    <div className="tetrone-settings-section">
-                        <div className="tetrone-form-group">
-                            <label>{t('settings.feed.mode')}:</label>
-                            <select value={feedMode} onChange={(e) => setFeedMode(e.target.value)}
-                                    className="tetrone-classic-input">
+                    <div>
+                        <div className="flex flex-col mb-[10px]">
+                            <label className="font-bold text-[11px] mb-[4px]">{t('settings.feed.mode')}:</label>
+                            <select value={feedMode} onChange={(e) => setFeedMode(e.target.value)} className="bg-input-bg border border-input-border text-text-main p-[6px] text-[11px] outline-none">
                                 <option value="strict_chrono">{t('settings.feed.mode_strict_chrono')}</option>
                                 <option value="chrono">{t('settings.feed.mode_chrono')}</option>
                                 <option value="friends_first">{t('settings.feed.mode_friends')}</option>
                             </select>
                         </div>
 
-                        <div className="tetrone-mode-description">
+                        {/* Yellow warning box */}
+                        <div className="bg-[rgba(255,204,0,0.1)] border border-[#e5a43b] p-[8px] text-[11px] text-text-main mb-[15px]">
                             {getModeDescription()}
                         </div>
 
-                        <div className="tetrone-form-group tetrone-mt-15">
-                            <label>{t('settings.feed.engagement_weight')}: <span
-                                className="tetrone-hint">({engagementWeight})</span></label>
+                        <div className="flex flex-col">
+                            <label className="font-bold text-[11px] mb-[4px]">{t('settings.feed.engagement_weight')}: <span className="text-text-muted font-normal">({engagementWeight})</span></label>
                             <input
                                 type="range" min="0" max="1" step="0.1"
                                 value={engagementWeight}
                                 onChange={(e) => setEngagementWeight(e.target.value)}
-                                className="tetrone-classic-range"
+                                className="w-full accent-theme-link"
                                 disabled={feedMode === 'strict_chrono'}
-                                title={feedMode === 'strict_chrono' ? t('settings.feed.weight_disabled_hint') : ''}
                             />
                         </div>
                     </div>
 
-                    <div className="tetrone-classic-divider"></div>
+                    <div className="border-b border-border my-[5px]"></div>
 
-                    <div className="tetrone-settings-section">
-                        <label className="tetrone-section-title">{t('settings.feed.rules_title')}</label>
+                    <div>
+                        <label className="block font-bold text-theme-link border-b border-border pb-[5px] mb-[10px] text-[12px]">
+                            {t('settings.feed.rules_title')}
+                        </label>
 
-                        <div className="tetrone-rule-builder">
-                            <select value={newRuleType} onChange={(e) => setNewRuleType(e.target.value)}
-                                    className="tetrone-classic-input">
+                        <div className="flex gap-[6px] mb-[10px] items-center">
+                            <select value={newRuleType} onChange={(e) => setNewRuleType(e.target.value)} className="bg-input-bg border border-input-border text-text-main p-[6px] text-[11px] outline-none">
                                 <option value="word">{t('settings.feed.rule_type_word')}</option>
                                 <option value="tag">{t('settings.feed.rule_type_tag')}</option>
                             </select>
@@ -199,41 +177,37 @@ export default function FeedSettingsModal({isOpen, onClose})
                                 value={newRuleText}
                                 onChange={(e) => setNewRuleText(e.target.value)}
                                 placeholder={t('settings.feed.rule_text_placeholder')}
-                                className="tetrone-classic-input tetrone-rule-text-input"
+                                className="flex-1 bg-input-bg border border-input-border text-text-main p-[6px] text-[11px] outline-none"
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddRule()}
                             />
-                            <select value={newRuleWeight} onChange={(e) => setNewRuleWeight(e.target.value)}
-                                    className="tetrone-classic-input">
+                            <select value={newRuleWeight} onChange={(e) => setNewRuleWeight(e.target.value)} className="bg-input-bg border border-input-border text-text-main p-[6px] text-[11px] outline-none">
                                 <option value={0}>{t('settings.feed.weight_hide')}</option>
                                 <option value={0.5}>{t('settings.feed.weight_reduce')}</option>
                                 <option value={2}>{t('settings.feed.weight_boost')}</option>
                             </select>
-                            <Button type="button" onClick={handleAddRule} disabled={!newRuleText.trim()}>
-                                {t('action.add')}
-                            </Button>
+                            <Button type="button" onClick={handleAddRule} disabled={!newRuleText.trim()}>{t('action.add')}</Button>
                         </div>
 
-                        <div className="tetrone-rules-list">
+                        <div className="bg-input-bg border border-input-border h-[160px] overflow-y-auto">
                             {rules.map(rule => (
-                                <div key={rule.id} className="tetrone-rule-item">
-                                    <div className="tetrone-rule-info">
-                                        <span className="tetrone-rule-badge">
+                                <div key={rule.id} className="flex justify-between items-center py-[6px] px-[10px] border-b border-border last:border-b-0 hover:bg-[rgba(128,128,128,0.1)]">
+                                    <div className="text-[11px]">
+                                        <span className="font-bold text-theme-link mr-[5px]">
                                             {rule.type === 'tag' ? '#' : ''}{rule.text}
                                         </span>
-                                        <span className="tetrone-rule-status">
+                                        <span className="text-text-muted">
                                             — {rule.weight === 0 && t('settings.feed.weight_hide')}
                                             {rule.weight === 0.5 && t('settings.feed.weight_reduce')}
                                             {rule.weight === 2 && t('settings.feed.weight_boost')}
                                         </span>
                                     </div>
-                                    <button type="button" className="tetrone-rule-delete-btn"
-                                            onClick={() => handleRemoveRule(rule.id)}>
+                                    <button type="button" className="bg-transparent border-none text-text-muted cursor-pointer p-[2px] flex items-center justify-center hover:text-theme-error" onClick={() => handleRemoveRule(rule.id)}>
                                         <CloseIcon width={12} height={12}/>
                                     </button>
                                 </div>
                             ))}
                             {rules.length === 0 && (
-                                <div className="tetrone-rules-empty">{t('settings.feed.no_rules')}</div>
+                                <div className="p-[20px] text-center text-text-muted italic text-[11px]">{t('settings.feed.no_rules')}</div>
                             )}
                         </div>
                     </div>

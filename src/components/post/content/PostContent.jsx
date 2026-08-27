@@ -16,10 +16,10 @@ export default function PostContent({ content: originalContent, post, onUpdate, 
     );
 
     const [selectedImageId, setSelectedImageId] = useState(null);
-    const bigStickersClass = isOnlyStickers(content) ? 'tetrone-post-only-stickers' : '';
+    const bigStickersClass = isOnlyStickers(content) ? 'post-only-stickers' : ''; // Наш клас із global.css
 
     return (
-        <div className={`tetrone-post-content ${bigStickersClass} ${className || ''}`}>
+        <div className={`text-[11px] leading-[1.4] ${bigStickersClass} ${className || ''}`}>
             <RichText text={content} />
 
             {post?.poll && (
@@ -28,7 +28,9 @@ export default function PostContent({ content: originalContent, post, onUpdate, 
 
             <PostVideos localVideos={local.videos} youtubeVideos={external.youtube} />
             <PostGallery images={local.images} onMediaClick={setSelectedImageId} />
-            <PostDocuments documents={local.documents} />
+
+            {/* Передаємо postId для правильної роботи аудіо */}
+            <PostDocuments documents={local.documents} postId={post.id} />
 
             {selectedImageId !== null && (
                 <PhotoModal

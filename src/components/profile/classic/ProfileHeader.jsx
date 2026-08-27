@@ -1,41 +1,24 @@
 import { useTranslation } from 'react-i18next';
-import { useDateFormatter } from '../../../hooks/useDateFormatter';
 
-export default function ProfileHeader({ user, isPreview }) {
+export default function ProfileHeader({ user, isPreview, statusText }) {
     const { t } = useTranslation();
-    const formatDate = useDateFormatter();
-
-    const getStatusText = () => {
-        if (user.is_online) return t('common.online');
-        if (!user.last_seen) return t('common.offline');
-
-        const dateStr = formatDate(user.last_seen);
-        if (user.gender === 1) return t('profile.status.last_seen_m', { time: dateStr });
-        if (user.gender === 2) return t('profile.status.last_seen_f', { time: dateStr });
-    };
-
-    const getStatusBlock = () => {
-        if (isPreview || user.is_private) return null;
-
-        return (
-            <span className={`tetrone-status ${user.is_online ? 'online' : 'offline'}`}>
-                {getStatusText()}
-            </span>
-        )
-    }
 
     const customNameColor = user.personalization?.username_color;
-    const nameStyle = customNameColor && customNameColor.startsWith('#')
-        ? { color: customNameColor }
-        : {};
+    const nameStyle = customNameColor && customNameColor.startsWith('#') ? { color: customNameColor } : {};
 
     return (
-        <div className="tetrone-name-row">
-            <h2 className="tetrone-name" style={nameStyle}>
+        <div className="flex justify-between items-start flex-wrap border-b border-border pb-[5px] mb-[10px] max-md:flex-col max-md:gap-[10px]">
+            <h2 className="m-0 text-[14px] text-theme-link font-bold break-words max-w-full leading-[1.2]" style={nameStyle}>
                 {user.first_name} {user.last_name}
-                <span className="tetrone-nick" style={nameStyle}> @{user.username}</span>
+                <span className="text-[12px] text-text-muted font-normal whitespace-nowrap ml-[5px]" style={nameStyle}>@{user.username}</span>
             </h2>
-            {getStatusBlock()}
+
+            {!isPreview && !user.is_private && (
+                <span className={`text-[11px] flex items-center gap-[5px] ${user.is_online ? 'text-theme-success font-bold' : 'text-[#888]'}`}>
+                    {user.is_online && <span className="w-[6px] h-[6px] bg-theme-success inline-block"></span>}
+                    {statusText}
+                </span>
+            )}
         </div>
     );
 }

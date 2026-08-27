@@ -1,19 +1,17 @@
 import { useState } from "react";
-import SendIcon from "../../assets/sendComment.svg?react";
-import Editor from '../editor/Editor';
+import SmartEditor from '../editor/SmartEditor';
 import { isEditorEmpty } from "../../utils/editorHelpers";
 import Avatar from "../ui/Avatar";
-import { CloseIcon } from "../ui/Icons";
+import Button from "../ui/Button";
+import { useTranslation } from 'react-i18next';
 
-export default function CommentForm({ user, onSubmit, placeholder, onCancel })
-{
+export default function CommentForm({ user, onSubmit, placeholder, onCancel }) {
+    const { t } = useTranslation();
     const [content, setContent] = useState('');
 
-    const handleSubmit = async (e) =>
-    {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isEditorEmpty(content))
-        {
+        if (isEditorEmpty(content)) {
             return;
         }
         const finalContent = typeof content === 'object' ? content : {
@@ -21,42 +19,37 @@ export default function CommentForm({ user, onSubmit, placeholder, onCancel })
             content: [{ type: 'paragraph', content: [{ type: 'text', text: content }] }]
         };
         const success = await onSubmit(finalContent);
-        if (success)
-        {
+        if (success) {
             setContent('');
         }
     };
 
     return (
-        <form className="tetrone-comment-form" onSubmit={ handleSubmit }>
-            { user && (
+        <form className="flex gap-[10px] items-start mb-[15px]" onSubmit={handleSubmit}>
+            {user && (
                 <>
-                    <Avatar user={ user } className="tetrone-comment-avatar-input square-avatar"/>
-                    <div className="tetrone-comment-input-wrapper">
-                        <div className="tetrone-comment-input-row">
-                            <Editor
-                                className="tetrone-comment-textarea"
-                                placeholder={ placeholder }
-                                value={ content }
-                                onChange={ setContent }
-                            />
+                    <Avatar user={user} className="w-[38px] h-[38px] border border-border object-cover rounded-[2px] flex-shrink-0" />
+                    <div className="flex-1 flex flex-col min-w-0">
+                        <SmartEditor
+                            preset="comment"
+                            placeholder={placeholder || t('action.write_comment')}
+                            value={content}
+                            onChange={setContent}
+                        />
 
-                            <div
-                                style={ { display: 'flex', gap: '8px', alignItems: 'flex-end', paddingBottom: '8px' } }>
-                                { onCancel && (
-                                    <button type="button" className="tetrone-action-icon" onClick={ onCancel }
-                                            title="Скасувати">
-                                        <CloseIcon width={ 16 } height={ 16 }/>
-                                    </button>
-                                ) }
-                                <button type="submit" className="tetrone-send-btn" disabled={ isEditorEmpty(content) }>
-                                    <SendIcon width={ 16 } height={ 16 }/>
-                                </button>
-                            </div>
+                        <div className="flex items-center gap-[10px] mt-[8px]">
+                            <Button type="submit" disabled={isEditorEmpty(content)}>
+                                {placeholder || t('action.send')}
+                            </Button>
+                            {onCancel && (
+                                <Button type="button" variant="secondary" onClick={onCancel}>
+                                    {t('action.cancel')}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </>
-            ) }
+            )}
         </form>
     );
 }

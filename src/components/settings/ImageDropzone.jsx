@@ -46,7 +46,7 @@ const ImageDropzone = ({ onFileSelect, fileName }) => {
 
     return (
         <div
-            className={`tetrone-avatar-dropzone ${isDragging ? 'drag-active' : ''}`}
+            className={`w-full p-[20px] border border-dashed text-center cursor-pointer transition-colors flex flex-col items-center justify-center text-[11px] outline-none ${isDragging ? 'border-theme-link bg-[rgba(128,128,128,0.05)]' : 'border-border bg-bg-box hover:bg-bg-page'}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -55,19 +55,20 @@ const ImageDropzone = ({ onFileSelect, fileName }) => {
             <input
                 type="file"
                 ref={fileInputRef}
-                className="tetrone-hidden-input"
+                className="hidden"
                 accept="image/*"
                 onChange={(e) => onFileSelect(e)}
             />
 
-            <div className="tetrone-dropzone-content">
-                <div className="tetrone-dropzone-text">
-                    <strong>{t('action.drag_and_drop')}</strong> {t('action.or_paste')} (Ctrl+V)
+            <div className="text-text-main">
+                <div>
+                    <strong className="text-theme-link hover:underline">{t('action.drag_and_drop')}</strong> {t('action.or_paste')} (Ctrl+V)
                 </div>
             </div>
+
             {fileName && (
-                <div className="tetrone-dropzone-filename">
-                    {t('common.selected_file')}: <strong>{fileName}</strong>
+                <div className="mt-[8px] text-[11px] text-text-muted">
+                    {t('common.selected_file')}: <strong className="text-text-main">{fileName}</strong>
                 </div>
             )}
         </div>

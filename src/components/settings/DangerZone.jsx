@@ -3,8 +3,8 @@ import { useModal } from "../../context/ModalContext";
 import { AuthContext } from "../../context/AuthContext";
 import { notifyError, notifySuccess } from "../common/Notify";
 import AuthService from "../../services/auth.service";
-import Button from "../UI/Button";
-import { CloseIcon } from "../UI/Icons";
+import Button from "../ui/Button";
+import { CloseIcon } from "../ui/Icons";
 
 const DangerZone = ({ t }) => {
     const { openConfirm, openCustom, openPassword, closeModal } = useModal();
@@ -21,7 +21,7 @@ const DangerZone = ({ t }) => {
         );
         if (!isSure) return;
 
-        //налаштування у дві колонки
+        // налаштування у дві колонки
         const deleteOptions = await new Promise((resolve) => {
             let options = {
                 export_posts: true,
@@ -35,59 +35,66 @@ const DangerZone = ({ t }) => {
             };
 
             openCustom(
-                <div className="tetrone-modal-dialog">
-                    <div className="tetrone-modal-header">
-                        <h3>{t('settings.delete_options_title')}</h3>
-                        <button className="tetrone-modal-close" onClick={() => { closeModal(); resolve(null); }}>
-                            <CloseIcon />
+                <div className="bg-bg-box border border-[#555] shadow-[0_2px_10px_rgba(0,0,0,0.3)] w-[500px] max-w-full flex flex-col text-text-main m-auto font-tahoma text-[11px] max-md:w-full">
+                    <div className="bg-[#597DA3] py-[8px] px-[12px] flex justify-between items-center">
+                        <h3 className="m-0 text-[12px] font-bold text-white">{t('settings.delete_options_title')}</h3>
+                        <button
+                            className="bg-transparent border-none text-white text-[14px] leading-none cursor-pointer p-0 opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center outline-none"
+                            onClick={() => { closeModal(); resolve(null); }}
+                        >
+                            <CloseIcon width={14} height={14} />
                         </button>
                     </div>
 
-                    <div className="tetrone-modal-body">
-                        <p className="tetrone-modal-message">
+                    <div className="p-[15px] overflow-y-auto bg-bg-box">
+                        <p className="text-[12px] leading-[1.5] m-0 mb-[15px]">
                             {t('settings.delete_options_desc')}
                         </p>
 
-                        <div className="tetrone-delete-options-grid">
-                            <div className="tetrone-delete-section">
-                                <h4 className="tetrone-delete-section-title">{t('settings.export_section_title')}</h4>
-                                <div className="tetrone-settings-checkbox-group">
-                                    <label className="tetrone-checkbox-label">
-                                        <input type="checkbox" defaultChecked={options.export_posts} onChange={(e) => options.export_posts = e.target.checked} />
+                        <div className="grid grid-cols-2 gap-[15px] max-md:grid-cols-1">
+                            <div className="flex flex-col">
+                                <h4 className="m-0 mb-[10px] text-[11px] font-bold text-theme-error border-b border-[rgba(230,70,70,0.3)] pb-[4px]">
+                                    {t('settings.export_section_title')}
+                                </h4>
+                                <div className="flex flex-col gap-[8px]">
+                                    <label className="flex items-center gap-[6px] cursor-pointer select-none text-[11px] text-text-main hover:underline">
+                                        <input type="checkbox" className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer" defaultChecked={options.export_posts} onChange={(e) => options.export_posts = e.target.checked} />
                                         <span>{t('settings.opt_export_posts')}</span>
                                     </label>
-                                    <label className="tetrone-checkbox-label">
-                                        <input type="checkbox" defaultChecked={options.export_chats} onChange={(e) => options.export_chats = e.target.checked} />
+                                    <label className="flex items-center gap-[6px] cursor-pointer select-none text-[11px] text-text-main hover:underline">
+                                        <input type="checkbox" className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer" defaultChecked={options.export_chats} onChange={(e) => options.export_chats = e.target.checked} />
                                         <span>{t('settings.opt_export_chats')}</span>
                                     </label>
-                                    <label className="tetrone-checkbox-label">
-                                        <input type="checkbox" defaultChecked={options.export_files} onChange={(e) => options.export_files = e.target.checked} />
+                                    <label className="flex items-center gap-[6px] cursor-pointer select-none text-[11px] text-text-main hover:underline">
+                                        <input type="checkbox" className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer" defaultChecked={options.export_files} onChange={(e) => options.export_files = e.target.checked} />
                                         <span>{t('settings.opt_export_files')}</span>
                                     </label>
-                                    <label className="tetrone-checkbox-label">
-                                        <input type="checkbox" defaultChecked={options.export_activity} onChange={(e) => options.export_activity = e.target.checked} />
+                                    <label className="flex items-center gap-[6px] cursor-pointer select-none text-[11px] text-text-main hover:underline">
+                                        <input type="checkbox" className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer" defaultChecked={options.export_activity} onChange={(e) => options.export_activity = e.target.checked} />
                                         <span>{t('settings.opt_export_activity')}</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <div className="tetrone-delete-section">
-                                <h4 className="tetrone-delete-section-title">{t('settings.delete_section_title')}</h4>
-                                <div className="tetrone-settings-checkbox-group">
-                                    <label className="tetrone-checkbox-label">
-                                        <input type="checkbox" defaultChecked={options.delete_own_posts} onChange={(e) => options.delete_own_posts = e.target.checked} />
+                            <div className="flex flex-col">
+                                <h4 className="m-0 mb-[10px] text-[11px] font-bold text-theme-error border-b border-[rgba(230,70,70,0.3)] pb-[4px]">
+                                    {t('settings.delete_section_title')}
+                                </h4>
+                                <div className="flex flex-col gap-[8px]">
+                                    <label className="flex items-center gap-[6px] cursor-pointer select-none text-[11px] text-text-main hover:underline">
+                                        <input type="checkbox" className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer" defaultChecked={options.delete_own_posts} onChange={(e) => options.delete_own_posts = e.target.checked} />
                                         <span>{t('settings.opt_delete_posts')}</span>
                                     </label>
-                                    <label className="tetrone-checkbox-label">
-                                        <input type="checkbox" defaultChecked={options.delete_traces} onChange={(e) => options.delete_traces = e.target.checked} />
+                                    <label className="flex items-center gap-[6px] cursor-pointer select-none text-[11px] text-text-main hover:underline">
+                                        <input type="checkbox" className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer" defaultChecked={options.delete_traces} onChange={(e) => options.delete_traces = e.target.checked} />
                                         <span>{t('settings.opt_delete_traces')}</span>
                                     </label>
-                                    <label className="tetrone-checkbox-label">
-                                        <input type="checkbox" defaultChecked={options.delete_chats} onChange={(e) => options.delete_chats = e.target.checked} />
+                                    <label className="flex items-center gap-[6px] cursor-pointer select-none text-[11px] text-text-main hover:underline">
+                                        <input type="checkbox" className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer" defaultChecked={options.delete_chats} onChange={(e) => options.delete_chats = e.target.checked} />
                                         <span>{t('settings.opt_delete_chats')}</span>
                                     </label>
-                                    <label className="tetrone-checkbox-label">
-                                        <input type="checkbox" defaultChecked={options.delete_stickers} onChange={(e) => options.delete_stickers = e.target.checked} />
+                                    <label className="flex items-center gap-[6px] cursor-pointer select-none text-[11px] text-text-main hover:underline">
+                                        <input type="checkbox" className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer" defaultChecked={options.delete_stickers} onChange={(e) => options.delete_stickers = e.target.checked} />
                                         <span>{t('settings.opt_delete_stickers')}</span>
                                     </label>
                                 </div>
@@ -95,7 +102,7 @@ const DangerZone = ({ t }) => {
                         </div>
                     </div>
 
-                    <div className="tetrone-modal-footer">
+                    <div className="bg-bg-page border-t border-border py-[10px] px-[15px] flex justify-end items-center gap-[10px]">
                         <Button variant="secondary" onClick={() => { closeModal(); resolve(null); }}>
                             {t('action.cancel')}
                         </Button>
@@ -118,7 +125,7 @@ const DangerZone = ({ t }) => {
 
         if (!password) return;
 
-        // останній шанс передумати 
+        // останній шанс передумати
         const finalChance = await openConfirm(
             t('settings.final_delete_warning'),
             t('settings.final_delete_title'),
@@ -166,21 +173,29 @@ const DangerZone = ({ t }) => {
     };
 
     return (
-        <div className="tetrone-settings-danger">
-            <div className="tetrone-settings-danger-header">{t('settings.danger_zone')}</div>
-            <div className="tetrone-settings-danger-body">
-                <div>
-                    <h4>{t('settings.delete_account')}</h4>
-                    <div className="tetrone-settings-quote">{t('easter_eggs.quote')}</div>
-                    <p className="tetrone-settings-desc">{t('settings.delete_warning')}</p>
+        <div className="border border-theme-error bg-[rgba(230,70,70,0.05)] p-[10px_15px]">
+            <div className="flex justify-between items-center gap-[15px] max-md:flex-col max-md:items-start">
+                <div className="flex-1">
+                    <h2 className="m-0 mb-[4px] text-[11px] font-bold text-theme-error">{t('settings.danger_zone')}</h2>
+
+                    {t('easter_eggs.quote') && (
+                        <div className="italic text-text-muted text-[11px] mb-[6px] border-l-[2px] border-theme-error pl-[8px] whitespace-pre-line leading-[1.4]">
+                            {t('easter_eggs.quote')}
+                        </div>
+                    )}
+
+                    <p className="m-0 text-[11px] text-text-main">{t('settings.delete_warning')}</p>
                 </div>
-                <Button
-                    variant="danger"
-                    onClick={handleDeleteAccountFlow}
-                    disabled={isProcessing}
-                >
-                    {isProcessing ? t('common.processing') : t('settings.delete_account')}
-                </Button>
+                <div className="flex-shrink-0 max-md:w-full">
+                    <Button
+                        variant="danger"
+                        onClick={handleDeleteAccountFlow}
+                        disabled={isProcessing}
+                        className="max-md:w-full"
+                    >
+                        {isProcessing ? t('common.processing') : t('settings.delete_account')}
+                    </Button>
+                </div>
             </div>
         </div>
     );

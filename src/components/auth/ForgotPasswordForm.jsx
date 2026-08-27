@@ -150,7 +150,7 @@ export default function ForgotPasswordForm() {
                 <div className="tetrone-auth-msg success">
                     {t('auth.password_reset_success')}
                 </div>
-                <Link to="/login" className="tetrone-landing-btn-primary" style={{ display: 'inline-block', marginTop: '10px' }}>
+                <Link to="/login" className="tetrone-landing-btn-primary">
                     {t('action.go_to_login')}
                 </Link>
             </div>
@@ -169,7 +169,7 @@ export default function ForgotPasswordForm() {
 
             {step === 1 && (
                 <form onSubmit={handleEmailSubmit(onEmailSubmit)}>
-                    <p className="tetrone-landing-auth-text" style={{ marginBottom: '15px' }}>
+                    <p className="tetrone-landing-auth-text">
                         {t('auth.forgot_password_instruction')}
                     </p>
                     <Input
@@ -187,7 +187,7 @@ export default function ForgotPasswordForm() {
 
             {step === 2 && (
                 <div className="tetrone-code-step">
-                    <p className="tetrone-landing-auth-text" style={{ textAlign: 'center', marginBottom: '15px' }}>
+                    <p className="tetrone-landing-auth-text">
                         {t('auth.enter_code_sent_to')} <b>{savedEmail}</b>
                     </p>
 
@@ -208,7 +208,7 @@ export default function ForgotPasswordForm() {
                     </div>
 
                     {isVerifyingCode && (
-                        <div className="tetrone-landing-auth-text" style={{ textAlign: 'center', marginTop: '10px' }}>
+                        <div className="tetrone-landing-auth-text">
                             {t('common.loading')}...
                         </div>
                     )}
@@ -217,7 +217,7 @@ export default function ForgotPasswordForm() {
 
             {step === 3 && (
                 <form onSubmit={handlePasswordSubmit(onPasswordSubmit)}>
-                    <p className="tetrone-landing-auth-text" style={{ marginBottom: '15px' }}>
+                    <p className="tetrone-landing-auth-text">
                         {t('auth.enter_new_password_instruction')}
                     </p>
                     <Input

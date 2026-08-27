@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { AudioContext } from "../../context/AudioContext";
 import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { PlayIcon, PauseIcon, LoopIcon, VolumeIcon, CloseIcon, WaitIcon } from "../ui/Icons";
-import '../../styles/player.css';
 
 const formatTime = (seconds) => {
     if (!seconds || isNaN(seconds)) return "00:00";

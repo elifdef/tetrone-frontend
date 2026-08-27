@@ -214,7 +214,7 @@ export default function AdminAppeals()
                                     { appealText && (
                                         <div className="tetrone-admin-meta-row tetrone-admin-meta-row-spaced">
                                             <div className="tetrone-admin-meta-label"
-                                                 style={ { marginBottom: '4px' } }>{ t('admin.appeals.message') }:
+                                            >{ t('admin.appeals.message') }:
                                             </div>
                                             <div className="tetrone-admin-report-quote">
                                                 "{ appealText }"

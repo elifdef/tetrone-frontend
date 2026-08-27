@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Button from '../..//ui/Button';
-import Input from '../..//ui/Input';
+import Button from '../../ui/Button';
+import Input from '../../ui/Input';
 import Textarea from '../../ui/Textarea';
-import { notifyError } from '../..//common/Notify';
+import { notifyError } from '../../common/Notify';
 
 export default function PollCreator({ initialData, onSave, onCancel }) {
     const { t } = useTranslation();
@@ -72,8 +72,7 @@ export default function PollCreator({ initialData, onSave, onCancel }) {
     };
 
     return (
-        <div className="tetrone-poll-creator">
-
+        <div className="flex flex-col gap-[15px]">
             <Input
                 placeholder={t('poll.question_placeholder')}
                 value={question}
@@ -81,25 +80,31 @@ export default function PollCreator({ initialData, onSave, onCancel }) {
                 maxLength={255}
             />
 
-            <div className="tetrone-poll-options-list">
+            <div className="flex flex-col gap-[10px]">
                 {options.map((option, index) => (
-                    <div key={option.id} className="tetrone-poll-option-row">
+                    <div key={option.id} className="flex items-center gap-[10px]">
                         {isQuiz && (
                             <input
                                 type={isMultipleChoice ? "checkbox" : "radio"}
                                 checked={option.is_correct}
                                 onChange={() => handleSetCorrect(option.id)}
                                 title={t('poll.mark_correct')}
-                                className="tetrone-poll-checkbox"
+                                className="cursor-pointer w-[16px] h-[16px] m-0 accent-theme-link shrink-0"
                             />
                         )}
-                        <Input
-                            placeholder={`${t('poll.option')} ${index + 1}`}
-                            value={option.text}
-                            onChange={(e) => handleOptionChange(option.id, e.target.value)}
-                            maxLength={100}
-                        />
-                        <button onClick={() => handleRemoveOption(option.id)} className="tetrone-poll-remove-btn">
+                        <div className="flex-1 min-w-0">
+                            <Input
+                                placeholder={`${t('poll.option')} ${index + 1}`}
+                                value={option.text}
+                                onChange={(e) => handleOptionChange(option.id, e.target.value)}
+                                maxLength={100}
+                            />
+                        </div>
+                        <button
+                            onClick={() => handleRemoveOption(option.id)}
+                            className="bg-transparent border-none text-text-muted cursor-pointer hover:text-theme-error text-[14px] flex shrink-0 p-[4px] transition-colors"
+                            title={t('action.delete')}
+                        >
                             ✖
                         </button>
                     </div>
@@ -107,51 +112,51 @@ export default function PollCreator({ initialData, onSave, onCancel }) {
             </div>
 
             {options.length < 16 && (
-                <Button type="button" onClick={handleAddOption} className="tetrone-btn-ghost tetrone-poll-add-btn">
+                <Button type="button" variant="secondary" onClick={handleAddOption} className="w-fit mt-[5px]">
                     + {t('poll.add_option')}
                 </Button>
             )}
 
-            <div className="tetrone-poll-settings">
-                <label className="tetrone-poll-setting-label">
-                    <input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} className="tetrone-poll-checkbox" />
+            <div className="flex flex-col gap-[8px] p-[12px] border border-border bg-[rgba(128,128,128,0.05)] mt-[5px]">
+                <label className="flex items-center gap-[8px] text-[11px] text-text-main cursor-pointer select-none">
+                    <input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} className="cursor-pointer w-[16px] h-[16px] m-0 accent-theme-link" />
                     {t('poll.setting_anonymous')}
                 </label>
 
-                <label className="tetrone-poll-setting-label">
+                <label className="flex items-center gap-[8px] text-[11px] text-text-main cursor-pointer select-none">
                     <input type="checkbox" checked={isMultipleChoice} onChange={(e) => {
                         setIsMultipleChoice(e.target.checked);
                         if (!e.target.checked && isQuiz) {
                             setOptions(options.map(opt => ({ ...opt, is_correct: false })));
                         }
-                    }} className="tetrone-poll-checkbox" />
+                    }} className="cursor-pointer w-[16px] h-[16px] m-0 accent-theme-link" />
                     {t('poll.setting_multiple')}
                 </label>
 
-                <label className="tetrone-poll-setting-label">
-                    <input type="checkbox" checked={canChangeVote} onChange={(e) => setCanChangeVote(e.target.checked)} className="tetrone-poll-checkbox" />
+                <label className="flex items-center gap-[8px] text-[11px] text-text-main cursor-pointer select-none">
+                    <input type="checkbox" checked={canChangeVote} onChange={(e) => setCanChangeVote(e.target.checked)} className="cursor-pointer w-[16px] h-[16px] m-0 accent-theme-link" />
                     {t('poll.setting_revote')}
                 </label>
 
-                <label className="tetrone-poll-setting-label highlight">
-                    <input type="checkbox" checked={isQuiz} onChange={(e) => setIsQuiz(e.target.checked)} className="tetrone-poll-checkbox" />
+                <label className="flex items-center gap-[8px] text-[11px] cursor-pointer select-none text-theme-link font-bold">
+                    <input type="checkbox" checked={isQuiz} onChange={(e) => setIsQuiz(e.target.checked)} className="cursor-pointer w-[16px] h-[16px] m-0 accent-theme-link" />
                     <span>{t('poll.setting_quiz')}</span>
                 </label>
             </div>
 
             {isQuiz && (
-                <div className="tetrone-poll-explanation-wrapper">
+                <div className="mt-[5px]">
                     <Textarea
                         placeholder={t('poll.explanation_placeholder')}
                         value={explanation}
                         onChange={(e) => setExplanation(e.target.value)}
                         maxLength={255}
-                        className="tetrone-form-textarea fixed-size"
+                        className="!min-h-[60px]"
                     />
                 </div>
             )}
 
-            <div className="tetrone-poll-actions">
+            <div className="flex justify-end gap-[10px] mt-[15px] pt-[15px] border-t border-border">
                 <Button variant="secondary" onClick={onCancel}>{t('action.cancel')}</Button>
                 <Button onClick={handleSave}>{t('action.save')}</Button>
             </div>
