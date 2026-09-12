@@ -104,7 +104,7 @@ export default function PostPage() {
                 <PostItem
                     post={post}
                     isOwner={isOwner}
-                    currentUserId={user?.id}
+                    currentUsername={user.username}
                     onEdit={() => setIsEditing(true)}
                     onDelete={() => navigate('/')}
                     isInner={false}

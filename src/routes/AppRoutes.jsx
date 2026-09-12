@@ -18,7 +18,7 @@ import ModerationPage from "../pages/ModerationPage";
 import { GuestGuard, AuthGuard, SetupGuard, RoleGuard } from "./Guards";
 import AdminUserInfo from "../components/admin/AdminUserInfo";
 import { userRole } from "../config";
-import NotificationsPage from "../components/stickers/NotificationsPage.jsx";
+import NotificationsPage from "../pages/NotificationsPage.jsx";
 import ActivityPage from "../pages/ActivityPage";
 import MessagesPage from "../pages/MessagesPage";
 import StickerShopPage from '../pages/StickerShopPage';

@@ -3,8 +3,9 @@ import { Link, useLocation } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
-import { EditIcon, DeleteIcon, ReplyIcon, ReportIcon, DotsIcon } from '../ui/Icons';
+import { EditIcon, DeleteIcon, ReplyIcon, ReportIcon, DotsIcon, LikeIcon } from '../ui/Icons';
 import RichText from '../common/RichText';
+import SmartEditor from '../editor/SmartEditor'; // Додано імпорт SmartEditor
 import { isEditorEmpty } from '../../utils/editorHelpers';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
@@ -13,8 +14,6 @@ import CommentService from '../../services/comment.service';
 import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
 import StickerPicker from '../editor/StickerPicker';
-import LikeIcon from '../../assets/like.svg?react';
-import NoLikeIcon from '../../assets/nolike.svg?react';
 import ReportModal from '../modals/ReportModal';
 
 export default function CommentItem({ comment, currentUser, onDelete, onEdit, onAddComment, depth = 1 }) {
@@ -218,7 +217,6 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                     <div className="text-[12px] leading-[1.3] mb-[6px] text-text-main">
                         {isEditing ? (
                             <div className="flex flex-col">
-                                {/* Використовуємо SmartEditor з preset="comment" */}
                                 <SmartEditor
                                     preset="comment"
                                     value={editContent}
@@ -246,7 +244,8 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                                 onClick={handleLike}
                                 disabled={!currentUser}
                             >
-                                {comment.is_liked ? <LikeIcon width={14} height={14} /> : <NoLikeIcon width={14} height={14} />}
+                                {/* ФІКС: Замінено на LikeIcon із динамічним класом fill-current */}
+                                <LikeIcon width={14} height={14} className={comment.is_liked ? 'fill-current' : ''} />
                                 {comment.likes_count || 0}
                             </button>
 

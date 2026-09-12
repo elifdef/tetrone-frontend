@@ -12,7 +12,7 @@ import { triggerStickerConfetti } from '../../utils/confetti';
 
 const PostItem = ({
                       post, onEdit, onDelete, isOwner, currentUsername, onLikeToggle, onRepostSuccess,
-                      isInner = false, readonly = false, depth = 1
+                      isInner = false, readonly = false, depth = 1, isAdmin = false
                   }) => {
     const { t } = useTranslation();
 
@@ -22,7 +22,7 @@ const PostItem = ({
     } = usePostActions(post, readonly, onLikeToggle, onRepostSuccess);
 
     const handleToggleReaction = async (stickerPayload, event) => {
-        if (readonly) return;
+        if (readonly && !isAdmin) return;
 
         const currentReactions = postData.reactions || [];
         const previousReactions = [...currentReactions];
@@ -91,13 +91,14 @@ const PostItem = ({
                 post={postData}
                 isOwner={isOwner}
                 currentUsername={currentUsername}
-                onEdit={!isInner && !readonly ? onEdit : null}
-                onDelete={!isInner && !readonly ? onDelete : null}
+                onEdit={onEdit}
+                onDelete={onDelete}
                 onReport={!isInner && !readonly ? () => setIsReportModalOpen(true) : null}
                 readonly={readonly}
+                isAdmin={isAdmin}
             />
 
-            <div className={`text-[11px] leading-[1.4] pl-[60px] mt-[5px] mb-[5px] max-md:pl-[10px] max-md:mt-[10px] post-text ${readonly ? 'pointer-events-none' : ''}`}>
+            <div className={`text-[11px] leading-[1.4] pl-[60px] mt-[5px] mb-[5px] max-md:pl-[10px] max-md:mt-[10px] post-text`}>
                 <PostContent
                     content={postData.content}
                     post={postData}

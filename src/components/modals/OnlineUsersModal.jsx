@@ -1,16 +1,12 @@
-import {useTranslation} from 'react-i18next';
-import {Link} from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import Avatar from '../ui/Avatar';
 import Modal from './Modal.jsx';
 
-export default function OnlineUsersModal({isOpen, onClose, users})
-{
-    const {t} = useTranslation();
+export default function OnlineUsersModal({ isOpen, onClose, users }) {
+    const { t } = useTranslation();
 
-    if (!isOpen)
-    {
-        return null;
-    }
+    if (!isOpen) return null;
 
     return (
         <Modal
@@ -20,37 +16,39 @@ export default function OnlineUsersModal({isOpen, onClose, users})
             sizeClass="modal-md"
         >
             {users.length === 0 ? (
-                <div className="tetrone-empty-state">
+                <div className="p-[20px] text-center text-text-muted italic bg-bg-box border border-border">
                     {t('admin.dashboard.no_one_online')}
                 </div>
             ) : (
-                <div className="tetrone-admin-online-modal-list">
-                    {users.map(user =>
-                    {
+                <div className="flex flex-col">
+                    {users.map(user => {
                         const nameColor = user.personalization?.username_color;
 
                         return (
                             <Link
                                 key={user.id}
                                 to={`/${user.username}`}
-                                className="tetrone-admin-online-modal-item"
+                                className="flex items-center py-[10px] gap-[15px] border-b border-border last:border-b-0 no-underline transition-colors hover:bg-bg-page"
                                 onClick={onClose}
                             >
-                                <Avatar user={user} className="tetrone-admin-online-modal-avatar"/>
+                                <Avatar
+                                    user={user}
+                                    className="w-[40px] h-[40px] object-cover border border-border"
+                                />
 
-                                <div className="tetrone-admin-online-modal-details">
+                                <div className="flex-1 flex flex-col">
                                     <span
-                                        className="tetrone-admin-online-modal-name"
-                                        style={nameColor ? {color: nameColor} : undefined}
+                                        className="text-[12px] font-bold text-text-main"
+                                        style={nameColor ? { color: nameColor } : undefined}
                                     >
                                         {user.first_name} {user.last_name}
                                     </span>
-                                    <span className="tetrone-admin-online-modal-nick">
+                                    <span className="text-[11px] text-text-muted mt-[2px]">
                                         @{user.username}
                                     </span>
                                 </div>
 
-                                <div className="tetrone-admin-online-modal-indicator"></div>
+                                <div className="w-[10px] h-[10px] bg-theme-success shadow-[0_0_4px_var(--theme-success)]"></div>
                             </Link>
                         );
                     })}

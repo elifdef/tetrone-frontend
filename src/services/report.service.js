@@ -1,22 +1,17 @@
 import fetchClient from '../api/client';
 
-class ReportService {
-    async getReasons() {
-        const res = await fetchClient('/reports/reasons');
-        return res;
-    }
+const ReportService = {
+    getReasons: () => fetchClient('/reports/reasons'),
 
-    async submitReport({ type, id, reason, details }) {  
-        return await fetchClient('/reports', {
-            method: 'POST',
-            body: {
-                type: type,
-                id: String(id),
-                reason: reason,
-                details: details
-            }
-        });
-    }
-}
+    submitReport: ({ type, id, reason, details }) => fetchClient('/reports', {
+        method: 'POST',
+        body: {
+            type: type,
+            id: String(id),
+            reason: reason,
+            details: details
+        }
+    })
+};
 
-export default new ReportService();
+export default ReportService;

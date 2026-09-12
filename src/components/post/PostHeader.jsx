@@ -6,7 +6,7 @@ import useOnClickOutside from '../editor/hooks/useOnClickOutside';
 import { EditIcon, DeleteIcon, ReportIcon, DotsIcon } from '../ui/Icons';
 import Avatar from '../ui/Avatar';
 
-const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername, readonly }) => {
+const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername, readonly, isAdmin = false }) => {
     const { t } = useTranslation();
     const formatDate = useDateFormatter();
     const { username: currentProfileUsername } = useParams();
@@ -16,48 +16,54 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
 
     useOnClickOutside(menuRef, () => setShowMenu(false));
 
-    // Перевіряємо наявність автора (тепер це поліморфний зв'язок)
+    // Якщо немає автора (пост зламаний) - нічого не рендеримо
     if (!post || !post.author) return null;
 
-    const authorIsSpace = post.author_type?.includes('Space');
-    const targetIsSpace = post.target_type?.includes('Space');
-    const targetIsUser = post.target_type?.includes('User');
+    // Зверни увагу: бекенд віддає author_type з малої літери ("user", "space")
+    const authorIsSpace = post.author_type === 'space';
+    const targetIsSpace = post.target_type === 'space';
+    const targetIsUser = post.target_type === 'user';
 
     const author = post.author;
     const target = post.target;
     const isAvatarUpdate = post.is_avatar_update === true;
 
-    // ФІКС 1: Строга перевірка авторства через username реального творця або поліморфного автора
-    const actualCreatorUsername = post.user?.username;
-    const isAuthor = currentUsername ? (currentUsername === actualCreatorUsername || currentUsername === author.username) : false;
+    // Авторство тепер перевіряємо через post.author
+    const isAuthor = currentUsername && (currentUsername === author.username);
 
-    // Логіка відображення
+    // Адмін має права редагувати/видаляти в адмінці, інакше - звичайна логіка
+    const canEdit = onEdit && (isAdmin || (isAuthor && !isAvatarUpdate && !readonly));
+    const canDelete = onDelete && (isAdmin || ((isAuthor || isOwner) && !readonly));
+    const canReport = onReport && !isAuthor && !readonly;
+
+    const showActions = canEdit || canDelete || canReport;
+
     const authorLink = `/${author.username}`;
     const authorName = authorIsSpace ? author.name : `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.username;
     const authorNameColor = authorIsSpace ? undefined : author?.personalization?.username_color;
 
-    // Чи потрібно показувати ціль (стіну юзера або групу)?
-    // Не показуємо, якщо це своя стіна або якщо ми вже знаходимось на сторінці цієї цілі
     const isPostedOnOwnWall = target?.username === author.username;
     const isViewingTargetWall = target?.username === currentProfileUsername;
     const showTarget = !!target && !isPostedOnOwnWall && !isViewingTargetWall && !isAvatarUpdate;
 
-    const canEdit = !readonly && onEdit && isAuthor && !isAvatarUpdate;
-    const canDelete = !readonly && onDelete && (isAuthor || isOwner);
-    const canReport = !readonly && onReport && !isAuthor;
-
-    const showActions = canEdit || canDelete || canReport;
-
-    const avatarUpdateText = post.user?.gender === 2
+    // Стать беремо з автора (1 - чол, 2 - жін)
+    const avatarUpdateText = author.gender === 2
         ? t('post.updated_avatar_female')
         : t('post.updated_avatar_male');
+
+    const wroteOnWallText = t(`post.wrote_on_wall_${author.gender === 2 ? 'female' : 'male'}`);
 
     const menuItemClass = "w-full text-left px-[8px] py-[6px] flex items-center gap-[6px] text-text-main hover:bg-bg-page hover:text-theme-link hover:underline cursor-pointer border-none bg-transparent outline-none text-[11px] font-normal transition-none";
     const dangerItemClass = "w-full text-left px-[8px] py-[6px] flex items-center gap-[6px] text-theme-error hover:bg-[rgba(255,51,71,0.1)] hover:text-theme-error hover:underline cursor-pointer border-none bg-transparent outline-none text-[11px] font-normal transition-none";
 
+    const handleLinkClick = (e) => {
+        // Забороняємо клік, якщо це readonly І НЕ адмінка
+        if (readonly && !isAdmin) e.preventDefault();
+    };
+
     return (
         <div className="border-t border-border pt-[5px] flex items-start max-md:px-[10px] max-md:items-center">
-            <Link to={authorLink} className="shrink-0 mr-[10px]" onClick={(e) => readonly && e.preventDefault()}>
+            <Link to={authorLink} className="shrink-0 mr-[10px]" onClick={handleLinkClick}>
                 <Avatar user={author} className="w-[50px] h-[50px] object-cover block rounded-[4px]" />
             </Link>
 
@@ -65,18 +71,12 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
                 <div className="flex flex-wrap items-center gap-x-[4px] leading-[1.4]">
                     <Link
                         to={authorLink}
-                        className={`font-bold text-[12px] no-underline ${readonly ? 'cursor-default' : 'hover:underline text-theme-link'}`}
+                        className="font-bold text-[12px] no-underline hover:underline text-theme-link"
                         style={authorNameColor ? { color: authorNameColor } : undefined}
-                        onClick={(e) => readonly && e.preventDefault()}
+                        onClick={handleLinkClick}
                     >
                         {authorName}
                     </Link>
-
-                    {authorIsSpace && post.user && (
-                        <span className="text-text-muted">
-                            ({t('spaces.posted_by_admin')} <Link to={`/${post.user.username}`} className="text-text-muted hover:underline" onClick={(e) => readonly && e.preventDefault()}>{post.user.first_name}</Link>)
-                        </span>
-                    )}
 
                     {isAvatarUpdate && !authorIsSpace && (
                         <span className="text-text-main">{avatarUpdateText}</span>
@@ -84,8 +84,8 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
 
                     {showTarget && targetIsUser && (
                         <span className="text-text-main">
-                            {t(`post.wrote_on_wall_${post.user?.gender === 2 ? 'female' : 'male'}`)}
-                            <Link to={`/${target.username}`} className="text-theme-link font-bold hover:underline ml-[4px]" onClick={(e) => readonly && e.preventDefault()}>
+                            {wroteOnWallText}
+                            <Link to={`/${target.username}`} className="text-theme-link font-bold hover:underline ml-[4px]" onClick={handleLinkClick}>
                                 {target.first_name} {target.last_name}
                             </Link>
                         </span>
@@ -94,19 +94,19 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
                     {showTarget && targetIsSpace && (
                         <span className="text-text-main flex items-center gap-[4px]">
                             <span className="text-[10px] text-text-muted">▶</span>
-                            <Link to={`/${target.username}`} className="text-theme-link font-bold hover:underline" onClick={(e) => readonly && e.preventDefault()}>
+                            <Link to={`/${target.username}`} className="text-theme-link font-bold hover:underline" onClick={handleLinkClick}>
                                 {target.name}
                             </Link>
                         </span>
                     )}
                 </div>
 
-                <Link to={`/post/${post.id}`} className={`text-[10px] mt-[2px] no-underline ${readonly ? 'text-text-muted cursor-default' : 'text-text-muted hover:underline'}`} onClick={(e) => readonly && e.preventDefault()}>
+                <Link to={`/post/${post.id}`} className="text-[10px] mt-[2px] text-text-muted hover:underline no-underline" onClick={handleLinkClick}>
                     {formatDate(post.created_at)}
                 </Link>
             </div>
 
-            {showActions && !readonly && (
+            {showActions && (
                 <div className="relative ml-auto" ref={menuRef}>
                     <button
                         type="button"

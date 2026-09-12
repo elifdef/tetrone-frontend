@@ -1,12 +1,7 @@
 import { Link } from "react-router";
 import { useState, useRef } from "react";
-import CommentIcon from "../../assets/comment.svg?react";
-import NoCommentIcon from "../../assets/nocomment.svg?react";
-import LikeIcon from "../../assets/like.svg?react";
-import NoLikeIcon from "../../assets/nolike.svg?react";
-import NoRepostIcon from "../../assets/norepost.svg?react";
-import RepostIcon from "../../assets/repost.svg?react";
 import StickerPicker from "../editor/StickerPicker";
+import { LikeIcon, CommentIcon, RepostIcon } from "../ui/Icons"; // Імпорт нових іконок замість старих SVG
 
 export default function PostFooter({
                                        postId, isLiked, likesCount, commentsCount, repostsCount = 0,
@@ -26,7 +21,8 @@ export default function PostFooter({
         hideTimeout.current = setTimeout(() => setShowPicker(false), 300);
     };
 
-    const actionBtnClass = `flex items-center gap-[6px] bg-transparent border-none py-[5px] text-[11px] font-bold no-underline transition-opacity ${readonly ? 'opacity-70 cursor-default text-theme-link' : 'text-theme-link cursor-pointer hover:underline hover:opacity-85'}`;
+    // Єдиний клас для ВСІХ кнопок/посилань, щоб вони виглядали 100% ідентично
+    const actionBtnClass = `flex items-center gap-[6px] bg-transparent border-none p-0 text-[11px] font-bold no-underline transition-opacity outline-none ${readonly ? 'opacity-70 cursor-default text-theme-link' : 'text-theme-link cursor-pointer hover:underline hover:opacity-85'}`;
 
     return (
         <div className={`flex items-center gap-[20px] pb-[10px] px-[15px] pl-[60px] mt-0 max-md:px-[10px] ${className || ''}`}>
@@ -40,7 +36,8 @@ export default function PostFooter({
                         onClick={readonly ? undefined : onLike}
                         disabled={readonly}
                     >
-                        {isLiked ? <LikeIcon width={16} height={16} className="block" /> : <NoLikeIcon width={16} height={16} className="block" />}
+                        {/* Якщо лайкнуто — додаємо fill-current, щоб іконка замалювалась */}
+                        <LikeIcon width={16} height={16} className={`block ${isLiked ? 'fill-current' : ''}`} />
                         {likesCount}
                     </button>
 
@@ -63,15 +60,15 @@ export default function PostFooter({
                     )}
                 </div>
 
-                {/* Коментарі */}
+                {/* Коментарі (Це єдиний Link) */}
                 {readonly ? (
-                    <div className={actionBtnClass}>
-                        {commentsCount > 0 ? <CommentIcon width={16} height={16} className="block" /> : <NoCommentIcon width={16} height={16} className="block" />}
+                    <button type="button" className={actionBtnClass} disabled>
+                        <CommentIcon width={16} height={16} className="block" />
                         {commentsCount}
-                    </div>
+                    </button>
                 ) : (
                     <Link to={`/post/${postId}`} className={actionBtnClass}>
-                        {commentsCount > 0 ? <CommentIcon width={16} height={16} className="block" /> : <NoCommentIcon width={16} height={16} className="block" />}
+                        <CommentIcon width={16} height={16} className="block" />
                         {commentsCount}
                     </Link>
                 )}
@@ -84,13 +81,13 @@ export default function PostFooter({
                         onClick={readonly ? undefined : onRepost}
                         disabled={isReposting || readonly}
                     >
-                        {repostsCount > 0 ? <RepostIcon width={16} height={16} className="block" /> : <NoRepostIcon width={16} height={16} className="block" />}
+                        <RepostIcon width={16} height={16} className="block" />
                         {repostsCount}
                         {isReposting && '...'}
                     </button>
                 )}
 
-                {/* Реакції-бейджики (Тепер зліва, одразу біля кнопок!) */}
+                {/* Реакції-бейджики */}
                 {reactions && reactions.length > 0 && (
                     <div id={`post-reactions-${postId}`} className="flex flex-wrap items-center gap-[4px] m-0 p-0 before:content-[''] before:block before:w-[1px] before:h-[14px] before:bg-border before:mx-[4px]">
                         {reactions.map((r) => (

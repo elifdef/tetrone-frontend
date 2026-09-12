@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import useOnClickOutside from './hooks/useOnClickOutside';
+import Button from "../ui/Button.jsx";
 
 export default function PublishButton({ onPublish, onSchedule, isSubmitting }) {
     const { t } = useTranslation();
@@ -18,18 +19,16 @@ export default function PublishButton({ onPublish, onSchedule, isSubmitting }) {
 
     return (
         <div className="relative inline-flex items-stretch shadow-sm rounded-[2px]" ref={ref}>
-            <button
-                type="button"
+            <Button
                 onClick={onPublish}
                 disabled={isSubmitting}
-                className="bg-btn-primary text-btn-primary-text font-bold text-[11px] py-[6px] px-[16px] border border-btn-primary-border rounded-l-[2px] cursor-pointer transition-colors hover:bg-btn-primary-hover disabled:opacity-50 disabled:cursor-not-allowed m-0"
             >
                 {isSubmitting ? t('editor.publishing') : t('editor.publish')}
-            </button>
+            </Button>
 
             <div className="w-[1px] bg-btn-primary-border"></div>
 
-            <button
+            <Button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 disabled={isSubmitting}
@@ -37,7 +36,7 @@ export default function PublishButton({ onPublish, onSchedule, isSubmitting }) {
                 title={t('editor.schedule_post')}
             >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
+            </Button>
 
             {isOpen && (
                 <div className="absolute top-full right-0 mt-[2px] p-[8px] bg-bg-box border border-border shadow-sm rounded-[2px] z-[100] min-w-[200px]">

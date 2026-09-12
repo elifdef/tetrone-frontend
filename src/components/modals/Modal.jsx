@@ -46,7 +46,6 @@ export default function Modal({
             className="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] p-[20px] max-md:p-[10px] overflow-y-auto"
             onMouseDown={onClose}
         >
-            {/* ФІКС: border-border замість #555 */}
             <div
                 className={`bg-bg-box shadow-[0_2px_10px_rgba(0,0,0,0.3)] ${widthClass} max-w-full flex flex-col text-text-main m-auto font-tahoma text-[11px] max-md:w-full ${dialogClassName}`}
                 onMouseDown={(e) => e.stopPropagation()}

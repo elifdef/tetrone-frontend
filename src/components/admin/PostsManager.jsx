@@ -1,263 +1,161 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
 import AdminService from '../../services/admin.service';
 import PostService from '../../services/post.service';
 import { notifySuccess, notifyError } from "../common/Notify";
 import { useModal } from '../../context/ModalContext';
-import { useDateFormatter } from '../../hooks/useDateFormatter';
-import { AuthContext } from "../../context/AuthContext";
-import { useContext } from 'react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import PostContent from '../post/content/PostContent';
-import PostFooter from '../post/PostFooter';
-import PostItem from '../post/PostItem';
+import CustomSelect from '../ui/CustomSelect';
+import DateInput from '../ui/DateInput';
 import InfiniteScrollList from '../common/InfiniteScrollList';
+import PostItem from '../post/PostItem';
+import EditPostModal from '../modals/EditPostModal';
+import { VerifiedIcon, CloseIcon, EditIcon, DeleteIcon } from '../ui/Icons';
 import { userRole } from '../../config';
-import { usePageTitle } from "../../hooks/usePageTitle";
-import Avatar from '../ui/Avatar';
-
-const UserSearchForm = ({ search, setSearch, handleSearch }) => {
-    const { t } = useTranslation();
-    return (
-        <form onSubmit={handleSearch} className="admin-search-bar admin-user-search">
-            <div className="admin-post-search-input">
-                <Input
-                    label={t('admin.search_user')}
-                    type="text"
-                    className="tetrone-form-input"
-                    placeholder={t('admin.search_placeholder')}
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
-            <Button type="submit">{t('action.find')}</Button>
-        </form>
-    );
-};
-
-const UserCard = ({ user, handleMute, handleBan, canBan }) => {
-    const { t } = useTranslation();
-    const { user: currentAdmin } = useContext(AuthContext);
-    const isAdmin = currentAdmin?.role === userRole.Admin;
-    const profilePath = `/${isAdmin ? 'admin/users/' : ''}${user.username}`;
-    const nameColor = user.personalization?.username_color;
-
-    return (
-        <div className="admin-user-card">
-            <Avatar
-                user={user}
-                className="admin-user-avatar"
-            />
-            <div className="admin-user-info">
-                <a href={profilePath} className="admin-user-name" target="_blank" rel="noreferrer" style={nameColor ? { color: nameColor } : undefined}>
-                    {user.first_name} {user.last_name}
-                </a>
-                <div className="admin-user-meta">
-                    {`@${user.username} • ${user.email} • ${t('admin.user_info.posts_count', { count: user.posts_count || 0 })}`}
-                </div>
-                <div className="admin-user-status">
-                    {user.is_banned ? (
-                        <span className="admin-status-banned">{t('admin.user_info.status_banned_full')}</span>
-                    ) : user.is_muted ? (
-                        <span className="admin-status-muted">{t('admin.read_only')}</span>
-                    ) : null}
-                </div>
-            </div>
-            {user.role <= userRole.Moderator && (
-                <div className="admin-user-actions">
-                    <Button
-                        className={`admin-btn admin-btn-warning ${user.is_muted ? 'active' : ''}`}
-                        onClick={() => handleMute(user.username, user.is_muted)}
-                    >
-                        {user.is_muted ? t('admin.allow_posting') : t('admin.forbid_posting')}
-                    </Button>
-                    {canBan && (
-                        <Button
-                            className={`admin-btn admin-btn-danger ${user.is_banned ? 'active' : ''}`}
-                            onClick={() => handleBan(user.username, user.is_banned)}
-                        >
-                            {user.is_banned ? t('admin.actions.unban') : t('admin.actions.ban')}
-                        </Button>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-};
-
-export const UsersManager = ({ canBan = true }) => {
-    const { t } = useTranslation();
-    const [users, setUsers] = useState([]);
-    const [search, setSearch] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-    const { openPrompt } = useModal();
-
-    usePageTitle(t('admin.users_management'));
-
-    const fetchUsers = async (searchQuery = '') => {
-        setIsLoading(true);
-        const res = await AdminService.getUsers(searchQuery);
-
-        if (res.success) {
-            setUsers(res.data || []);
-        } else {
-            notifyError(res.message);
-        }
-        setIsLoading(false);
-    };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        fetchUsers(search);
-    };
-
-    const handleMute = async (username, currentStatus) => {
-        const reason = await openPrompt(
-            t('admin.actions.reason_prompt'), "",
-            currentStatus ? t('admin.actions.unmute') : t('admin.read_only'), t('action.cancel')
-        );
-
-        if (reason === null) return;
-
-        const res = await AdminService.toggleMute(username, reason);
-
-        if (res.success) {
-            setUsers(prevUsers => prevUsers.map(u => u.username === username ? { ...u, is_muted: !currentStatus } : u));
-            notifySuccess(res.message);
-        } else {
-            notifyError(res.message);
-        }
-    };
-
-    const handleBan = async (username, currentStatus) => {
-        const reason = await openPrompt(
-            t('admin.actions.reason_prompt'), "",
-            currentStatus ? t('admin.actions.unban') : t('admin.actions.ban'), t('action.cancel')
-        );
-
-        if (reason === null) return;
-
-        const res = await AdminService.toggleBan(username, reason);
-
-        if (res.success) {
-            setUsers(prevUsers => prevUsers.map(u => u.username === username ? { ...u, is_banned: !currentStatus } : u));
-            notifySuccess(res.message);
-        } else {
-            notifyError(res.message);
-        }
-    };
-
-    return (
-        <div className="admin-users-manager-wrapper">
-            <UserSearchForm search={search} setSearch={setSearch} handleSearch={handleSearch} />
-
-            {isLoading ? (
-                <div className="tetrone-empty-state">{t('common.loading')}</div>
-            ) : (
-                <div className="admin-users-list">
-                    {users.map(user => (
-                        <UserCard key={user.id} user={user} handleMute={handleMute} handleBan={handleBan} canBan={canBan} />
-                    ))}
-                    {users.length === 0 && (
-                        <div className="tetrone-empty-state with-card">{t('admin.users_not_found')}</div>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-};
 
 export const PostsManager = ({ currentUser }) => {
     const { t } = useTranslation();
     const { openPrompt } = useModal();
-    const formatDate = useDateFormatter();
 
     const [posts, setPosts] = useState([]);
+    const [stats, setStats] = useState(null);
+
     const [targetUser, setTargetUser] = useState('');
+    const [isCheckedFilter, setIsCheckedFilter] = useState('false');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+
+    const [editingPostId, setEditingPostId] = useState(null);
+
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
-    const isAdmin = currentUser.role === userRole.Admin;
+    const isAdmin = currentUser?.role >= userRole.Admin;
 
-    const fetchPosts = async (username = '', pageNum = 1, append = false) => {
+    const fetchPostsAndStats = useCallback((username = '', pageNum = 1, append = false, isChecked = 'all', dFrom = '', dTo = '') => {
         if (append) setIsLoadingMore(true);
         else setIsLoading(true);
 
-        const res = await AdminService.getUserPosts(username, pageNum);
+        if (!append) {
+            AdminService.getPostStats(username, dFrom, dTo)
+            .onSuccess(res => setStats(res.stats))
+            .onError(() => setStats(null));
+        }
 
-        if (res.success) {
-            const items = res.data || [];
+        AdminService.getUserPosts(username, pageNum, isChecked, dFrom, dTo)
+        .onSuccess((res) => {
+            const items = res.posts || [];
             const meta = res.meta;
 
             if (append) {
                 setPosts(prev => {
                     const existingIds = new Set(prev.map(p => p.id));
-                    const uniqueItems = items.filter(p => !existingIds.has(p.id));
-                    return [...prev, ...uniqueItems];
+                    return [...prev, ...items.filter(p => !existingIds.has(p.id))];
                 });
             } else {
                 setPosts(items);
             }
             setHasMore(meta ? meta.current_page < meta.last_page : false);
-        } else {
-            notifyError(res.message);
-        }
-
-        if (append) setIsLoadingMore(false);
-        else setIsLoading(false);
-    };
+        })
+        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)))
+        .onFinally(() => {
+            if (append) setIsLoadingMore(false);
+            else setIsLoading(false);
+        });
+    }, [t]);
 
     useEffect(() => {
-        fetchPosts('', 1, false);
-    }, []);
+        fetchPostsAndStats('', 1, false, isCheckedFilter, dateFrom, dateTo);
+    }, [fetchPostsAndStats, isCheckedFilter, dateFrom, dateTo]);
 
     const handleSearch = (e) => {
         e.preventDefault();
         setPage(1);
-        fetchPosts(targetUser, 1, false);
+        fetchPostsAndStats(targetUser, 1, false, isCheckedFilter, dateFrom, dateTo);
     };
 
     const loadMore = () => {
         if (!isLoadingMore && hasMore) {
             const nextPage = page + 1;
             setPage(nextPage);
-            fetchPosts(targetUser, nextPage, true);
+            fetchPostsAndStats(targetUser, nextPage, true, isCheckedFilter, dateFrom, dateTo);
         }
     };
 
     const handleDelete = async (postId) => {
-        const reason = await openPrompt(
-            t('admin.posts.delete_reason'), "", t('action.delete'), t('action.cancel')
-        );
-
+        const reason = await openPrompt(t('admin.posts.delete_reason'), "", t('action.delete'), t('action.cancel'));
         if (reason === null) return;
 
-        const res = await PostService.delete(postId, { reason });
-
-        if (res.success) {
+        PostService.delete(postId, { reason })
+        .onSuccess((res) => {
             setPosts(prev => prev.filter(post => post.id !== postId));
-            notifySuccess(res.message);
-        } else {
-            notifyError(res.message);
-        }
+            notifySuccess(t(`api.success.${res.code || 'POST_DELETED'}`));
+            AdminService.getPostStats(targetUser, dateFrom, dateTo).onSuccess(statRes => setStats(statRes.stats));
+        })
+        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
     };
 
-    const handleEdit = (postId) => {
-        alert(t('admin.common.under_construction'));
+    const handleToggleCheck = (postId) => {
+        AdminService.togglePostCheck(postId)
+        .onSuccess((res) => {
+            const newStatus = res.is_checked;
+
+            if ((isCheckedFilter === 'true' && !newStatus) || (isCheckedFilter === 'false' && newStatus)) {
+                setPosts(prev => prev.filter(post => post.id !== postId));
+            } else {
+                setPosts(prev => prev.map(post => post.id === postId ? { ...post, is_checked: newStatus } : post));
+            }
+
+            notifySuccess(t('common.success'));
+            AdminService.getPostStats(targetUser, dateFrom, dateTo).onSuccess(statRes => setStats(statRes.stats));
+        })
+        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
     };
+
+    const startEditing = (post) => setEditingPostId(post.id);
+    const cancelEditing = () => setEditingPostId(null);
+    const saveEdit = () => {
+        setEditingPostId(null);
+        fetchPostsAndStats(targetUser, page, false, isCheckedFilter, dateFrom, dateTo);
+    };
+
+    const checkOptions = [
+        { value: 'false', label: t('admin.posts.filter_unchecked') },
+        { value: 'all', label: t('admin.posts.filter_all') },
+        { value: 'true', label: t('admin.posts.filter_checked') },
+    ];
+
+    const editingPost = posts.find(p => p.id === editingPostId);
 
     return (
-        <div className="admin-posts-manager">
-            <form onSubmit={handleSearch} className="admin-search-bar admin-post-search">
-                <div className="admin-post-search-input">
+        <div className="flex flex-col font-tahoma text-[11px] text-text-main">
+
+            {stats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px] mb-[15px]">
+                    <div className="bg-bg-box border border-border p-[10px] text-center">
+                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.total_posts')}</div>
+                        <div className="text-[18px] text-theme-link font-bold">{stats.total}</div>
+                    </div>
+                    <div className="bg-bg-box border border-border p-[10px] text-center">
+                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.today')}</div>
+                        <div className="text-[18px] text-theme-success font-bold">{stats.today}</div>
+                    </div>
+                    <div className="bg-bg-box border border-border p-[10px] text-center">
+                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.unchecked')}</div>
+                        <div className="text-[18px] text-theme-error font-bold">{stats.unchecked}</div>
+                    </div>
+                    <div className="bg-bg-box border border-border p-[10px] text-center">
+                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('common.reposts')}</div>
+                        <div className="text-[18px] text-[#d39e00] font-bold">{stats.reposts}</div>
+                    </div>
+                </div>
+            )}
+
+            <form onSubmit={handleSearch} className="flex gap-[10px] items-end mb-[15px] bg-bg-box p-[15px] border border-border flex-wrap">
+                <div className="flex-1 min-w-[150px]">
                     <Input
                         label={t('admin.posts.filter_label')}
                         type="text"
@@ -266,97 +164,129 @@ export const PostsManager = ({ currentUser }) => {
                         onChange={(e) => setTargetUser(e.target.value)}
                     />
                 </div>
-                <Button type="submit">{t('action.find')}</Button>
+
+                <div className="w-[120px]">
+                    <DateInput
+                        label={t('common.date_from')}
+                        value={dateFrom}
+                        onChange={(e) => {
+                            setDateFrom(e.target.value);
+                            setPage(1);
+                        }}
+                    />
+                </div>
+
+                <div className="w-[120px]">
+                    <DateInput
+                        label={t('common.date_to')}
+                        value={dateTo}
+                        onChange={(e) => {
+                            setDateTo(e.target.value);
+                            setPage(1);
+                        }}
+                    />
+                </div>
+
+                <div className="w-[140px]">
+                    <label className="block text-text-muted text-[10px] uppercase font-bold mb-[2px]">{t('admin.posts.checked_status')}</label>
+                    <CustomSelect
+                        options={checkOptions}
+                        value={isCheckedFilter}
+                        onChange={(v) => {
+                            setIsCheckedFilter(v);
+                            setPage(1);
+                        }}
+                    />
+                </div>
+
+                <Button type="submit" className="h-[28px] px-[15px] mb-[1px]">{t('action.find')}</Button>
             </form>
 
             <InfiniteScrollList
-                className="tetrone-feed-list admin-feed-wrapper"
+                className="flex flex-col gap-[15px]"
                 itemsCount={posts.length}
                 isLoadingInitial={isLoading}
                 isLoadingMore={isLoadingMore}
                 hasMore={hasMore}
                 onLoadMore={loadMore}
                 error={false}
-                onRetry={() => fetchPosts(targetUser, page, false)}
+                onRetry={() => fetchPostsAndStats(targetUser, page, false, isCheckedFilter, dateFrom, dateTo)}
                 emptyState={
-                    <div className="tetrone-empty-state with-card">
-                        <h3 className="tetrone-empty-title">{t('empty.posts')}</h3>
-                        <p className="tetrone-empty-desc">{t('admin.posts.not_found_desc')}</p>
+                    <div className="p-[20px] text-center text-text-muted italic bg-bg-box border border-border flex flex-col gap-[5px]">
+                        <h3 className="m-0 font-bold text-text-main">{t('empty.posts')}</h3>
+                        <p className="m-0">{t('admin.posts.not_found_desc')}</p>
                     </div>
                 }
             >
-                {posts.map(post => {
-                    const isFemale = post.user?.gender === 2;
-                    const wallKey = isFemale ? 'post.wrote_on_wall_female' : 'post.wrote_on_wall_male';
-                    const showTargetUser = post.target_user && post.target_user.username !== post.user?.username;
+                {posts.map(post => (
+                    <div key={post.id} className="bg-bg-box border border-border p-[12px] flex flex-col">
 
-                    return (
-                        <div key={post.id} className="tetrone-post admin-moderation-post">
-                            <div className="tetrone-post-header">
-                                <Link to={`/${post.user?.username}`} target="_blank">
-                                    <Avatar
-                                        user={post?.user}
-                                        className="tetrone-post-avatar"
-                                    />
-                                </Link>
-                                <div className="tetrone-post-meta">
-                                    <div className="tetrone-post-authors-row">
-                                        <Link to={`/${post.user?.username}`} className="tetrone-post-author" target="_blank">
-                                            {post.user?.first_name} {post.user?.last_name}
-                                        </Link>
-
-                                        {showTargetUser && (
-                                            <span className="tetrone-post-target-text">
-                                                {` ${t(wallKey)} `}
-                                                <Link to={`/${post.target_user.username}`} className="tetrone-post-author target" target="_blank">
-                                                    {post.target_user.first_name} {post.target_user.last_name}
-                                                </Link>
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span className="tetrone-post-date">
-                                        {t('common.id')}: {post.id} • {formatDate(post.created_at)}
+                        <div className="flex justify-between items-center bg-bg-page border border-border p-[6px_10px] mb-[10px]">
+                            <div className="flex items-center gap-[10px]">
+                                <span className="font-bold text-text-muted">ID: {post.id}</span>
+                                {post.is_checked ? (
+                                    <span className="text-theme-success font-bold flex items-center gap-[4px]">
+                                        <VerifiedIcon width={12} height={12} className="fill-current" /> {t('admin.posts.checked')}
                                     </span>
-                                </div>
-
-                                <div className="tetrone-post-actions-top admin-post-actions-visible">
-                                    {isAdmin && (
-                                        <button className="tetrone-action-icon" onClick={() => handleEdit(post.id)} title={t('action.edit')}>
-                                            ✎
-                                        </button>
-                                    )}
-                                    <button className="tetrone-post-delete" onClick={() => handleDelete(post.id)} title={t('action.delete')}>
-                                        ✖
-                                    </button>
-                                </div>
+                                ) : (
+                                    <span className="text-[#d39e00] font-bold">
+                                        {t('admin.posts.unchecked')}
+                                    </span>
+                                )}
                             </div>
 
-                            <PostContent content={post.content} post={post} onUpdate={() => { }} />
-
-                            {post.is_repost && (
-                                <div className="tetrone-repost-branch">
-                                    {post.original_post_id && post.original_post ? (
-                                        <PostItem post={post.original_post} isInner={true} readonly={true} />
-                                    ) : (
-                                        <div className="tetrone-deleted-stub">{t('post.original_deleted')}</div>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="admin-footer-wrapper">
-                                <PostFooter
-                                    postId={post.id}
-                                    isLiked={false}
-                                    likesCount={post.likes_count || 0}
-                                    commentsCount={post.comments_count || 0}
-                                    repostsCount={post.reposts_count || 0}
-                                    readonly={true}
-                                />
+                            <div className="flex gap-[6px]">
+                                {isAdmin && (
+                                    <button
+                                        className={`cursor-pointer px-[8px] py-[2px] text-[10px] font-bold rounded-[2px] transition-colors border outline-none ${post.is_checked ? 'border-border text-text-muted hover:border-theme-error hover:text-theme-error bg-transparent' : 'border-theme-success text-theme-success bg-[rgba(75,179,75,0.1)] hover:bg-theme-success hover:text-white'}`}
+                                        onClick={() => handleToggleCheck(post.id)}
+                                        title={post.is_checked ? t('admin.posts.mark_unchecked') : t('admin.posts.mark_checked')}
+                                    >
+                                        {post.is_checked ? <CloseIcon width={14} height={14} /> : <VerifiedIcon width={14} height={14} className="fill-current" />}
+                                    </button>
+                                )}
+                                {isAdmin && (
+                                    <button
+                                        className="cursor-pointer p-[6px] rounded-[2px] transition-colors flex items-center justify-center border border-border text-text-muted hover:border-theme-link hover:text-theme-link bg-transparent outline-none"
+                                        onClick={() => startEditing(post)}
+                                        title={t('action.edit')}
+                                    >
+                                        <EditIcon width={14} height={14} />
+                                    </button>
+                                )}
+                                <button
+                                    className="cursor-pointer p-[6px] rounded-[2px] transition-colors flex items-center justify-center border border-border text-text-muted hover:border-theme-error hover:text-theme-error bg-transparent outline-none"
+                                    onClick={() => handleDelete(post.id)}
+                                    title={t('action.delete')}
+                                >
+                                    <DeleteIcon width={14} height={14} />
+                                </button>
                             </div>
                         </div>
-                    );
-                })}
+
+                        <div className="opacity-95 admin-readonly-post">
+                            <PostItem
+                                post={post}
+                                readonly={true}
+                                currentUsername={currentUser?.username}
+                                isAdmin={isAdmin}
+                                onEdit={() => startEditing(post)}
+                                onDelete={handleDelete}
+                            />
+                        </div>
+
+                    </div>
+                ))}
             </InfiniteScrollList>
+
+            {editingPost && (
+                <EditPostModal
+                    isOpen={!!editingPostId}
+                    post={editingPost}
+                    onClose={cancelEditing}
+                    onSaveSuccess={saveEdit}
+                />
+            )}
         </div>
     );
 };
