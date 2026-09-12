@@ -1,12 +1,12 @@
 import React, {useState, useRef, useContext, useMemo} from 'react';
 import {useTranslation} from 'react-i18next';
-import {AuthContext} from '../../context/AuthContext';
-import {useModal} from '../../context/ModalContext';
-import {notifyError} from '../common/Notify';
-import {ImageIcon} from '../ui/Icons';
-import PostItem from '../post/PostItem';
-import Button from '../ui/Button';
-import Modal from './Modal';
+import {AuthContext} from '../../context/AuthContext.jsx';
+import {useModal} from '../../context/ModalContext.jsx';
+import {notifyError} from '../common/Notify.jsx';
+import {ImageIcon} from '../ui/Icons.jsx';
+import PostItem from '../post/PostItem.jsx';
+import Button from '../ui/Button.jsx';
+import Modal from '../modals/Modal.jsx';
 
 export default function StickerEditorModal({stickerToEdit = null, onClose, onSuccess, onDelete})
 {

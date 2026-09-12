@@ -19,15 +19,14 @@ export default function MyRepostsTab({ onCountUpdate }) {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState(false);
 
-    const fetchReposts = useCallback(async () => {
+    const fetchReposts = useCallback(() => {
         if (page === 1) setIsLoadingInitial(true);
         else setIsLoadingMore(true);
         setError(false);
 
-        const res = await ActivityService.getMyReposts(page);
-
-        if (res.success) {
-            const newReposts = res.data || [];
+        ActivityService.getMyReposts(page)
+        .onSuccess((res) => {
+            const newReposts = res.posts || [];
             const meta = res.meta;
 
             setReposts(prev => {
@@ -38,13 +37,15 @@ export default function MyRepostsTab({ onCountUpdate }) {
             });
 
             setHasMore(meta ? meta.current_page < meta.last_page : false);
-        } else {
-            notifyError(res.message || t('error.load_failed'));
+        })
+        .onError((err) => {
+            notifyError(err.message || t('error.load_failed'));
             setError(true);
-        }
-
-        setIsLoadingInitial(false);
-        setIsLoadingMore(false);
+        })
+        .onFinally(() => {
+            setIsLoadingInitial(false);
+            setIsLoadingMore(false);
+        });
     }, [page, t]);
 
     useEffect(() => {
@@ -61,14 +62,14 @@ export default function MyRepostsTab({ onCountUpdate }) {
         const isConfirmed = await openConfirm(t('action.delete'));
         if (!isConfirmed) return;
 
-        const res = await fetchClient(`/posts/${postId}`, { method: 'DELETE' });
-
-        if (res.success) {
+        fetchClient(`/posts/${postId}`, { method: 'DELETE' })
+        .onSuccess(() => {
             setReposts(prev => prev.filter(p => p.id !== postId));
             if (onCountUpdate) onCountUpdate(-1);
-        } else {
-            notifyError(res.message || t('error.delete_failed'));
-        }
+        })
+        .onError((err) => {
+            notifyError(err.message || t('error.delete_failed'));
+        });
     };
 
     return (
@@ -80,20 +81,21 @@ export default function MyRepostsTab({ onCountUpdate }) {
             onLoadMore={loadMore}
             error={error}
             onRetry={fetchReposts}
-            className="tetrone-post-list"
+            className="flex flex-col gap-[10px]"
             emptyState={
-                <div className="tetrone-empty-state">
-                    <p>{t('empty.reposts')}</p>
+                <div className="bg-bg-box border border-border p-[20px] text-center text-text-muted text-[11px] italic rounded-[2px]">
+                    {t('empty.reposts')}
                 </div>
             }
         >
             {reposts.map(post => (
-                <PostItem
-                    key={post.id}
-                    post={post}
-                    isOwner={true}
-                    onDelete={handleDelete}
-                />
+                <div key={post.id} className="bg-bg-box border border-border p-[15px] rounded-[2px]">
+                    <PostItem
+                        post={post}
+                        isOwner={true}
+                        onDelete={handleDelete}
+                    />
+                </div>
             ))}
         </InfiniteScrollList>
     );

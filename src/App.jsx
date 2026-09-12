@@ -7,6 +7,7 @@ import ErrorState from "./components/ui/ErrorState";
 import { BannedScreen } from './components/auth/BannedScreen';
 import { audioManager } from './utils/audioManager';
 import CookieBanner from "./components/common/CookieBanner";
+import { useScreenTime } from './hooks/useScreenTime';
 
 const GlobalLoading = () => {
     const { t } = useTranslation();
@@ -34,6 +35,7 @@ const GlobalErrorScreen = ({ title, desc, onRetry, showButton= true }) => {
 
 export default function App() {
     const { user, loading, initError } = useContext(AuthContext);
+    useScreenTime(user);
     const { t } = useTranslation();
 
     const [globalServerState, setGlobalServerState] = useState(null);

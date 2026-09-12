@@ -1,4 +1,4 @@
-import { SOUND_OPTIONS } from '../config.js'; // Зміни шлях, якщо config.js лежить в іншій папці
+import {SOUNDS_CONFIG, getSoundPathById} from '../config.js';
 
 class AudioManager
 {
@@ -7,31 +7,22 @@ class AudioManager
         this.context = null;
         this.buffers = new Map();
         this.isUnlocked = false;
-
-        // Для збереження логіки зупинки
         this.currentSource = null;
         this.playTimeout = null;
     }
 
-    unlock() {
-        if (this.isUnlocked) {
-            return;
-        }
-
+    unlock()
+    {
+        if (this.isUnlocked) return;
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         this.context = new AudioContext();
 
-        // Створюємо осцилятор і вузол гучності
         const oscillator = this.context.createOscillator();
         const gainNode = this.context.createGain();
-
-        // Викручуємо гучність на 0 (абсолютна тиша)
         gainNode.gain.value = 0;
 
-        // З'єднуємо: Осцилятор -> Гучність -> Динаміки
         oscillator.connect(gainNode);
         gainNode.connect(this.context.destination);
-
         oscillator.start(0);
         oscillator.stop(0.01);
 
@@ -41,90 +32,69 @@ class AudioManager
 
     preloadAllSounds()
     {
-        SOUND_OPTIONS.forEach(option =>
+        SOUNDS_CONFIG.forEach(category =>
         {
-            if (option.value !== 0)
+            category.items.forEach(sound =>
             {
-                this.loadSound(option.value);
-            }
+                if (sound.id !== 0) this.loadSound(sound.id);
+            });
         });
     }
 
     async loadSound(soundId)
     {
-        if (this.buffers.has(soundId))
+        const parsedId = Number(soundId);
+        if (parsedId === 0) return null;
+
+        if (this.buffers.has(parsedId))
         {
-            return this.buffers.get(soundId);
+            return this.buffers.get(parsedId);
         }
+
+        const filePath = getSoundPathById(parsedId);
+        if (!filePath) return null;
 
         try
         {
-            // Шлях точно як у твоєму старому класі
-            const response = await fetch(`/sounds/notification_sound_${ soundId }.mp3`);
-            if (!response.ok)
-            {
-                throw new Error(`HTTP error! status: ${ response.status }`);
-            }
+            const response = await fetch(filePath);
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const arrayBuffer = await response.arrayBuffer();
             const audioBuffer = await this.context.decodeAudioData(arrayBuffer);
 
-            this.buffers.set(soundId, audioBuffer);
-
+            this.buffers.set(parsedId, audioBuffer);
             return audioBuffer;
         } catch (error)
         {
-            console.error(`Failed to load sound ${ soundId }:`, error);
+            console.error(`Failed to load sound ${parsedId}:`, error);
             return null;
         }
     }
 
     async play(soundId)
     {
-        if (!soundId || soundId === 'none' || soundId === 0)
-        {
-            return;
-        }
+        const parsedId = Number(soundId);
+        if (!parsedId || parsedId === 0) return;
+        if (!this.isUnlocked || !this.context) return;
 
-        if (!this.isUnlocked || !this.context)
-        {
-            console.warn('autoplay not enabled');
-            return;
-        }
-
-        // Зупиняємо попередній звук перед відтворенням нового
         this.stop();
-
-        let buffer = this.buffers.get(soundId);
-
-        // Якщо звук ще не завантажився у фоні, вантажимо його зараз
-        if (!buffer)
-        {
-            buffer = await this.loadSound(soundId);
-        }
+        let buffer = this.buffers.get(parsedId) || await this.loadSound(parsedId);
 
         if (buffer)
         {
-            // Створюємо "програвач" для цього звуку
             const source = this.context.createBufferSource();
             source.buffer = buffer;
             source.connect(this.context.destination);
-
             source.start(0);
             this.currentSource = source;
 
-            // Зберігаємо логіку зупинки через 5 секунд
-            this.playTimeout = setTimeout(() =>
-            {
-                this.stop();
-            }, 5000);
+            this.playTimeout = setTimeout(() => this.stop(), 5000);
         }
     }
 
     stop()
     {
-        // У Web Audio API метод stop() генерує помилку, якщо звук вже закінчився сам,
-        // тому обгортаємо в try/catch або перевіряємо стан
         if (this.currentSource)
         {
             try
@@ -132,11 +102,9 @@ class AudioManager
                 this.currentSource.stop();
             } catch (e)
             {
-                // Ігноруємо: звук вже відіграв до кінця
             }
             this.currentSource = null;
         }
-
         if (this.playTimeout)
         {
             clearTimeout(this.playTimeout);

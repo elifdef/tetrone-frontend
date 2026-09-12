@@ -1,115 +1,127 @@
-import { useState, useEffect, useContext } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useState, useEffect, useContext} from 'react';
+import {useTranslation} from 'react-i18next';
 import notificationService from '../../services/notification.settings.service';
-import { notifySuccess, notifyError } from '../common/Notify';
+import {notifySuccess, notifyError} from '../common/Notify';
 import Button from '../ui/Button';
-import CustomSelect from '../ui/CustomSelect';
 import Checkbox from '../ui/Checkbox';
-import { audioManager } from '../../utils/audioManager';
-import { SOUND_OPTIONS } from '../../config.js';
-import { AuthContext } from "../../context/AuthContext.jsx";
+import {audioManager} from '../../utils/audioManager';
+import {SOUNDS_CONFIG} from '../../config.js';
+import {AuthContext} from "../../context/AuthContext.jsx";
 
 const SETTING_ITEMS = [
-    { type: 'messages', labelKey: 'settings.notification_messages' },
-    { type: 'likes', labelKey: 'settings.notification_likes' },
-    { type: 'comments', labelKey: 'settings.notification_comments' },
-    { type: 'reposts', labelKey: 'settings.notification_reposts' },
-    { type: 'wall_posts', labelKey: 'settings.notification_wall_posts' },
-    { type: 'friend_requests', labelKey: 'settings.notification_friend_requests' },
-    { type: 'space_posts', labelKey: 'settings.notification_space_posts' }
+    {type: 'messages', labelKey: 'settings.notification_messages'},
+    {type: 'likes', labelKey: 'settings.notification_likes'},
+    {type: 'comments', labelKey: 'settings.notification_comments'},
+    {type: 'reposts', labelKey: 'settings.notification_reposts'},
+    {type: 'wall_posts', labelKey: 'settings.notification_wall_posts'},
+    {type: 'friend_requests', labelKey: 'settings.notification_friend_requests'},
+    {type: 'space_posts', labelKey: 'settings.notification_space_posts'}
 ];
 
-const NotificationSettings = () => {
-    const { t } = useTranslation();
-    const { user, setUser } = useContext(AuthContext);
+const NotificationSettings = () =>
+{
+    const {t} = useTranslation();
+    const {user, setUser} = useContext(AuthContext);
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        if (user && user.notification_settings) {
+    useEffect(() =>
+    {
+        if (user && user.notification_settings)
+        {
             setSettings(user.notification_settings);
         }
         setLoading(false);
     }, [user]);
 
-    const handleToggle = (type) => {
+    const handleToggle = (type) =>
+    {
         setSettings(prev => ({
             ...prev,
-            [type]: { ...prev[type], is_enabled: !prev[type]?.is_enabled }
+            [type]: {...prev[type], is_enabled: !prev[type]?.is_enabled}
         }));
     };
 
-    const handleSoundChange = (type, soundId) => {
+    const handleSoundChange = (type, soundId) =>
+    {
         setSettings(prev => ({
             ...prev,
-            [type]: { ...prev[type], sound_id: Number(soundId) }
+            [type]: {...prev[type], sound_id: Number(soundId)}
         }));
     };
 
-    const handlePlaySound = (type) => {
+    const handlePlaySound = (type) =>
+    {
         const soundId = Number(settings[type]?.sound_id);
         if (!soundId || soundId === 0) return;
         audioManager.play(soundId);
     };
 
-    const handleSave = async () => {
+    const handleSave = () =>
+    {
         setSaving(true);
 
         const settingsArray = Object.keys(settings).map(type => ({
-            type: type,
+            type:       type,
             is_enabled: settings[type].is_enabled,
-            sound_id: settings[type].sound_id
+            sound_id:   settings[type].sound_id
         }));
 
-        const res = await notificationService.updateSettings({ settings: settingsArray });
-
-        if (res && res.code === 'SETTINGS_UPDATED') {
+        notificationService.updateSettings({settings: settingsArray})
+        .onSuccess((res) =>
+        {
             setSettings(res.settings);
-            setUser(prev => ({ ...prev, notification_settings: res.settings }));
+            setUser(prev => ({...prev, notification_settings: res.settings}));
             notifySuccess(t('common.saved_successfully'));
-        } else {
-            notifyError(t('error.save_failed'));
-        }
-        setSaving(false);
+        })
+        .onError((err) =>
+        {
+            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+        })
+        .onFinally(() =>
+        {
+            setSaving(false);
+        });
     };
 
-    const handleTestPush = () => {
-        if (!("Notification" in window)) {
-            notifyError("Ваш браузер не підтримує Push-сповіщення.");
+    const handleTestPush = () =>
+    {
+        if (!("Notification" in window))
+        {
+            notifyError(t('settings.push_unsupported'));
             return;
         }
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                new Notification(t('settings.push_test_title', "Тестове сповіщення"), {
-                    body: t('settings.push_test_body', "Сповіщення працюють! (І ні, це не реклама казино 🎰)"),
+        Notification.requestPermission().then(permission =>
+        {
+            if (permission === "granted")
+            {
+                new Notification(t('settings.push_test_title'), {
+                    body: t('settings.push_test_body'),
                     icon: "/favicon.ico"
                 });
-            } else {
-                notifyError("Ви заборонили показ сповіщень у браузері.");
+            } else
+            {
+                notifyError(t('settings.push_denied'));
             }
         });
     };
 
-    if (loading) {
+    if (loading)
+    {
         return <div className="text-[11px] text-text-muted italic p-[20px] text-center">{t('common.loading')}</div>;
     }
 
-    const translatedSoundOptions = SOUND_OPTIONS.map(opt => ({
-        value: opt.value,
-        label: t(opt.label)
-    }));
-
     return (
         <div className="p-[12px_15px] border-b border-border last:border-b-0">
-            <div className="bg-[rgba(91,155,213,0.05)] border border-theme-link p-[10px] mb-[15px]">
+            <div className="bg-theme-link/5 border border-theme-link p-[10px] mb-[15px] rounded-[2px]">
                 <div className="flex justify-between items-center gap-[15px] max-md:flex-col max-md:items-start">
                     <div>
                         <strong className="text-[11px] font-bold text-theme-link block mb-[4px]">
                             {t('settings.browser_push')}
                         </strong>
                         <p className="m-0 text-[10px] text-text-muted leading-[1.4]">
-                            TODO: У майбутньому тут можна буде увімкнути повноцінні сповіщення на робочий стіл. Ні! ми не будемо вам слати сповіщення з порно контентом або казино
+                            {t('settings.push_description')}
                         </p>
                     </div>
                     <div className="flex-shrink-0 max-md:w-full">
@@ -118,21 +130,21 @@ const NotificationSettings = () => {
                             onClick={handleTestPush}
                             className="max-md:w-full"
                         >
-                            {t('settings.test_push_btn', 'Тестове сповіщення')}
+                            {t('settings.test_push_btn')}
                         </Button>
                     </div>
                 </div>
             </div>
 
             <div className="flex flex-col">
-                {SETTING_ITEMS.map(({ type, labelKey }) => {
+                {SETTING_ITEMS.map(({type, labelKey}) =>
+                {
                     const isEnabled = Boolean(settings[type]?.is_enabled);
                     const soundId = Number(settings[type]?.sound_id || 0);
 
                     return (
                         <div key={type} className="flex justify-between items-center py-[6px] border-b border-dashed border-border last:border-b-0 max-md:flex-col max-md:items-start max-md:gap-[10px]">
 
-                            {/* Використовуємо новий Checkbox */}
                             <Checkbox
                                 id={`notify-${type}`}
                                 checked={isEnabled}
@@ -142,12 +154,34 @@ const NotificationSettings = () => {
 
                             {isEnabled && (
                                 <div className="flex items-center gap-[8px] max-md:w-full">
-                                    <CustomSelect
-                                        options={translatedSoundOptions}
+
+                                    <select
                                         value={soundId}
-                                        onChange={(val) => handleSoundChange(type, val)}
-                                        className="w-[150px] max-md:flex-1"
-                                    />
+                                        onChange={(e) => handleSoundChange(type, e.target.value)}
+                                        className="w-[150px] max-md:flex-1 bg-input-bg border border-input-border text-[11px] font-tahoma p-[3px] rounded-[2px] outline-none focus:border-theme-link"
+                                    >
+                                        {SOUNDS_CONFIG.map((group, index) => {
+                                            // Якщо категорії немає (наприклад, для "Без звуку")
+                                            if (!group.categoryLabel) {
+                                                return group.items.map(sound => (
+                                                    <option key={sound.id} value={sound.id}>
+                                                        {t(sound.label)}
+                                                    </option>
+                                                ));
+                                            }
+
+                                            // Якщо категорія є — загортаємо в <optgroup>
+                                            return (
+                                                <optgroup key={`cat-${index}`} label={t(group.categoryLabel)}>
+                                                    {group.items.map(sound => (
+                                                        <option key={sound.id} value={sound.id}>
+                                                            {t(sound.label)}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            );
+                                        })}
+                                    </select>
 
                                     {soundId !== 0 && (
                                         <Button
@@ -166,7 +200,7 @@ const NotificationSettings = () => {
             </div>
 
             <div className="mt-[20px] flex justify-end">
-                <Button onClick={handleSave} disabled={saving} variant="save">
+                <Button onClick={handleSave} disabled={saving}>
                     {saving ? t('action.saving') : t('action.save')}
                 </Button>
             </div>

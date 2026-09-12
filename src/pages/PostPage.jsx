@@ -9,8 +9,7 @@ import { useTranslation } from 'react-i18next';
 import postService from "../services/post.service";
 import ErrorState from "../components/ui/ErrorState";
 
-export default function PostPage()
-{
+export default function PostPage() {
     const { t } = useTranslation();
     const { user } = useContext(AuthContext);
     const { id } = useParams();
@@ -23,42 +22,31 @@ export default function PostPage()
 
     usePageTitle(t('common.post'));
 
-    const loadPost = () =>
-    {
+    const loadPost = () => {
         setLoading(true);
         setError(null);
 
         postService.get(id)
-            .then(res =>
-            {
-                if (res.post)
-                {
-                    setPost(res.post);
-                }
-            })
-            .catch(err =>
-            {
-                setError(t('error.load_failed'));
-            })
-            .finally(() =>
-            {
-                setLoading(false);
-            });
+        .then(res => {
+            if (res.post) {
+                setPost(res.post);
+            }
+        })
+        .catch(() => {
+            setError(t('error.load_failed'));
+        })
+        .finally(() => {
+            setLoading(false);
+        });
     };
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         loadPost();
     }, [id, t]);
 
-    const handleCommentCountChange = (amount) =>
-    {
-        setPost(prev =>
-        {
-            if (!prev)
-            {
-                return prev;
-            }
+    const handleCommentCountChange = (amount) => {
+        setPost(prev => {
+            if (!prev) return prev;
             return {
                 ...prev,
                 comments_count: prev.comments_count + amount
@@ -66,74 +54,77 @@ export default function PostPage()
         });
     };
 
-    const handleSaveEdit = async (postId, editData) =>
-    {
-        try
-        {
+    const handleSaveEdit = async (postId, editData) => {
+        try {
             const res = await postService.update(postId, editData);
-            if (res)
-            {
+            if (res) {
                 setPost(res.post);
             }
-        } catch (err)
-        {
+        } catch (err) {
             loadPost();
         }
     };
 
-    if (loading)
-    {
-        return <div className="tetrone-empty-state">{ t('common.loading') }</div>;
+    if (loading) {
+        return <div className="p-[20px] text-center text-text-muted italic text-[11px]">{t('common.loading')}</div>;
     }
 
-    if (error || !post)
-    {
+    if (error || !post) {
         return (
-            <ErrorState
-                title={ error || t('post.not_found') }
-                description={ t('error.load_failed') }
-                onRetry={ () => window.location.reload() }
-            />
+            <div className="max-w-[800px] mx-auto my-[20px]">
+                <ErrorState
+                    title={error || t('post.not_found')}
+                    description={t('error.load_failed')}
+                    onRetry={() => window.location.reload()}
+                />
+            </div>
         );
     }
 
-    const isOwner = user && post && user.username === post.user.username;
+    // ФІКС: Змінено post.user на post.author
+    const isOwner = user && post && user.username === post.author?.username;
 
     return (
-        <div className="tetrone-post-page-wrapper">
-            <button onClick={ () => navigate(-1) } className="tetrone-nav-back-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                     strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex flex-col w-full max-w-[800px] mx-auto my-[15px] px-[10px] md:px-0 font-tahoma text-[11px] text-text-main gap-[10px]">
+
+            {/* Класична кнопка Назад */}
+            <button
+                onClick={() => navigate(-1)}
+                className="self-start flex items-center gap-[5px] bg-transparent border-none text-theme-link cursor-pointer hover:underline p-0 font-bold outline-none mb-[5px]"
+            >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
-                { t('action.go_back') }
+                {t('action.go_back')}
             </button>
 
-            <div className="tetrone-single-post-card">
+            {/* Блок самого поста */}
+            <div className="bg-bg-box border border-border shadow-[0_1px_3px_rgba(0,0,0,0.05)] p-[15px] rounded-[2px]">
                 <PostItem
-                    post={ post }
-                    isOwner={ isOwner }
-                    currentUserId={ user?.id }
-                    onEdit={ () => setIsEditing(true) }
-                    onDelete={ () => navigate('/') }
-                    isInner={ false }
-                    readonly={ false }
+                    post={post}
+                    isOwner={isOwner}
+                    currentUserId={user?.id}
+                    onEdit={() => setIsEditing(true)}
+                    onDelete={() => navigate('/')}
+                    isInner={false}
+                    readonly={false}
                 />
             </div>
 
-            <div className="tetrone-single-comments-card">
+            {/* Блок коментарів */}
+            <div className="bg-bg-box border border-border shadow-[0_1px_3px_rgba(0,0,0,0.05)] p-[15px] rounded-[2px]">
                 <CommentsSection
-                    postId={ post.id }
-                    onCountChange={ handleCommentCountChange }
+                    postId={post.id}
+                    onCountChange={handleCommentCountChange}
                 />
             </div>
 
             <EditPostModal
-                isOpen={ isEditing }
-                post={ post }
-                onClose={ () => setIsEditing(false) }
-                onSaveSuccess={ handleSaveEdit }
+                isOpen={isEditing}
+                post={post}
+                onClose={() => setIsEditing(false)}
+                onSaveSuccess={handleSaveEdit}
             />
         </div>
     );

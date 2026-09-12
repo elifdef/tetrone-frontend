@@ -1,53 +1,55 @@
-import { useEmailVerification } from '../../hooks/useEmailVerification';
+import React from 'react';
+import {useEmailVerification} from '../../hooks/useEmailVerification';
+import Button from '../ui/Button';
 
-const EmailVerificationBanner = () => {
-    const { user, loading, verifyStatus, statusMessage, setVerifyStatus, handleResend, t } = useEmailVerification();
+const EmailVerificationBanner = () =>
+{
+    const {user, loading, verifyStatus, statusMessage, handleResend, t} = useEmailVerification();
 
-    if (!user || verifyStatus === 'hidden' || (user.email_verified_at && verifyStatus === 'idle')) {
-        return null;
-    }
+    if (!user || verifyStatus === 'hidden') return null;
+    if (user.email_verified_at && verifyStatus !== 'success') return null;
 
-    if (!user || (user.email_verified_at && verifyStatus !== 'success')) {
-        return null;
-    }
+    const baseClasses = "flex items-center justify-center text-center gap-[15px] p-[8px_12px] mb-[15px] border rounded-none text-[11px] font-tahoma w-full shadow-[inset_1px_1px_0_rgba(255,255,255,0.7)] dark:shadow-[inset_1px_1px_0_rgba(255,255,255,0.1)]";
 
-    if (verifyStatus === 'verifying') {
+    if (verifyStatus === 'verifying')
+    {
         return (
-            <div className="email-verify-block">
-                <span className="email-verify-text pulse">{statusMessage}</span>
+            <div className={`${baseClasses} bg-staff-bg border-staff-border text-staff-text animate-pulse`}>
+                <span className="font-bold">{statusMessage || t('banner.email.verifying')}</span>
             </div>
         );
     }
 
-    if (verifyStatus === 'success') {
+    if (verifyStatus === 'success')
+    {
         return (
-            <div className="email-verify-block success-animation">
-                <span className="email-verify-text">{statusMessage}</span>
+            <div className={`${baseClasses} bg-bg-box border-theme-success text-theme-success`}>
+                <span className="font-bold">{statusMessage || t('banner.email.success')}</span>
             </div>
         );
     }
 
-    if (verifyStatus === 'error') {
+    if (verifyStatus === 'error')
+    {
         return (
-            <div className="email-verify-block error">
-                <span className="email-verify-text">{statusMessage}</span>
-                <button className="email-verify-btn" onClick={() => setVerifyStatus('idle')}>OK</button>
+            <div className={`${baseClasses} bg-bg-box border-theme-error text-theme-error`}>
+                <span className="font-bold">{statusMessage}</span>
             </div>
         );
     }
 
     return (
-        <div className="email-verify-block">
-            <span className="email-verify-text">
+        <div className={`${baseClasses} bg-staff-bg border-staff-border text-staff-text`}>
+            <span className="font-bold">
                 {t('banner.email.text')}
             </span>
-            <button
-                className="email-verify-btn"
+            <Button
+                variant="warning"
                 onClick={handleResend}
                 disabled={loading}
             >
-                {loading ? t('action.sending') : t('banner.email.send')}
-            </button>
+                {loading ? t('common.loading') : t('banner.email.send')}
+            </Button>
         </div>
     );
 };

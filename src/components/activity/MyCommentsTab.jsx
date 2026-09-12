@@ -18,15 +18,15 @@ export default function MyCommentsTab({ onCountUpdate }) {
     const [isLoadingInitial, setIsLoadingInitial] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState(false);
-    const fetchComments = useCallback(async () => {
+
+    const fetchComments = useCallback(() => {
         if (page === 1) setIsLoadingInitial(true);
         else setIsLoadingMore(true);
         setError(false);
 
-        const res = await ActivityService.getMyComments(page);
-
-        if (res) {
-            const items = res.comments;
+        ActivityService.getMyComments(page)
+        .onSuccess((res) => {
+            const items = res.comments || [];
             const meta = res.meta;
 
             setComments(prev => {
@@ -37,13 +37,15 @@ export default function MyCommentsTab({ onCountUpdate }) {
             });
 
             setHasMore(meta ? meta.current_page < meta.last_page : false);
-        } else {
-            notifyError(t('error.load_failed'));
+        })
+        .onError((err) => {
+            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
             setError(true);
-        }
-
-        setIsLoadingInitial(false);
-        setIsLoadingMore(false);
+        })
+        .onFinally(() => {
+            setIsLoadingInitial(false);
+            setIsLoadingMore(false);
+        });
     }, [page, t]);
 
     useEffect(() => {
@@ -60,14 +62,15 @@ export default function MyCommentsTab({ onCountUpdate }) {
         const isConfirmed = await openConfirm(t('action.delete'));
         if (!isConfirmed) return;
 
-        const res = await CommentService.delete(commentId);
-
-        if (res) {
+        CommentService.delete(commentId)
+        .onSuccess(() => {
             setComments(prev => prev.filter(c => c.uid !== commentId));
             if (onCountUpdate) onCountUpdate(-1);
-        } else {
-            notifyError(t('error.delete_failed'));
-        }
+        })
+        .onError((err) => {
+            // Витягуємо точну помилку сервера
+            notifyError(t(`api.error.${err.code || 'ERR_DELETE_PERMISSION_DENIED'}`));
+        });
     };
 
     return (
@@ -79,13 +82,12 @@ export default function MyCommentsTab({ onCountUpdate }) {
             onLoadMore={loadMore}
             error={error}
             onRetry={fetchComments}
-            className="tetrone-notification-list"
+            className="flex flex-col"
             emptyState={
-                <div className="tetrone-empty-state">
-                    <p>{t('empty.comments')}</p>
+                <div className="bg-bg-box border border-border p-[20px] text-center text-text-muted text-[11px] italic rounded-[2px]">
+                    {t('empty.comments')}
                 </div>
             }
-            endMessage={t('empty.no_more_data')}
         >
             {comments.map((comment, index) => (
                 <ActivityCommentItem

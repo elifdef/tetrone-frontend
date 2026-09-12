@@ -1,9 +1,9 @@
 import fetchClient from "../api/client";
 
-class PersonalizationService {
-    async updateSettings(formData) {
-        return await fetchClient('/settings/personalization', { method: 'POST', body: formData });
+const personalizationService = {
+    updateSettings: (formData) => {
+        return fetchClient('/settings/personalization', { method: 'POST', body: formData })
     }
 }
 
-export default new PersonalizationService();
+export default personalizationService;

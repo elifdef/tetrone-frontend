@@ -2,13 +2,18 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HexColorPicker } from 'react-colorful';
 import { AuthContext } from '../../context/AuthContext';
+// ІМПОРТИ ДЛЯ ТЕМИ
+import { useTheme } from '../../context/ThemeContext';
+import { APP_THEMES } from '../../config.js';
+import Checkbox from '../ui/Checkbox';
+import CustomSelect from '../ui/CustomSelect'; // Використовуємо твій кастомний селект
+
 import PersonalizationService from '../../services/personalization.service';
 import { notifySuccess, notifyError } from '../common/Notify';
 import UserProfileCard from '../profile/UserProfileCard';
 import ImageDropzone from './ImageDropzone';
 import Button from '../ui/Button';
 
-// ... (hexToRgbString і PopoverPicker залишаються без змін)
 const hexToRgbString = (hex) => {
     if (!hex || !hex.startsWith('#')) return hex;
     const fullHex = hex.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (m, r, g, b) => r + r + g + g + b + b);
@@ -64,18 +69,21 @@ export default function PersonalizationSettings() {
     const { t } = useTranslation();
     const { user, setUser } = useContext(AuthContext);
 
+    // БЕРЕМО ПОТОЧНИЙ СТАН ТЕМИ З КОНТЕКСТУ (миттєва реакція)
+    const { theme, setThemeState, toggleDark, changeThemeName } = useTheme();
+
     const [isSaving, setIsSaving] = useState(false);
     const [showWipFeatures, setShowWipFeatures] = useState(false);
 
+    // Локальний стейт для ТЕМИ ПРОФІЛЮ
     const [uiTheme, setUiTheme] = useState(localStorage.getItem('app_profile_theme') || 'modern');
-    const [isDarkTheme, setIsDarkTheme] = useState(localStorage.getItem('dark_theme') !== 'false');
 
     const initialPersonalization = user?.personalization || {};
 
     const [settings, setSettings] = useState({
-        banner_color: initialPersonalization.banner_color || 'linear-gradient(90deg, #000000, #ffffff)',
-        username_color: initialPersonalization.username_color || '',
-        banner_image: initialPersonalization.banner_image || null,
+        banner_color: initialPersonalization.banner_color,
+        username_color: initialPersonalization.username_color,
+        banner_image: initialPersonalization.banner_image,
     });
 
     const [bannerFile, setBannerFile] = useState(null);
@@ -103,7 +111,7 @@ export default function PersonalizationSettings() {
         setGrad({ deg: newDeg, c1: color1, c2: color2 });
         setSettings(prev => ({
             ...prev,
-            banner_color: `linear-gradient(${newDeg}deg, ${color1}, ${color2})`
+            banner_color: `linear-gradient(${newDeg}, ${color1}, ${color2})`
         }));
     };
 
@@ -122,7 +130,7 @@ export default function PersonalizationSettings() {
         setSettings(prev => ({ ...prev, banner_image: null }));
     };
 
-    const handleSave = async (e) => {
+    const handleSave = (e) => {
         e.preventDefault();
         setIsSaving(true);
 
@@ -133,15 +141,17 @@ export default function PersonalizationSettings() {
         if (bannerFile) formData.append('banner_image', bannerFile);
         else if (previewBannerImage === null) formData.append('remove_banner_image', 'true');
 
-        const res = await PersonalizationService.updateSettings(formData);
-
-        if (res && res.data?.personalization) {
-            if (setUser) setUser({ ...user, personalization: res.data.personalization });
-            notifySuccess(res.message || t('common.success'));
-        } else {
-            notifyError(res?.message || t('common.error'));
-        }
-        setIsSaving(false);
+        PersonalizationService.updateSettings(formData)
+        .onSuccess((res) => {
+            if (setUser) setUser({ ...user, personalization: res.personalization });
+            notifySuccess(t('common.success'));
+        })
+        .onError((err) => {
+            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+        })
+        .onFinally(() => {
+            setIsSaving(false);
+        });
     };
 
     const previewUser = user ? {
@@ -149,7 +159,15 @@ export default function PersonalizationSettings() {
         personalization: { ...user.personalization, ...settings, banner_image: previewBannerImage }
     } : null;
 
-    const themeSuffix = isDarkTheme ? 'dark' : 'light';
+    const profileThemeSuffix = theme.isDark ? 'dark' : 'light';
+
+    // Форматуємо масив для твого CustomSelect
+    const themeSelectOptions = APP_THEMES.map(opt => ({
+        value: opt.value,
+        label: t(opt.labelKey)
+    }));
+
+    const activeGlobalThemeConfig = APP_THEMES.find(t => t.value === theme.name) || APP_THEMES[0];
 
     return (
         <div className="flex flex-col gap-[15px] w-full font-tahoma text-[11px] text-text-main">
@@ -160,19 +178,63 @@ export default function PersonalizationSettings() {
             <div className="w-full bg-bg-box border border-border">
                 <form onSubmit={handleSave} className="flex flex-col w-full">
 
-                    <div className="p-[12px_15px] border-b border-border last:border-b-0 w-full">
+                    <div className="p-[12px_15px] border-b border-border w-full">
+
+                        {/* 🌟 ГЛОБАЛЬНА ТЕМА САЙТУ (МИТТЄВЕ ЗАСТОСУВАННЯ) */}
+                        <div className="mb-[20px] pb-[15px] border-b border-dashed border-border relative w-full">
+                            <h3 className="text-[12px] font-bold text-theme-link m-0 mb-[10px] pb-[5px] border-b border-border">
+                                {t('settings.app_appearance')}
+                            </h3>
+
+                            <div className="flex justify-between items-center mb-[10px]">
+                                <span className="text-text-main text-[11px]">{t('settings.app_theme_label')}</span>
+                                <CustomSelect
+                                    options={themeSelectOptions}
+                                    value={theme.name}
+                                    onChange={(val) => changeThemeName(val)}
+                                    className="w-[150px]"
+                                />
+                            </div>
+
+                            <div className="border border-border bg-bg-page mb-[12px] p-[5px]">
+                                <img
+                                    src={`/images/theme-${theme.name}-${profileThemeSuffix}.png`}
+                                    alt="preview"
+                                    className="w-full object-cover border border-border block"
+                                />
+                                <div className="p-[6px] text-center w-full">
+                                    <div className="text-[11px] font-bold text-theme-link mb-[2px]">
+                                        {t(activeGlobalThemeConfig.labelKey)}
+                                    </div>
+                                    <div className="text-[10px] text-text-muted">
+                                        {t(activeGlobalThemeConfig.descKey)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center">
+                                <Checkbox
+                                    id="dark-mode-toggle"
+                                    checked={theme.isDark}
+                                    onChange={toggleDark}
+                                    label={t('settings.dark_mode_label')}
+                                />
+                            </div>
+                        </div>
+
+                        {/* ТЕМА ПРОФІЛЮ */}
                         <div className="mb-[12px] relative w-full">
                             <label className="block mb-[4px] text-text-muted font-normal text-[11px]">{t('settings.profile_theme')}</label>
                             <div className="grid grid-cols-2 gap-[10px] w-full">
                                 <div className={`border cursor-pointer bg-bg-box w-full ${uiTheme === 'modern' ? 'border-[2px] border-theme-link' : 'border-border'}`} onClick={() => handleProfileThemeChange('modern')}>
-                                    <img src={`/images/theme-modern-${themeSuffix}.png`} alt="modern" className="w-full h-[100px] object-cover border-b border-border block" />
+                                    <img src={`/images/profile-modern-${profileThemeSuffix}.png`} alt="modern" className="w-full h-[100px] object-cover border-b border-border block" />
                                     <div className="p-[6px] text-center w-full">
                                         <div className="text-[11px] font-bold text-theme-link mb-[2px]">{t('settings.theme_modern')}</div>
                                         <div className="text-[10px] text-text-muted">{t('settings.theme_modern_desc')}</div>
                                     </div>
                                 </div>
                                 <div className={`border cursor-pointer bg-bg-box w-full ${uiTheme === 'classic' ? 'border-[2px] border-theme-link' : 'border-border'}`} onClick={() => handleProfileThemeChange('classic')}>
-                                    <img src={`/images/theme-classic-${themeSuffix}.png`} alt="classic" className="w-full h-[100px] object-cover border-b border-border block" />
+                                    <img src={`/images/profile-classic-${profileThemeSuffix}.png`} alt="classic" className="w-full h-[100px] object-cover border-b border-border block" />
                                     <div className="p-[6px] text-center w-full">
                                         <div className="text-[11px] font-bold text-theme-link mb-[2px]">{t('settings.theme_classic')}</div>
                                         <div className="text-[10px] text-text-muted">{t('settings.theme_classic_desc')}</div>
@@ -181,6 +243,7 @@ export default function PersonalizationSettings() {
                             </div>
                         </div>
 
+                        {/* Налаштування кольорів ... (без змін) */}
                         <div className="mb-[12px] relative w-full">
                             <label className="block mb-[4px] text-text-muted font-normal text-[11px]">{t('settings.username_color')}</label>
                             <div className="flex gap-[10px] items-center w-full">
@@ -207,7 +270,7 @@ export default function PersonalizationSettings() {
 
                                     {!previewBannerImage && (
                                         <div className="bg-bg-page border border-border p-[10px] w-full">
-                                            <div className="h-[40px] mb-[10px] border border-border w-full" style={{ background: settings.banner_color || `linear-gradient(${grad.deg}deg, ${grad.c1}, ${grad.c2})` }} />
+                                            <div className="h-[40px] mb-[10px] border border-border w-full" style={{ background: settings.banner_color || `linear-gradient(${grad.deg}, ${grad.c1}, ${grad.c2})` }} />
 
                                             <div className="flex flex-col gap-[10px] w-full">
                                                 <div className="flex items-center gap-[10px] w-full">

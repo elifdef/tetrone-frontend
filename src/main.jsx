@@ -9,9 +9,11 @@ import { SocketProvider } from './context/SocketContext.jsx';
 import './i18n'
 
 import "./styles/global.css";
-import {ThemeProvider} from "./context/ThemeContext.jsx";
 
-if (import.meta.env.VITE_APP_ENV)
+import {ThemeProvider} from "./context/ThemeContext.jsx";
+import {APP_ENV} from "./config.js";
+
+if (APP_ENV === 'dev')
 {
     import('/src/utils/react-scan-init.js').then((module) =>
     {

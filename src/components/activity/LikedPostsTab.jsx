@@ -15,15 +15,14 @@ export default function LikedPostsTab({ onCountUpdate }) {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState(false);
 
-    const fetchLikedPosts = useCallback(async () => {
+    const fetchLikedPosts = useCallback(() => {
         if (page === 1) setIsLoadingInitial(true);
         else setIsLoadingMore(true);
         setError(false);
 
-        const res = await ActivityService.getLikedPosts(page);
-
-        if (res.success) {
-            const items = res.posts;
+        ActivityService.getLikedPosts(page)
+        .onSuccess((res) => {
+            const items = res.posts || [];
             const meta = res.meta;
 
             setPosts(prev => {
@@ -34,13 +33,15 @@ export default function LikedPostsTab({ onCountUpdate }) {
             });
 
             setHasMore(meta ? meta.current_page < meta.last_page : false);
-        } else {
-            notifyError(res.message || t('error.load_failed'));
+        })
+        .onError((err) => {
+            notifyError(t(`api.error.${err.code}`) || t('error.load_failed'));
             setError(true);
-        }
-
-        setIsLoadingInitial(false);
-        setIsLoadingMore(false);
+        })
+        .onFinally(() => {
+            setIsLoadingInitial(false);
+            setIsLoadingMore(false);
+        });
     }, [page, t]);
 
     useEffect(() => {
@@ -69,20 +70,20 @@ export default function LikedPostsTab({ onCountUpdate }) {
             onLoadMore={loadMore}
             error={error}
             onRetry={fetchLikedPosts}
-            className="tetrone-feed-list"
+            className="flex flex-col gap-[10px]"
             emptyState={
-                <div className="tetrone-empty-state">
-                    <p>{t('empty.likes')}</p>
+                <div className="bg-bg-box border border-border p-[20px] text-center text-text-muted text-[11px] italic rounded-[2px]">
+                    {t('empty.likes')}
                 </div>
             }
-            endMessage={t('empty.no_more_data')}
         >
             {posts.map(post => (
-                <PostItem
-                    key={post.id}
-                    post={post}
-                    onLikeToggle={handleLikeToggle}
-                />
+                <div key={post.id} className="bg-bg-box border border-border p-[15px] rounded-[2px]">
+                    <PostItem
+                        post={post}
+                        onLikeToggle={handleLikeToggle}
+                    />
+                </div>
             ))}
         </InfiniteScrollList>
     );

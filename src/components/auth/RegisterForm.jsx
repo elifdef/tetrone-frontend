@@ -5,8 +5,7 @@ import PasswordStrengthBar from "../ui/PasswordStrengthBar";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 
-export default function RegisterForm()
-{
+export default function RegisterForm() {
     const { t } = useTranslation();
     const {
         register,
@@ -20,27 +19,23 @@ export default function RegisterForm()
         currentPassword
     } = useRegisterForm();
 
-    if (msg.type === "success")
-    {
+    if (msg.type === "success") {
         return (
-            <div className="tetrone-auth-success-wrapper">
-                <div className="tetrone-auth-msg success tetrone-auth-success-hero">
-                    <div className="tetrone-auth-success-icon"/>
-                    <div className="tetrone-auth-success-content">
-                        <span className="tetrone-auth-success-text">
-                            { t('auth.you_have_registered') }<br/>
-                            <Link to="/login" className="tetrone-link tetrone-auth-msg-link">
-                                { t('action.login') }
-                            </Link>
-                        </span>
-                    </div>
+            <div className="p-[20px] text-center">
+                <div className="bg-[rgba(75,179,75,0.1)] text-theme-success border border-[rgba(75,179,75,0.3)] p-[15px] rounded-[2px] mb-[15px]">
+                    <span className="font-bold text-[13px] block mb-[5px]">
+                        {t('auth.you_have_registered')}
+                    </span>
+                    <Link to="/login" className="text-theme-link no-underline hover:underline text-[11px]">
+                        {t('action.login')}
+                    </Link>
                 </div>
             </div>
         );
     }
 
     return (
-        <form onSubmit={ handleSubmit } className="tetrone-auth-form">
+        <form onSubmit={handleSubmit} className="p-[15px] flex flex-col gap-[12px]">
             <Input
                 id="reg-username"
                 label={t('auth.username')}
@@ -63,54 +58,49 @@ export default function RegisterForm()
                 autoComplete="username"
                 {...register("email", {
                     onChange: (e) => e.target.value = e.target.value.replace(/[^a-zA-Z0-9._%+-@]/g, '')
-
                 })}
                 error={errors.email}
             />
 
-            <div className="tetrone-form-row">
-                <div className="tetrone-form-group">
-                    <Input
-                        type="password"
-                        id="reg-password"
-                        label={ t('auth.password') }
-                        autoComplete="new-password"
-                        { ...register("password") }
-                        error={ errors.password }
-                    />
-                </div>
-                <div className="tetrone-form-group">
-                    <Input
-                        type="password"
-                        id="reg-confirm"
-                        label={ t('auth.password_confirmation') }
-                        autoComplete="new-password"
-                        { ...register("password_confirmation") }
-                        error={ errors.password_confirmation }
-                    />
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
+                <Input
+                    type="password"
+                    id="reg-password"
+                    label={t('auth.password')}
+                    autoComplete="new-password"
+                    {...register("password")}
+                    error={errors.password}
+                />
+                <Input
+                    type="password"
+                    id="reg-confirm"
+                    label={t('auth.password_confirmation')}
+                    autoComplete="new-password"
+                    {...register("password_confirmation")}
+                    error={errors.password_confirmation}
+                />
             </div>
 
-            <PasswordStrengthBar password={ currentPassword } onScoreChange={ setPasswordScore }/>
+            <PasswordStrengthBar password={currentPassword} onScoreChange={setPasswordScore} />
 
-            { msg.type === "error" && (
-                <div className="tetrone-auth-msg error">
-                    { msg.text }
+            {msg.type === "error" && (
+                <div className="bg-[rgba(255,51,71,0.1)] text-theme-error border border-[rgba(255,51,71,0.3)] p-[8px] text-[11px] rounded-[2px] text-center">
+                    {msg.text}
                 </div>
-            ) }
+            )}
 
             <Button
-                className="tetrone-btn tetrone-btn-block"
                 type="submit"
-                disabled={ !isValid || isSubmitting || (currentPassword && passwordScore < 5) }
+                disabled={!isValid || isSubmitting || (currentPassword && passwordScore < 5)}
+                className="mt-[5px] w-full"
             >
-                { isSubmitting ? t('common.loading') : t('action.register') }
+                {isSubmitting ? t('common.loading') : t('action.register')}
             </Button>
 
-            <div className="tetrone-auth-footer">
-                { t('auth.already_have_account') }{ ' ' }
-                <Link to="/login" className="tetrone-link">
-                    { t('action.login') }
+            <div className="mt-[10px] pt-[12px] border-t border-border text-center text-text-muted text-[11px]">
+                {t('auth.already_have_account')} {' '}
+                <Link to="/login" className="text-theme-link no-underline hover:underline font-bold">
+                    {t('action.login')}
                 </Link>
             </div>
         </form>

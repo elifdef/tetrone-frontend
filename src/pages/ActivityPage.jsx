@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import fetchClient from '../api/client';
+import ActivityService from '../services/activity.service';
 import LikedPostsTab from '../components/activity/LikedPostsTab';
 import MyCommentsTab from '../components/activity/MyCommentsTab';
 import MyRepostsTab from '../components/activity/MyRepostsTab';
 import ScreenTimeTab from '../components/activity/ScreenTimeTab';
 import VotedPollsTab from '../components/activity/VotedPollsTab';
+import Tabs from '../components/ui/Tabs';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { notifyError } from '../components/common/Notify';
 
@@ -27,26 +28,25 @@ export default function ActivityPage() {
             case 'voted-polls': return `${baseTitle} | ${t('common.poll')}`;
             case 'stats': return `${baseTitle} | ${t('activity.stats.title')}`;
             default: return `${baseTitle} | ${t('common.likes')}`;
-
         }
     };
 
     usePageTitle(getPageTitle());
 
     useEffect(() => {
-        fetchClient('/activity/counts').then(res => {
-            if (res.success) {
-                setCounts(res.counts);
-            } else {
-                notifyError(res.message);
-            }
+        ActivityService.getCounts()
+        .onSuccess((res) => {
+            setCounts(res.counts || { likes: 0, comments: 0, reposts: 0, voted_polls: 0 });
+        })
+        .onError((err) => {
+            notifyError(err.message || t('error.load_failed'));
         });
-    }, []);
+    }, [t]);
 
     const updateCount = useCallback((type, delta) => {
         setCounts(prev => ({
             ...prev,
-            [type]: Math.max(0, prev[type] + delta)
+            [type]: Math.max(0, (prev[type] || 0) + delta)
         }));
     }, []);
 
@@ -70,56 +70,64 @@ export default function ActivityPage() {
         }
     };
 
+    const tabsList = [
+        {
+            id: 'likes',
+            label: (
+                    <span className="flex items-center gap-[4px]">
+                    {t('common.likes')} <span className="font-normal opacity-80">({counts.likes})</span>
+                </span>
+                )
+        },
+        {
+            id: 'comments',
+            label: (
+                    <span className="flex items-center gap-[4px]">
+                    {t('common.comments')} <span className="font-normal opacity-80">({counts.comments})</span>
+                </span>
+                )
+        },
+        {
+            id: 'reposts',
+            label: (
+                    <span className="flex items-center gap-[4px]">
+                    {t('common.reposts')} <span className="font-normal opacity-80">({counts.reposts})</span>
+                </span>
+                )
+        },
+        {
+            id: 'voted-polls',
+            label: (
+                    <span className="flex items-center gap-[4px]">
+                    {t('common.poll')} <span className="font-normal opacity-80">({counts.voted_polls})</span>
+                </span>
+                )
+        },
+        {
+            id: 'stats',
+            label: t('activity.stats.title')
+        }
+    ];
+
     return (
-        <div className="tetrone-card-wrapper">
-            <h1 className="tetrone-section-title">
-                {t('common.my_activity')}
-            </h1>
+        <div className="w-full max-w-[800px] mx-auto box-border p-[20px] bg-bg-page border border-border text-[11px] text-text-main max-md:p-[10px]">
 
-            <div className="tetrone-tabs">
-                <button
-                    onClick={() => handleTabChange('likes')}
-                    className={`tetrone-tab ${activeTab === 'likes' ? 'active' : ''}`}
-                >
-                    {t('common.likes')}
-                    <span className="tetrone-tab-count">({counts.likes})</span>
-                </button>
-
-                <button
-                    onClick={() => handleTabChange('comments')}
-                    className={`tetrone-tab ${activeTab === 'comments' ? 'active' : ''}`}
-                >
-                    {t('common.comments')}
-                    <span className="tetrone-tab-count">({counts.comments})</span>
-                </button>
-
-                <button
-                    onClick={() => handleTabChange('reposts')}
-                    className={`tetrone-tab ${activeTab === 'reposts' ? 'active' : ''}`}
-                >
-                    {t('common.reposts')}
-                    <span className="tetrone-tab-count">({counts.reposts})</span>
-                </button>
-
-                <button
-                    onClick={() => handleTabChange('voted-polls')}
-                    className={`tetrone-tab ${activeTab === 'voted-polls' ? 'active' : ''}`}
-                >
-                    {t('common.poll', 'Опитування')}
-                    <span className="tetrone-tab-count">({counts.voted_polls})</span>
-                </button>
-
-                <button
-                    onClick={() => handleTabChange('stats')}
-                    className={`tetrone-tab ${activeTab === 'stats' ? 'active' : ''}`}
-                >
-                    {t('activity.stats.title')}
-                </button>
+            <div className="bg-theme-header-bg text-theme-link text-[11px] font-bold p-[8px_10px] -mt-[20px] -mx-[20px] mb-[15px] border-b border-border flex justify-between items-center max-md:-mt-[10px] max-md:-mx-[10px]">
+                <div className="flex items-center gap-[6px]">
+                    <span>{t('common.my_activity')}</span>
+                </div>
             </div>
 
-            <div className="tetrone-activity-content">
+            <Tabs
+                tabs={tabsList}
+                activeTab={activeTab}
+                onChange={handleTabChange}
+            />
+
+            <div className="flex flex-col min-w-0">
                 {renderContent()}
             </div>
+
         </div>
     );
 }

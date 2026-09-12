@@ -7,10 +7,9 @@ const Checkbox = forwardRef(({ label, className = "", ...props }, ref) => {
                 <input
                     type="checkbox"
                     ref={ref}
-                    className={`appearance-none w-4 h-4 m-0 bg-input-bg border border-input-border rounded-[3px] cursor-pointer align-middle checked:bg-theme-link checked:border-theme-link peer transition-colors ${className}`}
+                    className={`appearance-none w-4 h-4 m-0 bg-input-bg border border-input-border cursor-pointer align-middle checked:bg-theme-brand checked:border-theme-brand peer transition-colors rounded-[2px] ${className}`}
                     {...props}
                 />
-                {/* SVG Галочка, яка з'являється тільки при peer-checked */}
                 <svg
                     className="absolute w-[10px] h-[10px] pointer-events-none opacity-0 peer-checked:opacity-100 text-white"
                     viewBox="0 0 24 24"

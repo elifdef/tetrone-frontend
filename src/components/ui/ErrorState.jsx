@@ -7,15 +7,22 @@ export default function ErrorState({ title, description, onRetry, buttonText, sh
     const handleRetry = onRetry || (() => window.location.reload());
 
     return (
-        <div className="tetrone-empty-state with-card">
-            {title && <h3>{title}</h3>}
-            {description && <p>{description}</p>}
+        <div className="w-full bg-bg-box border border-border p-[30px_20px] flex flex-col items-center justify-center text-center font-tahoma rounded-[2px]">
+            {title && (
+                <div className="text-[13px] font-bold text-text-main mb-[8px]">
+                    {title}
+                </div>
+            )}
+
+            {description && (
+                <div className="text-[11px] text-text-muted leading-[1.4] max-w-[80%]">
+                    {description}
+                </div>
+            )}
 
             {showButton && (
-                <div className="tetrone-mt-8">
-                    <Button
-                        onClick={handleRetry}
-                    >
+                <div className="mt-[15px]">
+                    <Button onClick={handleRetry}>
                         {buttonText || t('action.refresh')}
                     </Button>
                 </div>

@@ -13,8 +13,8 @@ export default function Tabs({ tabs, activeTab, onChange, rightElement, classNam
                             key={tab.id}
                             className={`px-[10px] py-[4px] text-[11px] font-bold cursor-pointer outline-none transition-colors border-none ${
                                 isActive
-                                    ? 'bg-theme-link text-white'
-                                    : 'bg-transparent text-theme-link hover:bg-theme-link hover:text-white'
+                                    ? 'bg-theme-brand text-white'
+                                    : 'bg-transparent text-theme-link hover:bg-theme-brand hover:text-white'
                             }`}
                             onClick={() => onChange(tab.id)}
                         >

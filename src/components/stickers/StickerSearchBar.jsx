@@ -1,40 +1,45 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useEffect} from 'react';
+import {useTranslation} from 'react-i18next';
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {SearchIcon} from "../ui/Icons.jsx";
+import Input from "../ui/Input.jsx";
 
-// Іконка лупи
-const SearchIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-    </svg>
-);
+const searchSchema = z.object({
+    query: z.string().optional()
+});
 
-export default function StickerSearchBar({ initialValue = '', onSearch }) {
-    const { t } = useTranslation();
-    const [query, setQuery] = useState(initialValue);
+export default function StickerSearchBar({initialValue = '', onSearch})
+{
+    const {t} = useTranslation();
 
-    // Синхронізуємо локальний стейт, якщо URL раптом змінився ззовні
-    useEffect(() => {
-        setQuery(initialValue);
-    }, [initialValue]);
+    const {register, handleSubmit, setValue} = useForm({
+        resolver:      zodResolver(searchSchema),
+        defaultValues: {query: initialValue}
+    });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSearch(query.trim()); // Передаємо текст наверх при натисканні Enter
+    useEffect(() =>
+    {
+        setValue('query', initialValue);
+    }, [initialValue, setValue]);
+
+    const onSubmit = (data) =>
+    {
+        onSearch(data.query?.trim() || '');
     };
 
     return (
-        <form className="tetrone-sticker-search-form" onSubmit={handleSubmit}>
-            <div className="tetrone-sticker-search-wrapper">
-                <div className="tetrone-sticker-search-icon">
-                    <SearchIcon />
+        <form className="flex mb-[15px]" onSubmit={handleSubmit(onSubmit)}>
+            <div className="relative w-full flex items-center">
+                <div className="absolute left-[8px] text-text-muted flex items-center">
+                    <SearchIcon/>
                 </div>
-                <input
+                <Input
                     type="text"
-                    className="tetrone-form-input tetrone-sticker-search-input"
+                    className="w-full pl-[28px] pr-[8px] py-[4px] border border-input-border bg-input-bg text-text-main text-[11px] focus:outline-none focus:border-border shadow-inner"
                     placeholder={t('stickers.search_placeholder')}
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    {...register('query')}
                 />
             </div>
         </form>

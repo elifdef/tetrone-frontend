@@ -1,83 +1,83 @@
-import { useState, useContext } from 'react';
+import {useState, useContext} from 'react';
 import UserService from '../../../services/user.service';
-import { AuthContext } from '../../../context/AuthContext';
-import { notifyError, notifySuccess } from "../../common/Notify";
-import { useTranslation } from 'react-i18next';
+import {AuthContext} from '../../../context/AuthContext';
+import {notifyError, notifySuccess} from "../../common/Notify";
+import {useTranslation} from 'react-i18next';
 
-export const useSecuritySettings = () => {
-    const { t } = useTranslation();
-    const { user, setUser } = useContext(AuthContext);
+export const useSecuritySettings = () =>
+{
+    const {t} = useTranslation();
+    const {user, setUser} = useContext(AuthContext);
 
-    const [email, setEmail] = useState(user?.email || '');
-    const [passwordForEmail, setPasswordForEmail] = useState('');
     const [loadingEmail, setLoadingEmail] = useState(false);
-
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [loadingPass, setLoadingPass] = useState(false);
 
-    const handleUpdateEmail = async (e) => {
-        e.preventDefault();
-
-        if (!passwordForEmail) {
-            notifyError(t('error.enter_confirm_password'));
-            return;
-        }
-
+    const handleUpdateEmail = (data, resetPasswordInput) =>
+    {
         setLoadingEmail(true);
 
-        const res = await UserService.updateEmail(email, passwordForEmail);
+        UserService.updateEmail(data.email, data.password)
+        .onSuccess((res) =>
+        {
+            setUser(prev => ({...prev, email: data.email, email_verified_at: null}));
+            if (resetPasswordInput) resetPasswordInput();
 
-        if (res.success) {
-            setUser(prev => ({ ...prev, email: email, email_verified_at: null }));
-            setPasswordForEmail('');
-            notifySuccess(res.message);
-        } else {
-            if (res.status === 422 && res.data?.errors?.email) {
-                notifyError(res.data.errors.email[0]);
-            } else if (res.status === 403) {
-                notifyError(t('api.error.ERR_INVALID_PASSWORD'));
-            } else {
-                notifyError(res.message);
+            notifySuccess(res.code ? t(`api.success.${res.code}`) : t('api.success.EMAIL_UPDATED'));
+            setLoadingEmail(false);
+        })
+        .onError((err) =>
+        {
+            // Витягуємо точну помилку сервера через новий синтаксис
+            if (err.status === 422 && err.data?.errors?.email)
+            {
+                notifyError(err.data.errors.email[0]);
+            } else
+            {
+                notifyError(t(`api.error.${err.code || 'ERR_INVALID_PASSWORD'}`));
             }
-        }
-        setLoadingEmail(false);
+            setLoadingEmail(false);
+        });
     };
 
-    const handleUpdatePassword = async (e) => {
-        e.preventDefault();
-
-        if (newPassword !== confirmPassword) {
-            return notifyError(t('api.error.ERR_PASSWORD_MISMATCH'));
-        }
-
+    const handleUpdatePassword = (data, resetForm) =>
+    {
         setLoadingPass(true);
 
-        const res = await UserService.updatePassword(currentPassword, newPassword, confirmPassword);
+        UserService.updatePassword(data.currentPassword, data.newPassword, data.confirmPassword)
+        .onSuccess((res) =>
+        {
+            if (resetForm) resetForm();
 
-        if (res.success) {
-            notifySuccess(res.message);
-            setCurrentPassword('');
-            setNewPassword('');
-            setConfirmPassword('');
-        } else {
-            const errors = res.data?.errors || {};
-            if (errors.current_password) {
+            notifySuccess(res.code ? t(`api.success.${res.code}`) : t('api.success.PASSWORD_UPDATED'));
+            setLoadingPass(false);
+        })
+        .onError((err) =>
+        {
+            const errors = err.data?.errors || {};
+
+            if (errors.current_password)
+            {
                 notifyError(errors.current_password[0]);
-            } else if (errors.password) {
+            } else if (errors.password)
+            {
                 notifyError(errors.password[0]);
-            } else {
-                notifyError(res.message);
+            } else
+            {
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
             }
-        }
-        setLoadingPass(false);
+            setLoadingPass(false);
+        });
+    };
+
+    // Заглушка, оскільки цей метод викликався з батьківського компонента
+    const fetchUserData = () =>
+    {
+        // Оновлення юзера
     };
 
     return {
-        user, email, setEmail, passwordForEmail, setPasswordForEmail,
+        user, fetchUserData,
         loadingEmail, handleUpdateEmail,
-        currentPassword, setCurrentPassword, newPassword, setNewPassword,
-        confirmPassword, setConfirmPassword, loadingPass, handleUpdatePassword, t
+        loadingPass, handleUpdatePassword, t
     };
 };

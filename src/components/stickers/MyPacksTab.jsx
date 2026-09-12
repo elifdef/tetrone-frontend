@@ -1,13 +1,12 @@
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import CreateStickerPackModal from '../modals/CreateStickerPackModal.jsx';
-import StickerPackModal from '../modals/StickerPackModal';
+import CreateStickerPackModal from './CreateStickerPackModal.jsx';
+import StickerPackModal from './StickerPackModal';
 
 export default function MyPacksTab({packs, onRefresh})
 {
     const {t} = useTranslation();
     const [isCreating, setIsCreating] = useState(false);
-
     const [editingPackId, setEditingPackId] = useState(null);
     const [viewingPackId, setViewingPackId] = useState(null);
 
@@ -26,95 +25,52 @@ export default function MyPacksTab({packs, onRefresh})
     };
 
     return (
-        <div className="tetrone-stickers-tab-content">
-            <div className="tetrone-sticker-grid-scroll tetrone-packs-grid">
+        <div className="flex flex-col">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-[10px]">
 
                 <div
-                    className="tetrone-grid-item tetrone-create-pack-card tetrone-pointer"
+                    className="flex flex-col items-center justify-center cursor-pointer border border-dashed border-border bg-bg-page hover:bg-nav-hover p-[10px] min-h-[100px] rounded-[3px] shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05)]"
                     onClick={() => setIsCreating(true)}
                 >
-                    <div className="tetrone-create-pack-icon">+</div>
-                    <div className="tetrone-create-pack-text">{t('stickers.create_new_pack')}</div>
+                    <div className="text-[24px] text-text-muted mb-[4px] leading-none font-bold">+</div>
+                    <div className="text-[10px] text-text-muted text-center font-bold">{t('stickers.create_new_pack')}</div>
                 </div>
 
                 {packs.map(pack => (
                     <div
                         key={pack.id}
-                        className="tetrone-grid-item tetrone-pointer"
+                        className="cursor-pointer border border-border p-[2px] bg-bg-page hover:bg-nav-hover min-h-[100px] rounded-[3px] shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05)]"
                         onClick={() => handlePackClick(pack)}
                     >
                         <img
                             src={pack.cover_url}
                             alt={pack.title}
                             title={pack.title}
-                            className="tetrone-img-cover"
+                            className="w-full h-full object-cover"
                         />
                     </div>
                 ))}
             </div>
 
-            {isCreating && (
-                <div className="tetrone-modal-overlay" onClick={() => setIsCreating(false)}>
-                    <div className="tetrone-modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
+            <CreateStickerPackModal
+                isOpen={isCreating}
+                onClose={() => setIsCreating(false)}
+                onRefresh={onRefresh}
+            />
 
-                        <div className="tetrone-modal-header">
-                            <h3>{t('action.create')}</h3>
-                            <button className="tetrone-modal-close" onClick={() =>
-                            {
-                                setIsCreating(false);
-                                if (onRefresh) onRefresh();
-                            }}>✖
-                            </button>
-                        </div>
+            <CreateStickerPackModal
+                isOpen={!!editingPackId}
+                existingPack={editingPack}
+                onClose={() => setEditingPackId(null)}
+                onRefresh={onRefresh}
+            />
 
-                        <CreateStickerPackModal
-                            onSuccess={() =>
-                            {
-                                setIsCreating(false);
-                                if (onRefresh) onRefresh();
-                            }}
-                            onCancel={() => setIsCreating(false)}
-                            onRefresh={onRefresh}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {editingPackId && editingPack && (
-                <div className="tetrone-modal-overlay" onClick={() => setEditingPackId(null)}>
-                    <div className="tetrone-modal-dialog modal-lg" onClick={e => e.stopPropagation()}>
-
-                        <div className="tetrone-modal-header">
-                            <h3>{t('stickers.edit_pack')}</h3>
-                            <button className="tetrone-modal-close" onClick={() =>
-                            {
-                                setEditingPackId(null);
-                                if (onRefresh) onRefresh();
-                            }}>✖
-                            </button>
-                        </div>
-
-                        <CreateStickerPackModal
-                            existingPack={editingPack}
-                            onSuccess={() =>
-                            {
-                                setEditingPackId(null);
-                                if (onRefresh) onRefresh();
-                            }}
-                            onCancel={() => setEditingPackId(null)}
-                            onRefresh={onRefresh}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {viewingPackId && viewingPack && (
-                <StickerPackModal
-                    pack={viewingPack}
-                    onClose={() => setViewingPackId(null)}
-                    onRefresh={onRefresh}
-                />
-            )}
+            <StickerPackModal
+                isOpen={!!viewingPackId}
+                pack={viewingPack}
+                onClose={() => setViewingPackId(null)}
+                onRefresh={onRefresh}
+            />
         </div>
     );
 }

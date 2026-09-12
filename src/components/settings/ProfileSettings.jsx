@@ -8,7 +8,7 @@ import Button from '../ui/Button';
 import ImageDropzone from './ImageDropzone';
 import GenderSelect from './GenderSelect';
 import CountrySelect from './CountrySelect';
-import SmartEditor from '../editor/SmartEditor'; // Використовуємо новий SmartEditor
+import SmartEditor from '../editor/SmartEditor';
 
 export default function ProfileSettings({ isSetupMode = false }) {
     const { t } = useTranslation();
@@ -24,25 +24,32 @@ export default function ProfileSettings({ isSetupMode = false }) {
     } = useProfileSettings(isSetupMode);
 
     return (
-        <div className={`flex flex-col gap-[15px] w-full font-tahoma text-[11px] text-text-main ${isSetupMode ? 'max-w-[600px] mx-auto' : ''}`}>
+        <div className="flex flex-col gap-[15px] w-full font-tahoma text-[11px] text-text-main">
+            {/* Попередній перегляд картки */}
             <div className="w-full">
                 <UserProfileCard currentUser={previewUser} isPreview={true} />
             </div>
 
-            <div className="w-full bg-bg-box border border-border">
+            {/* Форма налаштувань */}
+            <div className="w-full bg-bg-box border border-border shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05)] rounded-[3px]">
                 <form onSubmit={handleSubmit} className="flex flex-col">
 
-                    <div className="p-[12px_15px] border-b border-border last:border-b-0">
-                        <div className="mb-[12px] relative w-full">
-                            <label className="block mb-[4px] text-text-muted font-normal text-[11px]">{t('common.avatar')}</label>
+                    <div className="p-[15px] border-b border-border last:border-b-0 flex flex-col gap-[15px]">
+
+                        {/* Аватар */}
+                        <div className="w-full">
+                            <label className="block mb-[6px] font-bold text-text-main text-[11px]">
+                                {t('common.avatar')}
+                            </label>
                             <ImageDropzone
                                 onFileSelect={handleFileChange}
                                 fileName={avatarFile ? avatarFile.name : null}
                             />
                         </div>
 
+                        {/* Ім'я та Прізвище */}
                         <div className="flex gap-[15px] w-full max-md:flex-col">
-                            <div className="mb-[12px] relative flex-1">
+                            <div className="flex-1">
                                 <Input
                                     label={`${t('common.first_name')} *`}
                                     name="first_name"
@@ -52,7 +59,7 @@ export default function ProfileSettings({ isSetupMode = false }) {
                                     required
                                 />
                             </div>
-                            <div className="mb-[12px] relative flex-1">
+                            <div className="flex-1">
                                 <Input
                                     label={t('common.last_name')}
                                     name="last_name"
@@ -63,7 +70,8 @@ export default function ProfileSettings({ isSetupMode = false }) {
                             </div>
                         </div>
 
-                        <div className="flex gap-[15px] w-full max-md:flex-col mb-[12px]">
+                        {/* Дата народження, Країна, Стать */}
+                        <div className="flex gap-[15px] w-full max-md:flex-col">
                             <div className="flex-1">
                                 <DateInput
                                     label={`${t('common.birthday')} *`}
@@ -89,27 +97,30 @@ export default function ProfileSettings({ isSetupMode = false }) {
                             </div>
                         </div>
 
-                        <div className="mb-[12px] relative w-full">
-                            <label className="block mb-[4px] text-text-muted font-normal text-[11px]">{t('settings.about_me')}</label>
+                        {/* Про себе (Біо) */}
+                        <div className="w-full">
+                            <label className="block mb-[6px] font-bold text-text-main text-[11px]">
+                                {t('settings.about_me')}
+                            </label>
                             <div className="w-full">
-                                {/* Використовуємо preset="bio", який відключає таблиці, заголовки тощо */}
                                 <SmartEditor
                                     value={formData.bio}
                                     onChange={(jsonContent) => handleChange({ target: { name: 'bio', value: jsonContent } })}
                                     preset="bio"
                                     placeholder={t('settings.about_me_placeholder', 'Розкажіть про себе...')}
-                                    className="w-full text-[12px]"
+                                    className="w-full"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-[10px_15px] bg-bg-page flex justify-end border-t border-border w-full">
+                    {/* Футер з кнопкою */}
+                    <div className="p-[10px_15px] bg-bg-page flex justify-end border-t border-border w-full rounded-b-[3px]">
                         <Button
                             type="submit"
-                            variant="save"
+                            variant="primary"
                             disabled={!canSubmit}
-                            className={isSetupMode ? 'w-full' : ''}
+                            className={isSetupMode ? 'w-full py-[8px] text-[12px]' : ''}
                         >
                             {t(isSetupMode ? 'first_setup.save_and_finish' : 'action.save')}
                         </Button>

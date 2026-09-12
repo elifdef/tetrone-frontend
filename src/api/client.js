@@ -1,10 +1,56 @@
-import { API_URL, APP_ENV } from "../config.js";
+import {API_URL, APP_ENV} from "../config.js";
 
-export default async function fetchClient(endpoint, {
+class ApiRequest
+{
+    constructor(promise)
+    {
+        this.promise = promise;
+    }
+
+    onSuccess(callback)
+    {
+        this.promise = this.promise.then(res =>
+        {
+            const isSuccess = res && res.ok && !res.code?.startsWith('ERR_');
+            if (isSuccess) callback(res);
+            return res;
+        });
+        return this;
+    }
+
+    onError(callback)
+    {
+        this.promise = this.promise.then(res =>
+        {
+            const isError = !res || !res.ok || res.code?.startsWith('ERR_') || res.status === 0;
+            if (isError) callback(res);
+            return res;
+        });
+        return this;
+    }
+
+    onFinally(callback)
+    {
+        this.promise = this.promise.finally(callback);
+        return this;
+    }
+
+    then(resolve, reject)
+    {
+        return this.promise.then(resolve, reject);
+    }
+
+    catch(reject)
+    {
+        return this.promise.catch(reject);
+    }
+}
+
+export default function fetchClient(endpoint, {
     method = 'GET', body, headers: customHeaders, ...customConfig
 } = {})
 {
-    const headers = { 'Accept': 'application/json' };
+    const headers = {'Accept': 'application/json'};
 
     if (body && !(body instanceof FormData))
     {
@@ -15,21 +61,20 @@ export default async function fetchClient(endpoint, {
     delete customConfig.silentAuth;
 
     const config = {
-        method, headers: { ...headers, ...customHeaders }, credentials: 'include', ...customConfig
+        method, headers: {...headers, ...customHeaders}, credentials: 'include', ...customConfig
     };
 
     if (body && !(body instanceof FormData))
     {
         config.body = JSON.stringify(body);
-    }
-    else if (body)
+    } else if (body)
     {
         config.body = body;
     }
 
-    try
+    const requestPromise = fetch(`${API_URL}${endpoint}`, config)
+    .then(async (response) =>
     {
-        const response = await fetch(`${ API_URL }${ endpoint }`, config);
         let data = {};
 
         if (response.status !== 204)
@@ -39,63 +84,54 @@ export default async function fetchClient(endpoint, {
                 data = await response.json();
             } catch (error)
             {
-                if (APP_ENV === 'dev')
-                {
-                    console.log("Error JSON parse", error);
-                }
-                data = { code: 'CRITICAL_SERVER_ERROR' };
+                if (APP_ENV === 'dev') console.log("Error JSON parse", error);
+                data = {code: 'CRITICAL_SERVER_ERROR'};
             }
         }
 
-        const Data = { ...data, status: response.status, success: true }; // TODO: забрати success
+        // ФІКС: Додали ok: response.ok
+        const Data = {...data, status: response.status, ok: response.ok};
 
         if (!silentAuth)
         {
             if (response.status === 401 && data.code !== 'ERR_INVALID_CREDENTIALS')
             {
                 window.dispatchEvent(new CustomEvent('session-expired'));
-            }
-            else if (response.status === 503)
+            } else if (response.status === 503)
             {
-                // Сервер на обслуговуванні
                 window.dispatchEvent(new CustomEvent('server-maintenance'));
-            }
-            else if (response.status >= 500 || data.code === 'CRITICAL_SERVER_ERROR')
+            } else if (response.status >= 500 || data.code === 'CRITICAL_SERVER_ERROR')
             {
-                // Фатальна помилка бекенда
                 window.dispatchEvent(new CustomEvent('server-error'));
             }
         }
 
         if (APP_ENV === 'dev')
         {
-            if (response.ok)
+            if (Data.ok && !data.code?.startsWith('ERR_'))
             {
-                console.log(`API Success [${ method } ${ endpoint }]`, Data);
-            }
-            else
+                console.log(`API Success [${method} ${endpoint}]`, Data);
+            } else
             {
-                console.error(`API Error [${ method } ${ endpoint }] Status: ${ response.status }`, Data);
+                console.error(`API Error [${method} ${endpoint}] Status: ${response.status}`, Data);
             }
         }
 
         return Data;
-
-    } catch (error)
+    })
+    .catch((error) =>
     {
-        const errorData = { status: 0, code: 'ERR_NETWORK' };
+        const errorData = {status: 0, code: 'ERR_NETWORK', ok: false};
 
-        if (APP_ENV === 'dev')
-        {
-            console.error(`Network/CORS Error [${ method } ${ endpoint }]`, error);
-        }
+        if (APP_ENV === 'dev') console.error(`Network/CORS Error [${method} ${endpoint}]`, error);
 
-        // Помилка мережі (бекенд вимкнений / впав інтернет)
         if (!silentAuth)
         {
             window.dispatchEvent(new CustomEvent('server-offline'));
         }
 
         return errorData;
-    }
+    });
+
+    return new ApiRequest(requestPromise);
 }

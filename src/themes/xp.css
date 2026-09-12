@@ -1,0 +1,454 @@
+/* =========================================
+   1. XP LUNA (Світла тема - Повне перевизначення)
+   ========================================= */
+:root[data-style="xp"] {
+    --theme-bg-page: #ece9d8;
+    --theme-bg-box: #ffffff;
+    --theme-border: #0054e3;
+    --theme-header-bg: linear-gradient(180deg, #0058e6 0%, #3a93ff 8%, #288eff 40%, #127dff 88%, #036bfe 93%, #005bff 95%, #0054e3 100%);
+    --theme-brand: #0054e3;
+
+    --theme-modal-header-bg: var(--theme-header-bg);
+    --theme-modal-header-text: #ffffff;
+
+    --theme-text-main: #000000;
+    --theme-text-muted: #777777;
+    --theme-link: #0000ff;
+    --theme-error: #ff0000;
+    --theme-success: #008000;
+
+    --theme-input-bg: #ffffff;
+    --theme-input-border: #7f9db9;
+
+    --theme-nav-hover: #c6d6ef;
+    --theme-nav-active: #c6d6ef;
+    --theme-logout-hover-bg: #f9e3e3;
+    --theme-logout-hover-text: #ff0000;
+
+    --theme-section-bg: #dbe4f4;
+    --theme-section-text: #0054e3;
+    --theme-staff-bg: #ffffe1;
+    --theme-staff-border: #aca899;
+    --theme-staff-text: #000000;
+    --theme-staff-icon: #e5a43b;
+
+    /* --- Кнопки XP (різні стани та типи) --- */
+    --theme-btn-primary-bg: #ecebe5;
+    --theme-btn-primary-grad-top: #ffffff;
+    --theme-btn-primary-grad-bottom: #d8d0c4;
+    --theme-btn-primary-border: #003c74;
+    --theme-btn-primary-text: #000000;
+
+    --theme-btn-secondary-bg: #ecebe5;
+    --theme-btn-secondary-grad-top: #ffffff;
+    --theme-btn-secondary-grad-bottom: #d8d0c4;
+    --theme-btn-secondary-border: #736d64;
+    --theme-btn-secondary-text: #000000;
+
+    --theme-btn-danger-bg: #f2d5d5;
+    --theme-btn-danger-grad-top: #ffffff;
+    --theme-btn-danger-grad-bottom: #d8b8b8;
+    --theme-btn-danger-border: #7a2929;
+    --theme-btn-danger-text: #000000;
+
+    --theme-btn-warning-bg: #f7ebd7;
+    --theme-btn-warning-grad-top: #ffffff;
+    --theme-btn-warning-grad-bottom: #e0ccab;
+    --theme-btn-warning-border: #8a5a19;
+    --theme-btn-warning-text: #000000;
+
+    --theme-btn-success-bg: #dceddc;
+    --theme-btn-success-grad-top: #ffffff;
+    --theme-btn-success-grad-bottom: #b8d8b8;
+    --theme-btn-success-border: #2b5e2b;
+    --theme-btn-success-text: #000000;
+
+    --theme-btn-reject-bg: #f5e4e4;
+    --theme-btn-reject-grad-top: #ffffff;
+    --theme-btn-reject-grad-bottom: #d6bcbc;
+    --theme-btn-reject-border: #7a2929;
+    --theme-btn-reject-text: #000000;
+
+    --theme-btn-disabled-bg: #ecebe5;
+    --theme-btn-disabled-grad-top: #f5f4ea;
+    --theme-btn-disabled-grad-bottom: #e0ded8;
+    --theme-btn-disabled-border: #aca899;
+    --theme-btn-disabled-text: #8d8a7c;
+
+    /* --- RichText змінні --- */
+    --rt-quote-border: #7f9db9;
+    --rt-quote-bg: #ffffff;
+    --rt-quote-text: #000000;
+    --rt-pullquote-bg: #f5f4ef;
+    --rt-pullquote-border: #7f9db9;
+    --rt-table-border: #7f9db9;
+    --rt-table-th-bg: #dbe4f4;
+    --rt-table-th-text: #000000;
+    --rt-table-td-bg: #ffffff;
+    --rt-details-bg: #ece9d8;
+    --rt-details-border: #7f9db9;
+    --rt-spoiler-bg: #000000;
+    --rt-spoiler-text: #000000;
+    --rt-spoiler-hover-bg: #ece9d8;
+    --rt-spoiler-hover-text: #000000;
+    --rt-code-bg: #ffffff;
+    --rt-code-border: #7f9db9;
+    --rt-code-text: #000000;
+    --rt-inline-code-bg: #ffffff;
+    --rt-inline-code-border: #7f9db9;
+    --rt-inline-code-text: #000000;
+}
+
+/* =========================================
+   2. XP ZUNE (Темна тема)
+   ========================================= */
+:root[data-style="xp"][data-theme="dark"] {
+    --theme-bg-page: #222222;
+    --theme-bg-box: #111111;
+    --theme-border: #1a1a1a;
+    --theme-header-bg: linear-gradient(180deg, #4b4b4b 0%, #303030 10%, #1c1c1c 40%, #080808 88%, #040404 93%, #000000 100%);
+    --theme-brand: #ea6406;
+
+    --theme-modal-header-bg: var(--theme-header-bg);
+    --theme-modal-header-text: #ffffff;
+
+    --theme-text-main: #e0e0e0;
+    --theme-text-muted: #888888;
+    --theme-link: #ea6406;
+    --theme-error: #ff5555;
+    --theme-success: #4bb34b;
+
+    --theme-input-bg: #1a1a1a;
+    --theme-input-border: #444444;
+
+    --theme-nav-hover: #333333;
+    --theme-nav-active: #444444;
+    --theme-logout-hover-bg: #331111;
+    --theme-logout-hover-text: #ff5555;
+
+    --theme-section-bg: #222222;
+    --theme-section-text: #ea6406;
+    --theme-staff-bg: #332b00;
+    --theme-staff-border: #8a6d00;
+    --theme-staff-text: #f5c400;
+    --theme-staff-icon: #f5c400;
+
+    --theme-btn-primary-bg: #333333;
+    --theme-btn-primary-grad-top: #555555;
+    --theme-btn-primary-grad-bottom: #222222;
+    --theme-btn-primary-border: #000000;
+    --theme-btn-primary-text: #ffffff;
+
+    --theme-btn-secondary-bg: #2b2b2b;
+    --theme-btn-secondary-grad-top: #444444;
+    --theme-btn-secondary-grad-bottom: #1a1a1a;
+    --theme-btn-secondary-border: #000000;
+    --theme-btn-secondary-text: #cccccc;
+
+    --theme-btn-danger-bg: #5c2222;
+    --theme-btn-danger-grad-top: #8c3b3b;
+    --theme-btn-danger-grad-bottom: #3d1515;
+    --theme-btn-danger-border: #000000;
+    --theme-btn-danger-text: #ffffff;
+
+    --theme-btn-warning-bg: #5c4114;
+    --theme-btn-warning-grad-top: #8c6624;
+    --theme-btn-warning-grad-bottom: #38250b;
+    --theme-btn-warning-border: #000000;
+    --theme-btn-warning-text: #ffffff;
+
+    --theme-btn-success-bg: #1c4524;
+    --theme-btn-success-grad-top: #2f6b3b;
+    --theme-btn-success-grad-bottom: #102915;
+    --theme-btn-success-border: #000000;
+    --theme-btn-success-text: #ffffff;
+
+    --theme-btn-reject-bg: #4a2121;
+    --theme-btn-reject-grad-top: #733636;
+    --theme-btn-reject-grad-bottom: #2b1313;
+    --theme-btn-reject-border: #000000;
+    --theme-btn-reject-text: #ffffff;
+
+    --theme-btn-disabled-bg: #1a1a1a;
+    --theme-btn-disabled-grad-top: #262626;
+    --theme-btn-disabled-grad-bottom: #111111;
+    --theme-btn-disabled-border: #333333;
+    --theme-btn-disabled-text: #555555;
+
+    --rt-quote-border: #ea6406;
+    --rt-quote-bg: #1a1a1a;
+    --rt-quote-text: #e0e0e0;
+    --rt-pullquote-bg: #111111;
+    --rt-pullquote-border: #ea6406;
+    --rt-table-border: #444444;
+    --rt-table-th-bg: #222222;
+    --rt-table-th-text: #ea6406;
+    --rt-table-td-bg: #111111;
+    --rt-details-bg: #222222;
+    --rt-details-border: #444444;
+    --rt-spoiler-bg: #555555;
+    --rt-spoiler-text: #555555;
+    --rt-spoiler-hover-bg: #222222;
+    --rt-spoiler-hover-text: #ffffff;
+    --rt-code-bg: #000000;
+    --rt-code-border: #444444;
+    --rt-code-text: #00ff00;
+    --rt-inline-code-bg: #111111;
+    --rt-inline-code-border: #444444;
+    --rt-inline-code-text: #ffaa00;
+}
+
+/* =========================================
+   3. ФОНИ ТА БЛОКИ
+   ========================================= */
+:root[data-style="xp"] body {
+    background-image: url('/themes/bliss.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: #004e98;
+}
+
+:root[data-style="xp"][data-theme="dark"] body {
+    background-image: url('/themes/red_moon_desert.jpg');
+    background-color: #000000;
+}
+
+/* =========================================
+   4. МОДАЛЬНІ ВІКНА ТА ШАПКИ
+   ========================================= */
+:root[data-style="xp"] .fixed.inset-0 > div[class*="bg-bg-box"] {
+    border: 3px solid var(--theme-border);
+    border-top-width: 0;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    background-color: var(--theme-bg-page);
+}
+
+:root[data-style="xp"] .bg-modal-header-bg {
+    background: var(--theme-header-bg);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border: 3px solid var(--theme-border);
+    border-bottom: none;
+    padding: 3px 6px 3px 8px;
+    height: 30px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+:root[data-style="xp"] .text-modal-header-text {
+    font-family: "Trebuchet MS", "Tahoma", sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* Кнопка закриття модалки (Хрестик) */
+:root[data-style="xp"] .bg-modal-header-bg button {
+    background: linear-gradient(180deg, #e48173 0%, #db5d49 9%, #c6351d 46%, #b22007 50%, #a51300 79%, #c94028 100%);
+    border: 1px solid #ffffff;
+    border-radius: 3px;
+    box-shadow: inset 0 -1px 2px rgba(0,0,0,0.3), 0 1px 1px rgba(0,0,0,0.2);
+    width: 21px;
+    height: 21px;
+    opacity: 1;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+}
+
+:root[data-style="xp"] .bg-modal-header-bg button:hover {
+    background: linear-gradient(180deg, #f29c90 0%, #e87b68 9%, #d84b34 46%, #c43219 50%, #b5220c 79%, #d75640 100%);
+}
+
+:root[data-style="xp"] .bg-modal-header-bg button:active {
+    background: linear-gradient(180deg, #870b00 0%, #a51300 100%);
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+    padding-top: 2px;
+    padding-left: 2px;
+}
+
+:root[data-style="xp"][data-theme="dark"] .bg-modal-header-bg button {
+    background: linear-gradient(180deg, #d66428 0%, #c25317 9%, #a83f06 46%, #913100 50%, #7d2600 79%, #a34110 100%);
+    border-color: #f7a072;
+}
+
+/* =========================================
+   5. КНОПКИ ТА ЇХНІ СТАНУ (Primary, Danger, Warning, Disabled)
+   ========================================= */
+@layer components {
+    :root[data-style="xp"] button:not(.bg-modal-header-bg button):not(.border-b.border-border.flex-wrap button) {
+        font-family: "Tahoma", sans-serif;
+        border: 1px solid var(--theme-btn-primary-border, #003c74);
+        background: linear-gradient(180deg, var(--theme-btn-primary-grad-top, #ffffff) 0%, var(--theme-btn-primary-bg, #ecebe5) 50%, var(--theme-btn-primary-grad-bottom, #d8d0c4) 100%);
+        color: var(--theme-btn-primary-text, #000000);
+        border-radius: 3px;
+        box-shadow: inset 1px 1px 0 rgba(255,255,255,0.7), inset -1px -1px 0 rgba(0,0,0,0.1);
+        padding: 4px 12px;
+        transition: none;
+    }
+
+    /* Специфічні кольори для різних типів кнопок */
+    :root[data-style="xp"] button.bg-theme-btn-danger,
+    :root[data-style="xp"] button[class*="danger"],
+    :root[data-style="xp"] button[class*="red"] {
+        border-color: var(--theme-btn-danger-border);
+        background: linear-gradient(180deg, var(--theme-btn-danger-grad-top) 0%, var(--theme-btn-danger-bg) 50%, var(--theme-btn-danger-grad-bottom) 100%);
+        color: var(--theme-btn-danger-text);
+    }
+
+    :root[data-style="xp"] button.bg-theme-btn-warning,
+    :root[data-style="xp"] button[class*="warning"] {
+        border-color: var(--theme-btn-warning-border);
+        background: linear-gradient(180deg, var(--theme-btn-warning-grad-top) 0%, var(--theme-btn-warning-bg) 50%, var(--theme-btn-warning-grad-bottom) 100%);
+        color: var(--theme-btn-warning-text);
+    }
+
+    :root[data-style="xp"] button.bg-theme-btn-success,
+    :root[data-style="xp"] button[class*="success"] {
+        border-color: var(--theme-btn-success-border);
+        background: linear-gradient(180deg, var(--theme-btn-success-grad-top) 0%, var(--theme-btn-success-bg) 50%, var(--theme-btn-success-grad-bottom) 100%);
+        color: var(--theme-btn-success-text);
+    }
+
+    /* Фокус кнопках (пунктирна рамка) */
+    :root[data-style="xp"] button:not(.bg-modal-header-bg button):focus {
+        outline: 1px dotted #000000;
+        outline-offset: -4px;
+    }
+    :root[data-style="xp"][data-theme="dark"] button:not(.bg-modal-header-bg button):focus {
+        outline: 1px dotted #ffffff;
+    }
+
+    /* Натиснутий стан */
+    :root[data-style="xp"] button:not(.bg-modal-header-bg button):active {
+        background: var(--theme-btn-primary-bg);
+        box-shadow: inset 2px 2px 3px rgba(0,0,0,0.3);
+        padding-top: 5px;
+        padding-bottom: 3px;
+        outline: 1px dotted #000000;
+        outline-offset: -4px;
+    }
+
+    /* Неактивна кнопка (Disabled) */
+    :root[data-style="xp"] button:disabled,
+    :root[data-style="xp"] button[disabled] {
+        background: linear-gradient(180deg, var(--theme-btn-disabled-grad-top) 0%, var(--theme-btn-disabled-bg) 50%, var(--theme-btn-disabled-grad-bottom) 100%);
+        border-color: var(--theme-btn-disabled-border);
+        color: var(--theme-btn-disabled-text);
+        box-shadow: none;
+        outline: none;
+        text-shadow: 1px 1px 0 rgba(255,255,255,0.8);
+    }
+}
+
+/* =========================================
+   6. ЧЕКБОКСИ ТА РАДІОКНОПКИ
+   ========================================= */
+@layer components {
+    :root[data-style="xp"] input[type="checkbox"],
+    :root[data-style="xp"] input[type="radio"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 13px;
+        height: 13px;
+        background: linear-gradient(135deg, #ffffff 0%, #d3e5fa 100%);
+        border: 1px solid #1c5180;
+        border-radius: 2px;
+        position: relative;
+        cursor: default;
+        margin-right: 6px;
+        box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    :root[data-style="xp"] input[type="checkbox"]:checked::before {
+        content: "";
+        position: absolute;
+        top: 1px;
+        left: 3px;
+        width: 4px;
+        height: 8px;
+        border: solid #21a121;
+        border-width: 0 2.5px 2.5px 0;
+        transform: rotate(45deg);
+    }
+
+    :root[data-style="xp"][data-theme="dark"] input[type="checkbox"] {
+        background: linear-gradient(135deg, #333333 0%, #111111 100%);
+        border-color: #555555;
+    }
+    :root[data-style="xp"][data-theme="dark"] input[type="checkbox"]:checked::before {
+        border-color: #ea6406;
+    }
+
+    :root[data-style="xp"] input[type="checkbox"]:disabled {
+        background: #ebebe4;
+        border-color: #aca899;
+        box-shadow: none;
+    }
+    :root[data-style="xp"] input[type="checkbox"]:disabled:checked::before {
+        border-color: #aca899;
+    }
+
+    :root[data-style="xp"] input[type="radio"] {
+        border-radius: 50%;
+    }
+    :root[data-style="xp"] input[type="radio"]:checked::before {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 5px;
+        height: 5px;
+        background-color: #21a121;
+        border-radius: 50%;
+        border: none;
+        transform: none;
+    }
+}
+
+/* =========================================
+   7. ТАБИ ТА БЛОКИ КОНТЕНТУ
+   ========================================= */
+:root[data-style="xp"] .border-b.border-border.flex-wrap {
+    border-bottom: 1px solid #919b9c;
+    padding-bottom: 0;
+    align-items: flex-end;
+}
+:root[data-style="xp"][data-theme="dark"] .border-b.border-border.flex-wrap {
+    border-bottom-color: #555555;
+}
+
+:root[data-style="xp"] .border-b.border-border.flex-wrap button {
+    background: var(--theme-bg-page);
+    border: 1px solid #919b9c;
+    border-bottom: none;
+    border-radius: 3px 3px 0 0;
+    padding: 4px 10px 2px 10px;
+    margin-right: 2px;
+    margin-bottom: 0;
+    color: var(--theme-text-main);
+    font-weight: normal;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+}
+
+:root[data-style="xp"] footer,
+:root[data-style="xp"] main {
+    background-color: var(--theme-bg-page);
+}
+
+:root[data-style="xp"] main {
+    margin-top: 15px;
+    padding: 15px;
+    min-height: calc(100vh - 30px);
+}
+
+:root[data-style="xp"] footer {
+    margin: 20px 15px 15px 15px;
+    border-top-width: 1px;
+}

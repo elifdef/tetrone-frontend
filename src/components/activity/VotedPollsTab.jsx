@@ -16,15 +16,14 @@ export default function VotedPollsTab() {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState(false);
 
-    const fetchPolls = useCallback(async () => {
+    const fetchPolls = useCallback(() => {
         if (page === 1) setIsLoadingInitial(true);
         else setIsLoadingMore(true);
         setError(false);
 
-        const res = await ActivityService.getVotedPolls(page);
-
-        if (res.success) {
-            const items = res.posts;
+        ActivityService.getVotedPolls(page)
+        .onSuccess((res) => {
+            const items = res.posts || [];
             const meta = res.meta;
 
             setPosts(prev => {
@@ -35,14 +34,17 @@ export default function VotedPollsTab() {
             });
 
             setHasMore(meta ? meta.current_page < meta.last_page : false);
-        } else {
-            notifyError(res.message || t('error.load_failed'));
+        })
+        .onError((err) => {
+            notifyError(err.message || t('error.load_failed'));
             setError(true);
-        }
-
-        setIsLoadingInitial(false);
-        setIsLoadingMore(false);
+        })
+        .onFinally(() => {
+            setIsLoadingInitial(false);
+            setIsLoadingMore(false);
+        });
     }, [page, t]);
+
     useEffect(() => {
         fetchPolls();
     }, [fetchPolls]);
@@ -66,20 +68,21 @@ export default function VotedPollsTab() {
             onLoadMore={loadMore}
             error={error}
             onRetry={fetchPolls}
-            className="tetrone-feed-list"
+            className="flex flex-col gap-[10px]"
             emptyState={
-                <div className="tetrone-empty-state">
-                    <p>{t('empty.polls_voted')}</p>
+                <div className="bg-bg-box border border-border p-[20px] text-center text-text-muted text-[11px] italic rounded-[2px]">
+                    {t('empty.polls_voted')}
                 </div>
             }
         >
             {posts.map((post, index) => (
-                <PostItem
-                    key={post.id || `poll-${index}`}
-                    post={post}
-                    onUpdate={handleUpdatePost}
-                    readonly={true}
-                />
+                <div key={post.id || `poll-${index}`} className="bg-bg-box border border-border p-[15px] rounded-[2px]">
+                    <PostItem
+                        post={post}
+                        onUpdate={handleUpdatePost}
+                        readonly={true}
+                    />
+                </div>
             ))}
         </InfiniteScrollList>
     );

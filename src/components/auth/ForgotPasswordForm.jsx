@@ -11,7 +11,7 @@ import PasswordStrengthBar from "../ui/PasswordStrengthBar";
 
 export default function ForgotPasswordForm() {
     const { t } = useTranslation();
-    const [step, setStep] = useState(1); // 1: Email, 2: Code, 3: New Password, 4: Success
+    const [step, setStep] = useState(1);
     const [error, setError] = useState(null);
     const [successMsg, setSuccessMsg] = useState(null);
     const [passwordScore, setPasswordScore] = useState(0);
@@ -146,30 +146,36 @@ export default function ForgotPasswordForm() {
 
     if (step === 4) {
         return (
-            <div className="tetrone-auth-success-wrapper">
-                <div className="tetrone-auth-msg success">
-                    {t('auth.password_reset_success')}
+            <div className="p-[20px] text-center">
+                <div className="bg-[rgba(75,179,75,0.1)] text-theme-success border border-[rgba(75,179,75,0.3)] p-[15px] rounded-[2px] mb-[15px]">
+                    <span className="font-bold text-[13px] block mb-[5px]">
+                        {t('auth.password_reset_success')}
+                    </span>
+                    <Link to="/login" className="text-theme-link no-underline hover:underline text-[11px]">
+                        {t('action.go_to_login')}
+                    </Link>
                 </div>
-                <Link to="/login" className="tetrone-landing-btn-primary">
-                    {t('action.go_to_login')}
-                </Link>
             </div>
         );
     }
 
     return (
-        <div className="tetrone-auth-form-container">
+        <div className="p-[15px] flex flex-col gap-[12px]">
             {successMsg && (step === 2 || step === 3) && (
-                <div className="tetrone-auth-msg success">{successMsg}</div>
+                <div className="bg-[rgba(75,179,75,0.1)] text-theme-success border border-[rgba(75,179,75,0.3)] p-[8px] text-[11px] rounded-[2px] text-center">
+                    {successMsg}
+                </div>
             )}
 
             {error && (
-                <div className="tetrone-auth-msg error">{error}</div>
+                <div className="bg-[rgba(255,51,71,0.1)] text-theme-error border border-[rgba(255,51,71,0.3)] p-[8px] text-[11px] rounded-[2px] text-center">
+                    {error}
+                </div>
             )}
 
             {step === 1 && (
-                <form onSubmit={handleEmailSubmit(onEmailSubmit)}>
-                    <p className="tetrone-landing-auth-text">
+                <form onSubmit={handleEmailSubmit(onEmailSubmit)} className="flex flex-col gap-[12px]">
+                    <p className="m-0 text-text-muted text-center leading-[1.4]">
                         {t('auth.forgot_password_instruction')}
                     </p>
                     <Input
@@ -179,26 +185,26 @@ export default function ForgotPasswordForm() {
                         {...registerEmail("email")}
                         error={emailErrors.email}
                     />
-                    <Button disabled={isEmailSubmitting}>
+                    <Button type="submit" disabled={isEmailSubmitting} className="w-full">
                         {isEmailSubmitting ? t('common.loading') : t('action.get_code')}
                     </Button>
                 </form>
             )}
 
             {step === 2 && (
-                <div className="tetrone-code-step">
-                    <p className="tetrone-landing-auth-text">
-                        {t('auth.enter_code_sent_to')} <b>{savedEmail}</b>
+                <div className="flex flex-col items-center gap-[15px]">
+                    <p className="m-0 text-text-muted text-center leading-[1.4]">
+                        {t('auth.enter_code_sent_to')} <b className="text-text-main">{savedEmail}</b>
                     </p>
 
-                    <div className="tetrone-code-inputs-wrapper" onPaste={handleCodePaste}>
+                    <div className="flex gap-[6px]" onPaste={handleCodePaste}>
                         {codeDigits.map((digit, index) => (
                             <input
                                 key={index}
                                 ref={el => inputRefs.current[index] = el}
                                 type="text"
                                 maxLength="1"
-                                className="tetrone-code-single-input"
+                                className="w-[32px] h-[36px] text-center border border-input-border bg-input-bg text-text-main text-[16px] font-bold rounded-[2px] focus:border-theme-link focus:outline-none transition-colors"
                                 value={digit}
                                 onChange={(e) => handleCodeChange(index, e.target.value)}
                                 onKeyDown={(e) => handleCodeKeyDown(index, e)}
@@ -208,7 +214,7 @@ export default function ForgotPasswordForm() {
                     </div>
 
                     {isVerifyingCode && (
-                        <div className="tetrone-landing-auth-text">
+                        <div className="text-text-muted italic">
                             {t('common.loading')}...
                         </div>
                     )}
@@ -216,8 +222,8 @@ export default function ForgotPasswordForm() {
             )}
 
             {step === 3 && (
-                <form onSubmit={handlePasswordSubmit(onPasswordSubmit)}>
-                    <p className="tetrone-landing-auth-text">
+                <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="flex flex-col gap-[12px]">
+                    <p className="m-0 text-text-muted text-center leading-[1.4]">
                         {t('auth.enter_new_password_instruction')}
                     </p>
                     <Input
@@ -237,15 +243,15 @@ export default function ForgotPasswordForm() {
 
                     <PasswordStrengthBar password={currentPassword} onScoreChange={setPasswordScore} />
 
-                    <Button disabled={isPasswordSubmitting || (currentPassword && passwordScore < 5)}>
+                    <Button type="submit" disabled={isPasswordSubmitting || (currentPassword && passwordScore < 5)} className="w-full">
                         {isPasswordSubmitting ? t('common.loading') : t('action.save_password')}
                     </Button>
                 </form>
             )}
 
             {step < 4 && (
-                <div className="tetrone-auth-footer">
-                    <Link to="/login" className="tetrone-link">
+                <div className="mt-[10px] pt-[12px] border-t border-border text-center">
+                    <Link to="/login" className="text-theme-link no-underline hover:underline text-[11px] font-bold">
                         {t('action.back_to_login')}
                     </Link>
                 </div>

@@ -8,12 +8,11 @@ export default function ScreenTimeTab() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        ActivityService.getScreenTime().then(res => {
-            if (res.success) {
-                setStats(res.data);
-            } else {
-                // console.error("Failed to fetch screen time stats:", res.message);
-            }
+        ActivityService.getScreenTime()
+        .onSuccess((res) => {
+            setStats(res.time || {});
+        })
+        .onFinally(() => {
             setIsLoading(false);
         });
     }, []);
@@ -22,7 +21,6 @@ export default function ScreenTimeTab() {
         if (isLoading) return;
 
         const interval = setInterval(() => {
-            // рахуємо тільки якщо користувач реально зараз на цій вкладці
             if (document.visibilityState === 'visible') {
                 setStats(prev => {
                     const todayDate = new Date().toISOString().split('T')[0];
@@ -36,7 +34,6 @@ export default function ScreenTimeTab() {
                         return day;
                     });
 
-                    // якщо користувач зайшов рівно опівночі і запису за сьогодні ще не було
                     if (!isTodayFound) {
                         newHistory.unshift({ date: todayDate, seconds: 1 });
                     }
@@ -59,47 +56,49 @@ export default function ScreenTimeTab() {
         const seconds = totalSeconds % 60;
 
         let result = '';
-        if (hours > 0) {
-            result += `${hours} ${t('common.hours_short')} `;
-        }
-        if (minutes > 0 || hours > 0) {
-            result += `${minutes} ${t('common.minutes_short')} `;
-        }
+        if (hours > 0) result += `${hours} ${t('common.hours_short')} `;
+        if (minutes > 0 || hours > 0) result += `${minutes} ${t('common.minutes_short')} `;
         result += `${seconds} ${t('common.seconds_short')}`;
 
         return result.trim();
     };
 
     if (isLoading) {
-        return <div className="tetrone-loading">{t('common.loading')}</div>;
+        return <div className="p-[20px] text-center text-text-muted text-[11px] italic">{t('common.loading')}</div>;
     }
 
     return (
-        <div className="tetrone-settings-regular">
-            <div className="tetrone-stats-header">
-                <h3 className="tetrone-stats-subtitle">{t('activity.stats.total_time')}</h3>
-                <div className="tetrone-stats-total">
+        <div className="bg-bg-box border border-border font-tahoma text-[11px] text-text-main rounded-[2px]">
+            <div className="bg-input-bg border-b border-border p-[15px] text-center">
+                <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px] tracking-wide">
+                    {t('activity.stats.total_time')}
+                </div>
+                <div className="text-[28px] font-bold text-theme-link leading-none mb-[8px]">
                     {formatTime(stats.total_active_seconds)}
                 </div>
-                <p className="tetrone-stats-desc">
+                <p className="m-0 text-text-muted max-w-[80%] mx-auto leading-[1.4]">
                     {t('activity.stats.description')}
                 </p>
             </div>
 
-            <h4 className="tetrone-section-title">{t('activity.stats.history')}</h4>
+            <div className="p-[15px]">
+                <h4 className="text-[12px] font-bold border-b border-border pb-[5px] m-0 mb-[10px] text-theme-link">
+                    {t('activity.stats.history')}
+                </h4>
 
-            {stats.history.length === 0 ? (
-                <div className="tetrone-empty-state">{t('activity.stats.empty')}</div>
-            ) : (
-                <div className="tetrone-stats-list">
-                    {stats.history.map((day, index) => (
-                        <div key={index} className="tetrone-stats-item">
-                            <span className="tetrone-stats-date">{day.date}</span>
-                            <span className="tetrone-stats-time">{formatTime(day.seconds)}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
+                {stats.history.length === 0 ? (
+                    <div className="text-center text-text-muted italic py-[10px]">{t('activity.stats.empty')}</div>
+                ) : (
+                    <div className="flex flex-col">
+                        {stats.history.map((day, index) => (
+                            <div key={index} className="flex justify-between items-center py-[8px] border-b border-dashed border-border last:border-none hover:bg-bg-page transition-colors px-[5px]">
+                                <span className="font-bold text-text-muted">{day.date}</span>
+                                <span className="text-text-main">{formatTime(day.seconds)}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

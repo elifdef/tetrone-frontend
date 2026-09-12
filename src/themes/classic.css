@@ -1,0 +1,469 @@
+/* =========================================
+   1. БІЛА ТЕМА (Дефолтна)
+   ========================================= */
+:root {
+    /* --- Лейаут та Фони --- */
+    --theme-bg-page: #ffffff;
+    --theme-bg-box: #ffffff;
+    --theme-border: #D7D7D7;
+    --theme-header-bg: #DAE2E8;
+
+    --theme-brand: #45688e;
+
+    /* --- Модалки --- */
+    --theme-modal-header-bg: #597DA3;
+    --theme-modal-header-text: #ffffff;
+
+    /* --- Текст та Статуси --- */
+    --theme-text-main: #000000;
+    --theme-text-muted: #777777;
+    --theme-link: #45688e;
+    --theme-error: #ff3347;
+    --theme-success: #4bb34b;
+
+    /* --- Інпути --- */
+    --theme-input-bg: #ffffff;
+    --theme-input-border: #C0CAD5;
+
+    /* --- Навігація --- */
+    --theme-nav-hover: #E1E5EB;
+    --theme-nav-active: #E1E5EB;
+    --theme-logout-hover-bg: rgba(255, 51, 71, 0.1);
+    --theme-logout-hover-text: #ff3347;
+
+    /* --- Специфічні блоки --- */
+    --theme-section-bg: var(--theme-header-bg);
+    --theme-section-text: #36638E;
+    --theme-staff-bg: #EEE5B8;
+    --theme-staff-border: #f5c400;
+    --theme-staff-text: #2b2b2b;
+    --theme-staff-icon: #8a6d00;
+
+    /* --- Кнопки (Світлі) --- */
+    --theme-btn-primary-bg: #5d81ab;
+    --theme-btn-primary-grad-top: #749bc4;
+    --theme-btn-primary-border: #45688e;
+    --theme-btn-primary-text: #ffffff;
+    --theme-btn-primary-hover-bg: #6a8cb6;
+    --theme-btn-primary-hover-grad-top: #82a8d1;
+
+    --theme-btn-secondary-bg: #f2f2f2;
+    --theme-btn-secondary-grad-top: #ffffff;
+    --theme-btn-secondary-border: #cccccc;
+    --theme-btn-secondary-text: #2b587a;
+    --theme-btn-secondary-hover-bg: #e5e5e5;
+    --theme-btn-secondary-hover-grad-top: #f2f2f2;
+
+    --theme-btn-danger-bg: #c95151;
+    --theme-btn-danger-grad-top: #df6b6b;
+    --theme-btn-danger-border: #993b3b;
+    --theme-btn-danger-text: #ffffff;
+    --theme-btn-danger-hover-bg: #d15d5d;
+    --theme-btn-danger-hover-grad-top: #e87878;
+
+    --theme-btn-warning-bg: #e5a43b;
+    --theme-btn-warning-grad-top: #f7ba59;
+    --theme-btn-warning-border: #b37a22;
+    --theme-btn-warning-text: #ffffff;
+    --theme-btn-warning-hover-bg: #eda940;
+    --theme-btn-warning-hover-grad-top: #fdc266;
+
+    --theme-btn-success-bg: #4bb34b;
+    --theme-btn-success-grad-top: #60c760;
+    --theme-btn-success-border: #358035;
+    --theme-btn-success-text: #ffffff;
+    --theme-btn-success-hover-bg: #52c452;
+    --theme-btn-success-hover-grad-top: #6fd66f;
+
+    --theme-btn-reject-bg: #b34b4b;
+    --theme-btn-reject-grad-top: #c76060;
+    --theme-btn-reject-border: #803535;
+    --theme-btn-reject-text: #ffffff;
+    --theme-btn-reject-hover-bg: #c45252;
+    --theme-btn-reject-hover-grad-top: #d66f6f;
+
+    --theme-btn-disabled-bg: #e0e0e0;
+    --theme-btn-disabled-border: #cccccc;
+    --theme-btn-disabled-text: #999999;
+
+    /* --- ЗМІННІ ФОРМАТУВАННЯ ТЕКСТУ (RichText) --- */
+    --rt-quote-border: #c3d1e0;
+    --rt-quote-bg: rgba(128,128,128,0.05);
+    --rt-quote-text: #45688E;
+    --rt-pullquote-bg: #f9f9f9;
+    --rt-pullquote-border: #b5c4d3;
+    --rt-table-border: #cccccc;
+    --rt-table-th-bg: #e0e5eb;
+    --rt-table-th-text: #2b2b2b;
+    --rt-table-td-bg: #ffffff;
+    --rt-details-bg: #f7f9fb;
+    --rt-details-border: #d3d9de;
+    --rt-spoiler-bg: #111111;
+    --rt-spoiler-text: #111111;
+    --rt-spoiler-hover-bg: #eeeeee;
+    --rt-spoiler-hover-text: #000000;
+    --rt-code-bg: #1e1e1e;
+    --rt-code-border: #cccccc;
+    --rt-code-text: #d4d4d4;
+    --rt-inline-code-bg: #f0f0f0;
+    --rt-inline-code-border: #dddddd;
+    --rt-inline-code-text: #bb0000;
+}
+
+/* =========================================
+   2. ТЕМНА ТЕМА
+   ========================================= */
+:root[data-theme="dark"] {
+    --theme-bg-page: #1e1e1e;
+    --theme-bg-box: #2b2b2b;
+    --theme-border: #424242;
+    --theme-header-bg: #2b2b2b;
+
+    /* --- Модалки (Темна) --- */
+    --theme-modal-header-bg: #2a3542;
+    --theme-modal-header-text: #ffffff;
+
+    --theme-text-main: #e0e0e0;
+    --theme-text-muted: #8c8c8c;
+    --theme-link: #5b9bd5;
+
+    --theme-error: #e64646;
+    --theme-success: #4bb34b;
+
+    --theme-input-bg: #222222;
+    --theme-input-border: #555555;
+
+    --theme-nav-hover: rgba(255, 255, 255, 0.05);
+    --theme-nav-active: rgba(255, 255, 255, 0.1);
+    --theme-logout-hover-bg: #331111;
+    --theme-logout-hover-text: #ff5555;
+
+    --theme-section-bg: var(--theme-bg-box);
+    --theme-section-text: var(--theme-link);
+    --theme-staff-bg: #332b00;
+    --theme-staff-border: #8a6d00;
+    --theme-staff-text: #f5c400;
+    --theme-staff-icon: #f5c400;
+
+    --theme-btn-primary-bg: #496b8c;
+    --theme-btn-primary-grad-top: #5a80a5;
+    --theme-btn-primary-border: #334d66;
+    --theme-btn-primary-text: #ffffff;
+    --theme-btn-primary-hover-bg: #52779c;
+    --theme-btn-primary-hover-grad-top: #658eb5;
+
+    --theme-btn-secondary-bg: #383838;
+    --theme-btn-secondary-grad-top: #4a4a4a;
+    --theme-btn-secondary-border: #222222;
+    --theme-btn-secondary-text: #cccccc;
+    --theme-btn-secondary-hover-bg: #424242;
+    --theme-btn-secondary-hover-grad-top: #555555;
+
+    --theme-btn-danger-bg: #a64242;
+    --theme-btn-danger-grad-top: #bc5252;
+    --theme-btn-danger-border: #732929;
+    --theme-btn-danger-text: #ffffff;
+    --theme-btn-danger-hover-bg: #b54a4a;
+    --theme-btn-danger-hover-grad-top: #cc5c5c;
+
+    --theme-btn-warning-bg: #b5802a;
+    --theme-btn-warning-grad-top: #cc963b;
+    --theme-btn-warning-border: #805716;
+    --theme-btn-warning-text: #ffffff;
+    --theme-btn-warning-hover-bg: #c48c30;
+    --theme-btn-warning-hover-grad-top: #dbb34b;
+
+    --theme-btn-success-bg: #3b8c4a;
+    --theme-btn-success-grad-top: #4da65d;
+    --theme-btn-success-border: #265930;
+    --theme-btn-success-text: #ffffff;
+    --theme-btn-success-hover-bg: #439c53;
+    --theme-btn-success-hover-grad-top: #55b367;
+
+    --theme-btn-reject-bg: #8c3b3b;
+    --theme-btn-reject-grad-top: #a64d4d;
+    --theme-btn-reject-border: #592626;
+    --theme-btn-reject-text: #ffffff;
+    --theme-btn-reject-hover-bg: #9c4343;
+    --theme-btn-reject-hover-grad-top: #b35555;
+
+    --theme-btn-disabled-bg: #2a2a2a;
+    --theme-btn-disabled-border: #444444;
+    --theme-btn-disabled-text: #666666;
+
+    /* --- ЗМІННІ ФОРМАТУВАННЯ ТЕКСТУ (Темні) --- */
+    --rt-quote-border: #3a5068;
+    --rt-quote-bg: rgba(128,128,128,0.1);
+    --rt-quote-text: #71aaeb;
+    --rt-pullquote-bg: #2b2b2b;
+    --rt-pullquote-border: #444444;
+    --rt-table-border: #444444;
+    --rt-table-th-bg: #333333;
+    --rt-table-th-text: #cccccc;
+    --rt-table-td-bg: #222222;
+    --rt-details-bg: #2b2b2b;
+    --rt-details-border: #444444;
+    --rt-spoiler-bg: #555555;
+    --rt-spoiler-text: #555555;
+    --rt-spoiler-hover-bg: #333333;
+    --rt-spoiler-hover-text: #dddddd;
+    --rt-code-bg: #161b22;
+    --rt-code-border: #444444;
+    --rt-code-text: #d4d4d4;
+    --rt-inline-code-bg: #333333;
+    --rt-inline-code-border: #555555;
+    --rt-inline-code-text: #ff6b6b;
+}
+
+/* =========================================
+   3. ІНТЕГРАЦІЯ З TAILWIND V4
+   ========================================= */
+@theme {
+    /* ФІКС: Взяли назви шрифтів у лапки */
+    --font-tahoma: "Tahoma", "Verdana", "Arial", sans-serif;
+    --font-size-base: 11px;
+
+    --color-theme-brand: var(--theme-brand);
+
+    --color-bg-page: var(--theme-bg-page);
+    --color-bg-box: var(--theme-bg-box);
+    --color-border: var(--theme-border);
+    --color-header-bg: var(--theme-header-bg);
+
+    --color-modal-header-bg: var(--theme-modal-header-bg);
+    --color-modal-header-text: var(--theme-modal-header-text);
+
+    --color-text-main: var(--theme-text-main);
+    --color-text-muted: var(--theme-text-muted);
+    --color-theme-link: var(--theme-link);
+    --color-theme-error: var(--theme-error);
+    --color-theme-success: var(--theme-success);
+
+    --color-input-bg: var(--theme-input-bg);
+    --color-input-border: var(--theme-input-border);
+
+    --color-nav-hover: var(--theme-nav-hover);
+    --color-nav-active: var(--theme-nav-active);
+    --color-logout-hover-bg: var(--theme-logout-hover-bg);
+    --color-logout-hover-text: var(--theme-logout-hover-text);
+
+    --color-section-bg: var(--theme-section-bg);
+    --color-section-text: var(--theme-section-text);
+    --color-staff-bg: var(--theme-staff-bg);
+    --color-staff-border: var(--theme-staff-border);
+    --color-staff-text: var(--theme-staff-text);
+    --color-staff-icon: var(--theme-staff-icon);
+
+    --color-btn-primary: var(--theme-btn-primary-bg);
+
+    /* Додаємо мапінг для RichText */
+    --color-rt-quote-border: var(--rt-quote-border);
+    --color-rt-quote-bg: var(--rt-quote-bg);
+    --color-rt-quote-text: var(--rt-quote-text);
+    --color-rt-pullquote-bg: var(--rt-pullquote-bg);
+    --color-rt-pullquote-border: var(--rt-pullquote-border);
+    --color-rt-table-border: var(--rt-table-border);
+    --color-rt-table-th-bg: var(--rt-table-th-bg);
+    --color-rt-table-th-text: var(--rt-table-th-text);
+    --color-rt-table-td-bg: var(--rt-table-td-bg);
+    --color-rt-details-bg: var(--rt-details-bg);
+    --color-rt-details-border: var(--rt-details-border);
+    --color-rt-spoiler-bg: var(--rt-spoiler-bg);
+    --color-rt-spoiler-text: var(--rt-spoiler-text);
+    --color-rt-spoiler-hover-bg: var(--rt-spoiler-hover-bg);
+    --color-rt-spoiler-hover-text: var(--rt-spoiler-hover-text);
+    --color-rt-code-bg: var(--rt-code-bg);
+    --color-rt-code-border: var(--rt-code-border);
+    --color-rt-code-text: var(--rt-code-text);
+    --color-rt-inline-code-bg: var(--rt-inline-code-bg);
+    --color-rt-inline-code-border: var(--rt-inline-code-border);
+    --color-rt-inline-code-text: var(--rt-inline-code-text);
+}
+
+@layer base {
+    body {
+        background-color: var(--theme-bg-page);
+        color: var(--theme-text-main);
+        font-family: var(--font-tahoma);
+        font-size: var(--font-size-base);
+        margin: 0;
+    }
+}
+
+/* =========================================
+   5. КОМПОНЕНТИ (Включаючи RichText)
+   ========================================= */
+@layer components {
+    /* --- TEXT FORMATTING: VK 2007 STRICT EDITION --- */
+    .post-text, .comment-text, .ProseMirror {
+        @apply text-[11px] font-tahoma leading-[1.4] text-text-main break-words;
+    }
+
+    .post-text p, .comment-text p, .ProseMirror p {
+        @apply m-0 mb-[6px] last:mb-0;
+    }
+
+    /* --- ЗАГОЛОВКИ (Суворі, без зайвих відступів) --- */
+    .post-text h1, .comment-text h1, .ProseMirror h1 {
+        @apply text-[13px] font-bold text-theme-link border-b border-border pb-[2px] mt-[8px] mb-[6px] uppercase tracking-[0.5px];
+    }
+    .post-text h2, .comment-text h2, .ProseMirror h2 {
+        @apply text-[12px] font-bold text-text-main mt-[8px] mb-[4px];
+    }
+    .post-text h3, .comment-text h3, .ProseMirror h3 {
+        @apply text-[11px] font-bold text-text-muted mt-[8px] mb-[4px] underline;
+    }
+
+    /* --- ПОСИЛАННЯ --- */
+    .post-text a, .comment-text a, .ProseMirror a,
+    .user-mention, .hashtag-link {
+        @apply text-theme-link no-underline cursor-pointer transition-none bg-transparent p-0 font-normal;
+    }
+    .post-text a:hover, .comment-text a:hover, .ProseMirror a:hover,
+    .user-mention:hover, .hashtag-link:hover {
+        @apply underline bg-transparent;
+    }
+
+    /* --- СПИСКИ (Повертаємо крапочки і цифри) --- */
+    .post-text ul, .comment-text ul, .ProseMirror ul {
+        @apply pl-[25px] m-0 mb-[6px] list-[square];
+    }
+    .post-text ol, .comment-text ol, .ProseMirror ol {
+        @apply pl-[25px] m-0 mb-[6px] list-decimal;
+    }
+    .post-text li, .comment-text li, .ProseMirror li {
+        @apply mb-[2px] pl-[2px];
+    }
+
+    /* Списки завдань (Task Lists) */
+    .post-text ul[data-type="taskList"], .comment-text ul[data-type="taskList"], .ProseMirror ul[data-type="taskList"] {
+        @apply list-none pl-[5px] mb-[6px];
+    }
+    .post-text ul[data-type="taskList"] li, .comment-text ul[data-type="taskList"] li, .ProseMirror ul[data-type="taskList"] li {
+        @apply flex items-start gap-[6px] mb-[4px];
+    }
+    .post-text ul[data-type="taskList"] label input[type="checkbox"],
+    .comment-text ul[data-type="taskList"] label input[type="checkbox"],
+    .ProseMirror ul[data-type="taskList"] label input[type="checkbox"] {
+        @apply m-0 mt-[2px] w-[12px] h-[12px] accent-theme-link cursor-pointer rounded-none border-border;
+    }
+
+    /* --- ЦИТАТИ (Blockquote) --- */
+    .post-text blockquote, .comment-text blockquote, .ProseMirror blockquote {
+        @apply border-l-[2px] border-rt-quote-border bg-rt-quote-bg text-rt-quote-text py-[6px] px-[10px] my-[6px] mx-0 text-[11px];
+    }
+
+    /* --- ВИТЯГИ (Pullquote - З величезними лапками!) --- */
+    .post-text .pullquote, .comment-text .pullquote, .ProseMirror .pullquote {
+        @apply relative border-t border-b border-dashed border-rt-pullquote-border bg-rt-pullquote-bg text-center italic text-[12px] font-bold py-[15px] px-[30px] my-[10px];
+        border-color: var(--quote-color, var(--rt-pullquote-border));
+    }
+    .post-text .pullquote::before, .comment-text .pullquote::before, .ProseMirror .pullquote::before,
+    .post-text .pullquote::after, .comment-text .pullquote::after, .ProseMirror .pullquote::after {
+        @apply absolute font-serif text-[40px] leading-none opacity-30 select-none;
+        color: var(--quote-color, var(--theme-link));
+    }
+    .post-text .pullquote::before, .comment-text .pullquote::before, .ProseMirror .pullquote::before {
+        content: '“';
+        @apply top-[5px] left-[5px];
+    }
+    .post-text .pullquote::after, .comment-text .pullquote::after, .ProseMirror .pullquote::after {
+        content: '”';
+        @apply bottom-[-20px] right-[5px];
+    }
+
+    /* --- ТАБЛИЦІ --- */
+    .post-text table, .comment-text table, .ProseMirror table {
+        @apply w-full border-collapse border border-rt-table-border my-[8px] table-fixed text-[11px];
+    }
+    .post-text th, .comment-text th, .ProseMirror th,
+    .post-text td, .comment-text td, .ProseMirror td {
+        @apply border border-rt-table-border py-[4px] px-[6px] align-top bg-rt-table-td-bg;
+    }
+    .post-text th, .comment-text th, .ProseMirror th {
+        @apply bg-rt-table-th-bg font-bold text-center text-rt-table-th-text;
+    }
+
+    /* --- СПОЙЛЕРИ-ГАРМОШКИ (Details) --- */
+    .post-details {
+        @apply bg-rt-details-bg border border-rt-details-border p-[6px] my-[6px] text-[11px];
+    }
+    .post-details summary::-webkit-details-marker,
+    .post-details summary::marker {
+        display: none;
+        content: "";
+    }
+    .post-details summary,
+    .post-details .post-details-summary {
+        @apply font-bold text-theme-link cursor-text outline-none flex items-start list-none;
+    }
+    .post-details-toggle {
+        @apply flex-none w-[12px] h-[15px] mr-[4px] cursor-pointer relative select-none;
+    }
+    .post-details-toggle::before {
+        content: '';
+        @apply absolute top-[4px] left-[2px] w-0 h-0 border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-l-[5px] border-l-current transition-transform duration-150;
+    }
+    .post-details[open] .post-details-toggle::before {
+        @apply transform rotate-90;
+    }
+    .post-details-summary-content {
+        @apply flex-1 min-w-0 hover:underline;
+    }
+    .post-details[open] .post-details-summary-content {
+        @apply border-b border-dashed border-rt-details-border pb-[4px] mb-[6px] hover:no-underline;
+    }
+
+    /* --- ІНЛАЙН СПОЙЛЕРИ --- */
+    .spoiler-inline {
+        @apply bg-rt-spoiler-bg text-rt-spoiler-text px-[2px] cursor-pointer select-none transition-none;
+    }
+    .spoiler-inline:hover, .spoiler-inline.revealed {
+        @apply bg-rt-spoiler-hover-bg text-rt-spoiler-hover-text select-text;
+    }
+
+    /* --- БЛОКИ КОДУ --- */
+    .post-text pre, .comment-text pre, .ProseMirror pre {
+        @apply relative bg-rt-code-bg border border-rt-code-border font-mono text-[11px] my-[8px] overflow-x-auto;
+        color: var(--rt-code-text) !important;
+        white-space: pre !important;
+        tab-size: 4 !important;
+        -moz-tab-size: 4 !important;
+    }
+    .post-text pre code, .comment-text pre code, .ProseMirror pre code {
+        @apply block p-[10px];
+        padding-top: 35px !important;
+        font-family: 'Courier New', Courier, monospace !important;
+    }
+    .post-text p code, .comment-text p code, .ProseMirror p code {
+        @apply bg-rt-inline-code-bg border border-rt-inline-code-border px-[3px] py-[1px] font-mono text-[11px] text-rt-inline-code-text;
+        font-family: 'Courier New', Courier, monospace !important;
+    }
+
+    /* --- СТІКЕРИ --- */
+    .micro-sticker {
+        @apply inline-block align-bottom max-h-[16px] max-w-[16px] m-0;
+    }
+    .post-only-stickers p {
+        @apply !leading-none !m-0 !block;
+    }
+    .post-only-stickers .micro-sticker {
+        @apply !max-h-[128px] !max-w-[128px] !h-auto !w-auto object-contain;
+    }
+
+    /* --- АНІМАЦІЯ ДЛЯ ЯКІРНИХ ПОСИЛАНЬ --- */
+    .post-text *:target, .comment-text *:target {
+        animation: target-highlight 2s ease-out forwards;
+        border-radius: 2px;
+    }
+    @keyframes target-highlight {
+        0% {
+            background-color: rgba(69, 104, 142, 0.4);
+            box-shadow: 0 0 0 4px rgba(69, 104, 142, 0.4);
+        }
+        100% {
+            background-color: transparent;
+            box-shadow: 0 0 0 4px transparent;
+        }
+    }
+}
