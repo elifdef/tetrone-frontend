@@ -1,12 +1,12 @@
 import { useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
-import { useDateFormatter } from "../../hooks/useDateFormatter.js";
-import { NotificationContext } from "../../context/NotificationContext.jsx";
-import { usePageTitle } from '../../hooks/usePageTitle.js';
-import { useNotificationConfig } from '../../hooks/useNotificationConfig.js';
-import ReportResultModal from '../modals/ReportResultModal.jsx';
-import { useModal } from "../../context/ModalContext.jsx";
-import { NotificationListItem } from "../notification/NotificationListItem.jsx";
+import { useDateFormatter } from "../hooks/useDateFormatter.js";
+import { NotificationContext } from "../context/NotificationContext.jsx";
+import { usePageTitle } from '../hooks/usePageTitle.js';
+import { useNotificationConfig } from '../hooks/useNotificationConfig.js';
+import ReportResultModal from '../components/modals/ReportResultModal.jsx';
+import { useModal } from "../context/ModalContext.jsx";
+import { NotificationListItem } from "../components/notification/NotificationListItem.jsx";
 
 export default function NotificationsPage() {
     const { t } = useTranslation();

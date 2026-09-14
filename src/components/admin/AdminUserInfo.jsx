@@ -24,8 +24,8 @@ export default function AdminUserInfo() {
     const fetchUserDetails = async () => {
         setIsLoading(true);
         const res = await AdminService.getUser(username);
-        if (res.success) {
-            setUser(res.data);
+        if (res) {
+            setUser(res.user);
         } else {
             notifyError(res.message || t('admin.user_info.error_load'));
         }

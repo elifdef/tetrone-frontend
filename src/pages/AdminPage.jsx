@@ -8,7 +8,7 @@ import Dashboard from '../components/admin/Dashboard';
 import AdminReports from '../components/admin/AdminReports';
 import {PostsManager} from '../components/admin/PostsManager';
 import {UsersManager} from '../components/admin/UsersManager';
-import Tabs from '../components/ui/Tabs'; // <-- Твій компонент табів
+import Tabs from '../components/ui/Tabs';
 import AdminAppeals from '../components/admin/AdminAppeals';
 import AdminTickets from '../components/admin/AdminTickets';
 import DatabaseManager from '../components/admin/DatabaseManager';
@@ -19,8 +19,6 @@ const AdminPage = () =>
     const {t} = useTranslation();
     const {user: currentUser} = useContext(AuthContext);
     const navigate = useNavigate();
-
-    usePageTitle(t('common.admin_panel'));
 
     const isAdmin = currentUser?.role >= userRole.Admin;
     const isCreator = currentUser?.role === userRole.Creator;
@@ -40,12 +38,12 @@ const AdminPage = () =>
     {
         const tabs = [
             {id: 'dashboard', label: t('admin.dashboard.title')},
-            {id: 'reports', label: t('admin.reports.tab')},
-            {id: 'appeals', label: t('admin.appeals.tab')},
-            {id: 'tickets', label: t('admin.support.support_tickets')},
-            {id: 'posts', label: t('common.posts')},
-            {id: 'users', label: t('admin.users_management')},
-            {id: 'staff-logs', label: t('admin.staff_logs')}
+            {id: 'reports', label: t('admin.reports.title')},
+            {id: 'appeals', label: t('admin.appeals.title')},
+            {id: 'tickets', label: t('admin.support.title')},
+            {id: 'posts', label: t('admin.posts.title')},
+            {id: 'users', label: t('admin.users.title')},
+            {id: 'staff-logs', label: t('admin.staff_logs.title')}
         ];
 
         if (isCreator)
@@ -55,6 +53,10 @@ const AdminPage = () =>
 
         return tabs;
     }, [t, isCreator]);
+
+    // ФІКС: Знаходимо назву поточного табу і динамічно встановлюємо Title
+    const currentTabTitle = adminTabs.find(tab => tab.id === activeTab)?.label || t('common.admin_panel');
+    usePageTitle(`${t('common.admin_panel')} - ${currentTabTitle}`);
 
     const handleTabChange = (tabId) =>
     {

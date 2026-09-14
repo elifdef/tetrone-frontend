@@ -63,7 +63,7 @@ export default function AdminReports() {
 
         AdminService.handleReport(reportId, actionType, responseText.trim())
         .onSuccess((res) => {
-            notifySuccess(t('common.success'));
+            notifySuccess(t(`api.success.${res.code}`));
             fetchReports(filters);
         })
         .onError((err) => {
@@ -171,10 +171,10 @@ export default function AdminReports() {
 
     // Опції для CustomSelect
     const statusOptions = [
-        { value: 'all', label: t('admin.stats.total') },
-        { value: 'pending', label: t('admin.stats.pending') },
-        { value: 'resolved', label: t('admin.stats.resolved') },
-        { value: 'rejected', label: t('admin.stats.rejected') }
+        { value: 'all', label: t('admin.common.total') },
+        { value: 'pending', label: t('admin.common.pending') },
+        { value: 'resolved', label: t('admin.common.resolved') },
+        { value: 'rejected', label: t('admin.common.rejected') }
     ];
 
     const dateOptions = [
@@ -209,32 +209,30 @@ export default function AdminReports() {
 
     return (
         <div>
-            {/* Статистика */}
             <div className="flex flex-wrap gap-[10px] mb-[15px]">
                 <div className="flex-1 min-w-[120px] bg-bg-box border border-border p-[10px] text-center">
-                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.total')}</div>
+                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.common.total')}</div>
                     <div className="text-[20px] text-theme-link font-bold">{stats.total}</div>
                 </div>
                 <div className="flex-1 min-w-[120px] bg-bg-box border border-border p-[10px] text-center">
-                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.pending')}</div>
+                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.common.pending')}</div>
                     <div className="text-[20px] text-[#d39e00] font-bold">{stats.pending}</div>
                 </div>
                 <div className="flex-1 min-w-[120px] bg-bg-box border border-border p-[10px] text-center">
-                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.resolved')}</div>
+                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.common.resolved')}</div>
                     <div className="text-[20px] text-theme-success font-bold">{stats.resolved}</div>
                 </div>
                 <div className="flex-1 min-w-[120px] bg-bg-box border border-border p-[10px] text-center">
-                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.rejected')}</div>
+                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.common.rejected')}</div>
                     <div className="text-[20px] text-theme-error font-bold">{stats.rejected}</div>
                 </div>
             </div>
 
-            {/* Фільтри */}
             <div className="flex flex-wrap items-center gap-[10px] mb-[20px] bg-bg-box p-[15px] border border-border">
                 <input
                     type="text"
                     className="flex-1 basis-[200px] border border-input-border bg-input-bg px-[8px] h-[28px] box-border text-[11px] text-text-main focus:outline-none focus:border-border transition-colors shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)]"
-                    placeholder={t('admin.reports.filters.search_placeholder')}
+                    placeholder={t('admin.common.search_placeholder')}
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                 />
@@ -268,7 +266,6 @@ export default function AdminReports() {
                 />
             </div>
 
-            {/* Список */}
             {loading ? (
                 <div className="p-[20px] text-center text-text-muted italic bg-bg-box border border-border">{t('common.loading')}</div>
             ) : reports.length === 0 ? (
@@ -278,7 +275,6 @@ export default function AdminReports() {
                     {reports.map((report) => (
                         <div key={report.id} className="bg-bg-box border border-border p-[10px] flex justify-between text-[11px]">
 
-                            {/* Інфо-блок */}
                             <div className="flex-1 flex flex-col">
                                 <div className="mb-[4px]">
                                     <span className="text-text-muted mr-[5px]">{t('common.date')}:</span>
@@ -322,13 +318,13 @@ export default function AdminReports() {
                                         <div>
                                             <span className="text-text-muted mr-[5px]">{t('common.status')}:</span>
                                             <span className={getStatusBadge(report.status)}>
-                                                {t(`admin.stats.${report.status}`)}
+                                                {t(`admin.common.${report.status}`)}
                                             </span>
                                         </div>
 
                                         {report.admin_response && (
                                             <div>
-                                                <span className="text-text-muted mr-[5px]">{t('admin.common.admin_response')}</span>
+                                                <span className="text-text-muted mr-[5px]">{t('admin.reports.staff_answer')}</span>
                                                 <span className="italic text-text-muted">
                                                     {report.admin_response}
                                                 </span>
@@ -354,7 +350,6 @@ export default function AdminReports() {
                                 )}
                             </div>
 
-                            {/* Блок дій */}
                             <div className="flex flex-col gap-[6px] min-w-[140px] items-stretch ml-[15px]">
                                 {report.status === 'pending' && (
                                     <>

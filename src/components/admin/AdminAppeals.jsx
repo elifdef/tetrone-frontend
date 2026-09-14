@@ -78,7 +78,7 @@ export default function AdminAppeals()
         AdminService.handleAppeal(appealId, actionType, responseText.trim())
         .onSuccess((res) =>
         {
-            notifySuccess(t('common.success'));
+            notifySuccess(t(`api.success.${res.code}`));
             fetchAppeals(filters);
         })
         .onError((err) =>
@@ -127,11 +127,11 @@ export default function AdminAppeals()
         {
             case 'open':
             case 'in_progress':
-                return t('admin.stats.pending');
+                return t('admin.common.pending');
             case 'resolved':
-                return t('admin.stats.approved');
+                return t('admin.common.approved');
             case 'closed':
-                return t('admin.stats.rejected');
+                return t('admin.common.rejected');
             default:
                 return status;
         }
@@ -139,10 +139,10 @@ export default function AdminAppeals()
 
     // Опції для CustomSelect
     const statusOptions = [
-        {value: 'all', label: t('admin.stats.total')},
-        {value: 'pending', label: t('admin.stats.pending')},
-        {value: 'resolved', label: t('admin.stats.approved')},
-        {value: 'closed', label: t('admin.stats.rejected')}
+        {value: 'all', label: t('admin.common.total')},
+        {value: 'pending', label: t('admin.common.pending')},
+        {value: 'resolved', label: t('admin.common.approved')},
+        {value: 'closed', label: t('admin.common.rejected')}
     ];
 
     const dateOptions = [
@@ -157,19 +157,19 @@ export default function AdminAppeals()
         <div>
             <div className="flex flex-wrap gap-[10px] mb-[15px]">
                 <div className="flex-1 min-w-[120px] bg-bg-box border border-border p-[10px] text-center">
-                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.total')}</div>
+                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.common.total')}</div>
                     <div className="text-[20px] text-theme-link font-bold">{stats.total}</div>
                 </div>
                 <div className="flex-1 min-w-[120px] bg-bg-box border border-border p-[10px] text-center">
-                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.pending')}</div>
+                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.common.pending')}</div>
                     <div className="text-[20px] text-[#d39e00] font-bold">{stats.pending}</div>
                 </div>
                 <div className="flex-1 min-w-[120px] bg-bg-box border border-border p-[10px] text-center">
-                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.approved')}</div>
+                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.common.approved')}</div>
                     <div className="text-[20px] text-theme-success font-bold">{stats.resolved}</div>
                 </div>
                 <div className="flex-1 min-w-[120px] bg-bg-box border border-border p-[10px] text-center">
-                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.rejected')}</div>
+                    <div className="text-[11px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.common.rejected')}</div>
                     <div className="text-[20px] text-theme-error font-bold">{stats.rejected}</div>
                 </div>
             </div>
@@ -178,7 +178,7 @@ export default function AdminAppeals()
                 <input
                     type="text"
                     className="flex-1 basis-[200px] border border-input-border bg-input-bg px-[8px] h-[28px] box-border text-[11px] text-text-main focus:outline-none focus:border-border transition-colors shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)]"
-                    placeholder={t('admin.appeals.filters.search_placeholder')}
+                    placeholder={t('admin.common.search_placeholder')}
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                 />

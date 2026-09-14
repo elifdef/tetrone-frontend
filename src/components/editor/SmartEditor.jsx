@@ -7,7 +7,7 @@ import useOnClickOutside from './hooks/useOnClickOutside';
 import { decodeTipTapContent } from '../common/RichText';
 
 import StyleMenu from './menus/StyleMenu';
-import AttachmentMenu from './menus/AttachmentMenu'; // ПОВЕРНУЛИ СКРІПКУ!
+import AttachmentMenu from './menus/AttachmentMenu';
 import StickerPicker from './StickerPicker';
 import { EmojiIcon } from '../ui/Icons';
 
@@ -39,34 +39,35 @@ export default function SmartEditor({
     useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
     const extensions = useEditorExtensions({ preset, placeholder, onEnterRef });
-    const decodedValue = useMemo(() => decodeTipTapContent(value), [value]);
+
+    // Декодуємо лише один раз при ініціалізації
+    const initialContent = useMemo(() => decodeTipTapContent(value), []);
 
     const editor = useEditor({
         extensions,
-        content: decodedValue,
-        onUpdate: ({ editor }) => { onChangeRef.current(editor.getJSON()); },
-    }, [preset]);
+        content: initialContent, // Передаємо початковий контент сюди!
+        onUpdate: ({ editor }) => {
+            onChangeRef.current(editor.getJSON());
+        },
+    }, [preset]); // Залежність тільки від preset
 
+    // Синхронізація ззовні: якщо value приходить порожнім (після відправки)
     useEffect(() => {
-        if (editor && (!decodedValue || Object.keys(decodedValue).length === 0) && !editor.isDestroyed) {
+        if (editor && (!value || Object.keys(value).length === 0) && !editor.isDestroyed) {
             editor.commands.clearContent();
         }
-    }, [decodedValue, editor]);
+    }, [value, editor]);
 
     if (!editor) return null;
 
     return (
         <div className="relative flex flex-col w-full box-border">
-            {/* Спливаюче меню при виділенні тексту (з кольорами і шрифтами) */}
             <StyleMenu editor={editor} />
 
-            {/* ОСНОВНИЙ КОНТЕЙНЕР РЕДАКТОРА (Виглядає як на скріншоті) */}
             <div
-                className={`relative flex flex-col bg-input-bg border border-input-border min-h-[120px] w-full box-border rounded-[4px] transition-colors focus-within:border-theme-link ${className}`}
-                onClick={() => editor.chain().focus().run()} // Фокус при кліку будь-де
+                className={`relative flex flex-col bg-input-bg border border-input-border min-h-[120px] w-full box-border rounded-[2px] transition-colors focus-within:border-theme-link ${className}`}
+                onClick={() => editor.chain().focus().run()}
             >
-
-                {/* 1. Поле для тексту */}
                 <div className="flex-1 px-[15px] pt-[15px] pb-[40px] cursor-text overflow-y-auto">
                     <EditorContent
                         editor={editor}
@@ -74,15 +75,11 @@ export default function SmartEditor({
                     />
                 </div>
 
-                {/* 2. Нижня панель всередині рамки (Скріпка та Емодзі) */}
                 <div className="absolute bottom-0 left-0 right-0 flex justify-between items-end p-[5px] pointer-events-none">
-
-                    {/* Скріпка (зліва) */}
                     <div className="pointer-events-auto">
                         <AttachmentMenu editor={editor} onAddPoll={onAddPoll} />
                     </div>
 
-                    {/* Стікери (справа) */}
                     <div className="pointer-events-auto">
                         <button
                             type="button"
@@ -99,9 +96,8 @@ export default function SmartEditor({
                 </div>
             </div>
 
-            {/* Пікер стікерів */}
             {showPicker && (
-                <div className="absolute bottom-[calc(100%+5px)] right-0 z-[100] border border-border rounded-[4px] shadow-[0_4px_20px_rgba(0,0,0,0.4)]" ref={pickerRef}>
+                <div className="absolute bottom-[calc(100%+5px)] right-0 z-[100] border border-border rounded-[2px] shadow-[0_4px_20px_rgba(0,0,0,0.4)]" ref={pickerRef}>
                     <StickerPicker
                         packs={stickerPacks}
                         favorites={favoriteStickers}

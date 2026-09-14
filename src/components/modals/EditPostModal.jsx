@@ -12,6 +12,7 @@ import StickerService from '../../services/sticker.service';
 import {notifySuccess, notifyError} from '../common/Notify';
 import Modal from '../modals/Modal';
 import Tabs from '../ui/Tabs';
+import {useModal} from "../../context/ModalContext.jsx";
 
 export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
 {
@@ -27,6 +28,8 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
     const [searchQuery, setSearchQuery] = useState('');
     const [globalPacks, setGlobalPacks] = useState([]);
     const [isLoadingPacks, setIsLoadingPacks] = useState(false);
+
+    const { openConfirm } = useModal();
 
     const {
         editContent, setEditContent,
@@ -71,7 +74,7 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         {
             setIsLoadingPacks(true);
             StickerService.searchGlobalPacks(searchQuery)
-            .onSuccess(res => setGlobalPacks(res.data || []))
+            .onSuccess(res => setGlobalPacks(res.packs || []))
             .onError(err => console.error(err))
             .onFinally(() => setIsLoadingPacks(false));
         }, 500);
@@ -109,7 +112,7 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         })
         .onSuccess((res) =>
         {
-            notifySuccess(t('post.settings_saved'));
+            notifySuccess(t(`api.success.${res.code}`));
             if (onSaveSuccess) onSaveSuccess();
             onClose();
         })
@@ -138,7 +141,6 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         </div>
     );
 
-    // Опції для табів
     const editTabs = [
         {
             id:    'content',
@@ -150,14 +152,30 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         }
     ];
 
+    const handleAttemptClose = async () => {
+        const hasChanges = true; // твоя логіка перевірки
+
+        if (hasChanges) {
+            const confirm = await openConfirm(
+                t('common.unsaved_changes_desc'),
+                t('common.unsaved_changes_title'),
+                t('action.discard')
+            );
+            if (!confirm) return; // Юзер передумав
+        }
+        onClose(); // Закриваємо модалку
+    };
+
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
             title={t('action.edit_post')}
-            dialogClassName={isDragging ? 'bg-input-bg' : ''}
+            dialogClassName={isDragging ? 'border border-theme-link border-dashed' : ''}
             footer={footerButtons}
             sizeClass="modal-lg"
+            onCloseRequest={handleAttemptClose}
+            preventOutsideClose={true}
         >
             <Tabs
                 tabs={editTabs}
@@ -166,9 +184,21 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
                 className="mb-[15px]"
             />
 
-            <div>
+            <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onPaste={handlePaste}
+                className="relative"
+            >
                 {activeTab === 'content' && (
                     <>
+                        {isDragging && (
+                            <div className="absolute inset-0 z-50 bg-[rgba(91,155,213,0.1)] flex items-center justify-center border-2 border-dashed border-theme-link pointer-events-none">
+                                <span className="text-theme-link font-bold text-[14px] bg-bg-page px-[15px] py-[5px] rounded-[2px]">{t('post.drop_files')}</span>
+                            </div>
+                        )}
+
                         <div className="border border-input-border bg-input-bg rounded-[2px]">
                             <SmartEditor
                                 preset="post"

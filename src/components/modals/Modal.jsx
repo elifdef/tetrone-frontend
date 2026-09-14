@@ -1,10 +1,12 @@
-import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { CloseIcon } from "../ui/Icons.jsx";
+import {useEffect} from "react";
+import {useTranslation} from "react-i18next";
+import {CloseIcon} from "../ui/Icons.jsx";
 
 export default function Modal({
                                   isOpen,
                                   onClose,
+                                  onCloseRequest, // НОВИЙ ПРОП: функція, що викликається замість жорсткого onClose
+                                  preventOutsideClose = false, // НОВИЙ ПРОП: забороняє швидке закриття
                                   title,
                                   children,
                                   footer,
@@ -12,28 +14,46 @@ export default function Modal({
                                   dialogClassName = "",
                                   bodyClassName = "",
                                   hideHeader = false
-                              }) {
-    const { t } = useTranslation();
+                              })
+{
+    const {t} = useTranslation();
 
-    useEffect(() => {
-        if (isOpen) {
+    useEffect(() =>
+    {
+        if (isOpen)
+        {
             document.body.classList.add('overflow-hidden');
-        } else {
+        } else
+        {
             document.body.classList.remove('overflow-hidden');
         }
         return () => document.body.classList.remove('overflow-hidden');
     }, [isOpen]);
 
-    useEffect(() => {
+    // Обробник спроби закрити (Escape або клік по фону)
+    const handleAttemptClose = () =>
+    {
+        if (preventOutsideClose)
+        {
+            if (onCloseRequest) onCloseRequest();
+            return;
+        }
+        if (onClose) onClose();
+    };
+
+    useEffect(() =>
+    {
         if (!isOpen) return;
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && onClose) {
-                onClose();
+        const handleKeyDown = (e) =>
+        {
+            if (e.key === 'Escape')
+            {
+                handleAttemptClose();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, onClose]);
+    }, [isOpen, preventOutsideClose, onCloseRequest, onClose]);
 
     if (!isOpen) return null;
 
@@ -44,7 +64,7 @@ export default function Modal({
     return (
         <div
             className="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] p-[20px] max-md:p-[10px] overflow-y-auto"
-            onMouseDown={onClose}
+            onMouseDown={handleAttemptClose} // Використовуємо наш новий метод
         >
             <div
                 className={`bg-bg-box shadow-[0_2px_10px_rgba(0,0,0,0.3)] ${widthClass} max-w-full flex flex-col text-text-main m-auto font-tahoma text-[11px] max-md:w-full ${dialogClassName}`}
@@ -55,10 +75,14 @@ export default function Modal({
                         {title ? <h3 className="m-0 text-[12px] font-bold text-modal-header-text">{title}</h3> : <div></div>}
                         <button
                             className="bg-transparent border-none text-modal-header-text text-[14px] leading-none cursor-pointer p-0 opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center outline-none"
-                            onClick={onClose}
+                            onClick={() =>
+                            {
+                                if (onCloseRequest && preventOutsideClose) onCloseRequest();
+                                else if (onClose) onClose();
+                            }}
                             title={t('action.close')}
                         >
-                            <CloseIcon width={14} height={14} />
+                            <CloseIcon width={14} height={14}/>
                         </button>
                     </div>
                 )}

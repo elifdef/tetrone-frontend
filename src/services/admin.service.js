@@ -4,7 +4,7 @@ const AdminService = {
     getUsers: (search = '', page = 1) => fetchClient(`/admin/users?search=${search}&page=${page}`),
 
     getUser: (username) => fetchClient(`/admin/users/${username}`),
-
+    getUserStats: (search = '') => fetchClient('/admin/users/stats' + (search ? `search=${search}` : '')),
     toggleMute: (username, reason) => fetchClient(`/admin/users/${username}/mute`, {
         method: 'POST',
         body: { reason }

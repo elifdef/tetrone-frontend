@@ -6,7 +6,7 @@ import { notifySuccess, notifyError } from '../common/Notify';
 import Button from '../ui/Button';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { useModal } from '../../context/ModalContext';
-import CustomSelect from '../ui/CustomSelect'; // Підключаємо твій селект
+import CustomSelect from '../ui/CustomSelect';
 
 const StatusBadge = ({ status, t }) => {
     let colors = "";
@@ -47,10 +47,10 @@ const AdminTicketDetail = ({ ticket, onBack, onTicketUpdated }) => {
 
         setReplying(true);
         AdminService.replyToTicket(ticket.id, replyText, isInternal)
-        .onSuccess(() => {
+        .onSuccess((res) => {
             setReplyText('');
             setIsInternal(false);
-            notifySuccess(t('admin.support.reply_sent'));
+            notifySuccess(t(`api.success.${res.code}`));
             onTicketUpdated(ticket.id);
         })
         .onError((err) => {
@@ -280,7 +280,7 @@ export default function AdminTickets() {
     };
 
     const statusOptions = [
-        { value: '', label: t('admin.support.filter_all') },
+        { value: '', label: t('admin.common.all') },
         { value: 'open', label: t('support.status_open') },
         { value: 'in_progress', label: t('support.status_in_progress') },
         { value: 'waiting_for_user', label: t('support.status_waiting_for_user') },
@@ -330,7 +330,7 @@ export default function AdminTickets() {
                                 <td className="p-[10px] border-b border-bg-page text-text-main align-top">
                                     <strong className="text-theme-link hover:underline bg-transparent no-underline">{ticket.subject}</strong>
                                     <div className="text-[10px] text-text-muted mt-[3px]">
-                                        {t('common.from')}: {ticket.user?.username || 'Unknown'}
+                                        {t('admin.common.from')}: @{ticket.user?.username}
                                     </div>
                                 </td>
                                 <td className="p-[10px] border-b border-bg-page text-text-main align-top">{t(`support.cat_${ticket.category}`)}</td>

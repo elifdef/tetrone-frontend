@@ -136,15 +136,15 @@ export const PostsManager = ({ currentUser }) => {
             {stats && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px] mb-[15px]">
                     <div className="bg-bg-box border border-border p-[10px] text-center">
-                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.total_posts')}</div>
+                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.posts.total_posts')}</div>
                         <div className="text-[18px] text-theme-link font-bold">{stats.total}</div>
                     </div>
                     <div className="bg-bg-box border border-border p-[10px] text-center">
-                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.today')}</div>
+                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.posts.today_posts')}</div>
                         <div className="text-[18px] text-theme-success font-bold">{stats.today}</div>
                     </div>
                     <div className="bg-bg-box border border-border p-[10px] text-center">
-                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.stats.unchecked')}</div>
+                        <div className="text-[10px] text-text-muted font-bold uppercase mb-[5px]">{t('admin.posts.unchecked')}</div>
                         <div className="text-[18px] text-theme-error font-bold">{stats.unchecked}</div>
                     </div>
                     <div className="bg-bg-box border border-border p-[10px] text-center">
