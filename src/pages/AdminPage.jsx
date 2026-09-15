@@ -21,7 +21,7 @@ const AdminPage = () =>
     const navigate = useNavigate();
 
     const isAdmin = currentUser?.role >= userRole.Admin;
-    const isCreator = currentUser?.role === userRole.Creator;
+    const isCreator = currentUser?.role === userRole.Owner;
 
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'dashboard';

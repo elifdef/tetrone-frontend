@@ -4,8 +4,7 @@ const AdminService = {
     getUsers: (search = '', page = 1) => fetchClient(`/admin/users?search=${search}&page=${page}`),
 
     getUser: (username) => fetchClient(`/admin/users/${username}`),
-    getUserStats: (search = '') => fetchClient('/admin/users/stats' + (search ? `search=${search}` : '')),
-    toggleMute: (username, reason) => fetchClient(`/admin/users/${username}/mute`, {
+    getUserStats: (search = '') => fetchClient('/admin/users/stats' + (search ? `?search=${search}` : '')),    toggleMute: (username, reason) => fetchClient(`/admin/users/${username}/mute`, {
         method: 'POST',
         body: { reason }
     }),
@@ -59,8 +58,6 @@ const AdminService = {
 
     getUserSessions: (username) => fetchClient(`/admin/users/${username}/sessions`),
 
-    getTickets: (status = '') => fetchClient(`/admin/tickets${status ? `?status=${status}` : ''}`),
-
     getTicket: (id) => fetchClient(`/admin/tickets/${id}`),
 
     replyToTicket: (id, message, isInternal) => fetchClient(`/admin/tickets/${id}/reply`, {
@@ -109,6 +106,19 @@ const AdminService = {
 
         return fetchClient(`/admin/posts/stats?${params.toString()}`);
     },
+
+    getTickets: (filters = {}) => {
+        const queryParams = new URLSearchParams();
+        if (filters.status && filters.status !== 'all') queryParams.append('status', filters.status);
+        if (filters.search && filters.search.trim() !== '') queryParams.append('search', filters.search.trim());
+        const queryString = queryParams.toString();
+        return fetchClient(queryString ? `/admin/tickets?${queryString}` : '/admin/tickets');
+    },
+
+    changeRole: (identifier, role, reason) => fetchClient(`/admin/users/${identifier}/change-role`, {
+        method: 'POST',
+        body: { role, reason }
+    }),
 };
 
 export default AdminService;

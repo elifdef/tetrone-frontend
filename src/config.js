@@ -9,7 +9,7 @@ export const userRole = {
     Support:   1,
     Moderator: 2,
     Admin:     3,
-    Creator:   4
+    Owner:     4
 };
 
 // Теми

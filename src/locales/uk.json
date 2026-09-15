@@ -157,6 +157,10 @@
     }
   },
   "admin": {
+    "actions": {
+      "change_role": "Змінити посаду",
+      "reason_prompt": "Причина:"
+    },
     "common": {
       "approved": "Схвалено",
       "pending": "Очікують",
@@ -167,7 +171,13 @@
       "all": "Всі",
       "from": "Від кого",
       "prompt_placeholder": "Поясніть ваше рішення",
-      "search_placeholder": "Пошук за юзернеймом"
+      "search_placeholder": "Пошук за юзернеймом",
+      "issue_warning": "Дати попередження",
+      "unmute": "Зняти мут",
+      "mute": "Режим читання",
+      "unban": "Розблокувати",
+      "ban": "Заблоковані",
+      "read_only": "\"Режим читання\""
     },
     "dashboard": {
       "title": "Дашбоард",
@@ -243,9 +253,14 @@
     },
     "appeals": {
       "title": "Апеляції",
-      "empty": "Апеляцій поки немає."
+      "empty": "Апеляцій поки немає.",
+      "btn_approve": "Розблокувати",
+      "btn_reject": "Відмовити",
+      "message": "Текст апеляції",
+      "from": "Від кого",
+      "no_message": "Немає повідомлення"
     },
-    "support":{
+    "support": {
       "title": "Підтримка",
       "internal_note": "Нотатка",
       "internal_note_desc": "Внутрішня нотатка (користувач не побачить)",
@@ -269,6 +284,16 @@
       "total_posts": "За весь час",
       "today_posts": "Опубліковані сьогодні",
       "not_found_desc": "Можливо ви перевірили всі публікації"
+    },
+    "users": {
+      "title": "Користувачі",
+      "registered": "Зареєстровано",
+      "stats_posts": "Публікації",
+      "stats_comments": "Коментарі",
+      "stats_likes": "Лайки",
+      "stats_tickets": "Тікети",
+      "stats_warnings": "Попередження",
+      "status_banned_full": "ЗАБЛОКОВАНО"
     }
   },
   "api": {
@@ -716,6 +741,84 @@
     "vote_few": "{{count}} голоси",
     "vote_many": "{{count}} голосів",
     "vote_one": "{{count}} голос"
+  },
+
+  "verbs": {
+    "wrote_male": "Написав",
+    "wrote_female": "Написала",
+    "did_male": "Зробив",
+    "did_female": "Зробила",
+    "left_male": "Залишив",
+    "left_female": "Залишила",
+    "put_male": "Поставив",
+    "put_female": "Поставила",
+    "own_male": "Володіє",
+    "own_female": "Володіє",
+    "create_male": "Створив",
+    "create_female": "Створила",
+    "submit_male": "Подав",
+    "submit_female": "Подала",
+    "receive_male": "Отримав",
+    "receive_female": "Отримала"
+  },
+  "nouns": {
+    "posts_one": "{{count}} публікацію",
+    "posts_few": "{{count}} публікації",
+    "posts_many": "{{count}} публікацій",
+    "reposts_one": "{{count}} репост",
+    "reposts_few": "{{count}} репости",
+    "reposts_many": "{{count}} репостів",
+    "comments_one": "{{count}} коментар",
+    "comments_few": "{{count}} коментарі",
+    "comments_many": "{{count}} коментарів",
+    "likes_one": "{{count}} лайк",
+    "likes_few": "{{count}} лайки",
+    "likes_many": "{{count}} лайків",
+    "spaces_one": "{{count}} простором",
+    "spaces_few": "{{count}} просторами",
+    "spaces_many": "{{count}} просторами",
+    "packs_one": "{{count}} стікерпак",
+    "packs_few": "{{count}} стікерпаки",
+    "packs_many": "{{count}} стікерпаків",
+    "reports_one": "{{count}} скаргу",
+    "reports_few": "{{count}} скарги",
+    "reports_many": "{{count}} скарг",
+    "tickets_one": "{{count}} звернення",
+    "tickets_few": "{{count}} звернення",
+    "tickets_many": "{{count}} звернень",
+    "appeals_one": "{{count}} апеляцію",
+    "appeals_few": "{{count}} апеляції",
+    "appeals_many": "{{count}} апеляцій",
+    "warnings_one": "{{count}} попередження",
+    "warnings_few": "{{count}} попередження",
+    "warnings_many": "{{count}} попереджень",
+    "mutes_one": "{{count}} мут",
+    "mutes_few": "{{count}} мути",
+    "mutes_many": "{{count}} мутів",
+    "bans_one": "{{count}} бан",
+    "bans_few": "{{count}} бани",
+    "bans_many": "{{count}} банів",
+
+    "stat_resolved": "{{count}} підтв.",
+    "stat_rejected": "{{count}} відхил.",
+    "stat_pending": "{{count}} очікує",
+    "stat_open": "{{count}} відкр.",
+    "stat_closed": "{{count}} закр."
+  },
+  "stats": {
+    "posts": "$t(verbs.wrote) $t(nouns.posts)",
+    "reposts": "$t(verbs.did) $t(nouns.reposts)",
+    "comments": "$t(verbs.left) $t(nouns.comments)",
+    "likes": "$t(verbs.put) $t(nouns.likes)",
+    "spaces": "$t(verbs.own) $t(nouns.spaces)",
+    "packs": "$t(verbs.create) $t(nouns.packs)",
+    "reports_from": "$t(verbs.submit) $t(nouns.reports)",
+    "reports_against": "$t(verbs.receive) $t(nouns.reports)",
+    "tickets": "$t(verbs.create) $t(nouns.tickets)",
+    "appeals": "$t(verbs.submit) $t(nouns.appeals)",
+    "warnings": "$t(verbs.receive) $t(nouns.warnings)",
+    "mutes": "$t(verbs.receive) $t(nouns.mutes)",
+    "bans": "$t(verbs.receive) $t(nouns.bans)"
   },
   "error": {
     "action_failed": "Дія не виконана. Спробуйте пізніше.",

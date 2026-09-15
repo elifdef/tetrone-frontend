@@ -25,7 +25,7 @@ const SupportPanelPage = () => {
 
     const tabs = useMemo(() => [
         { id: 'tickets', label: t('admin.support.support_tickets') },
-        { id: 'users', label: t('admin.users_management') }
+        { id: 'users', label: t('admin.users.title') }
     ], [t]);
 
     const handleTabChange = (tabId) => { 

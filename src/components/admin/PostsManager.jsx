@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useState, useEffect, useCallback} from 'react';
+import {useTranslation} from 'react-i18next';
+import {useSearchParams} from 'react-router';
 import AdminService from '../../services/admin.service';
 import PostService from '../../services/post.service';
-import { notifySuccess, notifyError } from "../common/Notify";
-import { useModal } from '../../context/ModalContext';
+import {notifySuccess, notifyError} from "../common/Notify";
+import {useModal} from '../../context/ModalContext';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import CustomSelect from '../ui/CustomSelect';
@@ -11,23 +12,23 @@ import DateInput from '../ui/DateInput';
 import InfiniteScrollList from '../common/InfiniteScrollList';
 import PostItem from '../post/PostItem';
 import EditPostModal from '../modals/EditPostModal';
-import { VerifiedIcon, CloseIcon, EditIcon, DeleteIcon } from '../ui/Icons';
-import { userRole } from '../../config';
+import {VerifiedIcon, CloseIcon, EditIcon, DeleteIcon} from '../ui/Icons';
+import {userRole} from '../../config';
 
-export const PostsManager = ({ currentUser }) => {
-    const { t } = useTranslation();
-    const { openPrompt } = useModal();
+export const PostsManager = ({currentUser}) =>
+{
+    const {t} = useTranslation();
+    const {openPrompt} = useModal();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const initialSearch = searchParams.get('search') || '';
 
     const [posts, setPosts] = useState([]);
     const [stats, setStats] = useState(null);
-
-    const [targetUser, setTargetUser] = useState('');
-    const [isCheckedFilter, setIsCheckedFilter] = useState('false');
-    const [dateFrom, setDateFrom] = useState('');
+    const [targetUser, setTargetUser] = useState(initialSearch);
+    const [isCheckedFilter, setIsCheckedFilter] = useState(initialSearch ? 'all' : 'false');    const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
-
     const [editingPostId, setEditingPostId] = useState(null);
-
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [page, setPage] = useState(1);
@@ -35,62 +36,87 @@ export const PostsManager = ({ currentUser }) => {
 
     const isAdmin = currentUser?.role >= userRole.Admin;
 
-    const fetchPostsAndStats = useCallback((username = '', pageNum = 1, append = false, isChecked = 'all', dFrom = '', dTo = '') => {
+    useEffect(() =>
+    {
+        const params = new URLSearchParams(searchParams);
+        if (targetUser) params.set('search', targetUser);
+        else params.delete('search');
+
+        if (params.toString() !== searchParams.toString())
+        {
+            setSearchParams(params, {replace: true});
+        }
+    }, [targetUser, searchParams, setSearchParams]);
+
+    const fetchPostsAndStats = useCallback((username = '', pageNum = 1, append = false, isChecked = 'all', dFrom = '', dTo = '') =>
+    {
         if (append) setIsLoadingMore(true);
         else setIsLoading(true);
 
-        if (!append) {
+        if (!append)
+        {
             AdminService.getPostStats(username, dFrom, dTo)
             .onSuccess(res => setStats(res.stats))
             .onError(() => setStats(null));
         }
 
         AdminService.getUserPosts(username, pageNum, isChecked, dFrom, dTo)
-        .onSuccess((res) => {
+        .onSuccess((res) =>
+        {
             const items = res.posts || [];
             const meta = res.meta;
 
-            if (append) {
-                setPosts(prev => {
+            if (append)
+            {
+                setPosts(prev =>
+                {
                     const existingIds = new Set(prev.map(p => p.id));
                     return [...prev, ...items.filter(p => !existingIds.has(p.id))];
                 });
-            } else {
+            } else
+            {
                 setPosts(items);
             }
             setHasMore(meta ? meta.current_page < meta.last_page : false);
         })
         .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)))
-        .onFinally(() => {
+        .onFinally(() =>
+        {
             if (append) setIsLoadingMore(false);
             else setIsLoading(false);
         });
     }, [t]);
 
-    useEffect(() => {
-        fetchPostsAndStats('', 1, false, isCheckedFilter, dateFrom, dateTo);
+    useEffect(() =>
+    {
+        fetchPostsAndStats(targetUser, 1, false, isCheckedFilter, dateFrom, dateTo);
     }, [fetchPostsAndStats, isCheckedFilter, dateFrom, dateTo]);
 
-    const handleSearch = (e) => {
+    const handleSearch = (e) =>
+    {
         e.preventDefault();
         setPage(1);
         fetchPostsAndStats(targetUser, 1, false, isCheckedFilter, dateFrom, dateTo);
     };
 
-    const loadMore = () => {
-        if (!isLoadingMore && hasMore) {
+    const loadMore = () =>
+    {
+        if (!isLoadingMore && hasMore)
+        {
             const nextPage = page + 1;
             setPage(nextPage);
             fetchPostsAndStats(targetUser, nextPage, true, isCheckedFilter, dateFrom, dateTo);
         }
     };
 
-    const handleDelete = async (postId) => {
+    const handleDelete = async (postId) =>
+    {
         const reason = await openPrompt(t('admin.posts.delete_reason'), "", t('action.delete'), t('action.cancel'));
         if (reason === null) return;
 
-        PostService.delete(postId, { reason })
-        .onSuccess((res) => {
+        PostService.delete(postId, {reason})
+        .onSuccess((res) =>
+        {
             setPosts(prev => prev.filter(post => post.id !== postId));
             notifySuccess(t(`api.success.${res.code || 'POST_DELETED'}`));
             AdminService.getPostStats(targetUser, dateFrom, dateTo).onSuccess(statRes => setStats(statRes.stats));
@@ -98,15 +124,19 @@ export const PostsManager = ({ currentUser }) => {
         .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
     };
 
-    const handleToggleCheck = (postId) => {
+    const handleToggleCheck = (postId) =>
+    {
         AdminService.togglePostCheck(postId)
-        .onSuccess((res) => {
+        .onSuccess((res) =>
+        {
             const newStatus = res.is_checked;
 
-            if ((isCheckedFilter === 'true' && !newStatus) || (isCheckedFilter === 'false' && newStatus)) {
+            if ((isCheckedFilter === 'true' && !newStatus) || (isCheckedFilter === 'false' && newStatus))
+            {
                 setPosts(prev => prev.filter(post => post.id !== postId));
-            } else {
-                setPosts(prev => prev.map(post => post.id === postId ? { ...post, is_checked: newStatus } : post));
+            } else
+            {
+                setPosts(prev => prev.map(post => post.id === postId ? {...post, is_checked: newStatus} : post));
             }
 
             notifySuccess(t('common.success'));
@@ -117,22 +147,22 @@ export const PostsManager = ({ currentUser }) => {
 
     const startEditing = (post) => setEditingPostId(post.id);
     const cancelEditing = () => setEditingPostId(null);
-    const saveEdit = () => {
+    const saveEdit = () =>
+    {
         setEditingPostId(null);
         fetchPostsAndStats(targetUser, page, false, isCheckedFilter, dateFrom, dateTo);
     };
 
     const checkOptions = [
-        { value: 'false', label: t('admin.posts.filter_unchecked') },
-        { value: 'all', label: t('admin.posts.filter_all') },
-        { value: 'true', label: t('admin.posts.filter_checked') },
+        {value: 'false', label: t('admin.posts.filter_unchecked')},
+        {value: 'all', label: t('admin.posts.filter_all')},
+        {value: 'true', label: t('admin.posts.filter_checked')},
     ];
 
     const editingPost = posts.find(p => p.id === editingPostId);
 
     return (
         <div className="flex flex-col font-tahoma text-[11px] text-text-main">
-
             {stats && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-[10px] mb-[15px]">
                     <div className="bg-bg-box border border-border p-[10px] text-center">
@@ -164,41 +194,28 @@ export const PostsManager = ({ currentUser }) => {
                         onChange={(e) => setTargetUser(e.target.value)}
                     />
                 </div>
-
                 <div className="w-[120px]">
-                    <DateInput
-                        label={t('common.date_from')}
-                        value={dateFrom}
-                        onChange={(e) => {
-                            setDateFrom(e.target.value);
-                            setPage(1);
-                        }}
-                    />
+                    <DateInput label={t('common.date_from')} value={dateFrom} onChange={(e) =>
+                    {
+                        setDateFrom(e.target.value);
+                        setPage(1);
+                    }}/>
                 </div>
-
                 <div className="w-[120px]">
-                    <DateInput
-                        label={t('common.date_to')}
-                        value={dateTo}
-                        onChange={(e) => {
-                            setDateTo(e.target.value);
-                            setPage(1);
-                        }}
-                    />
+                    <DateInput label={t('common.date_to')} value={dateTo} onChange={(e) =>
+                    {
+                        setDateTo(e.target.value);
+                        setPage(1);
+                    }}/>
                 </div>
-
                 <div className="w-[140px]">
                     <label className="block text-text-muted text-[10px] uppercase font-bold mb-[2px]">{t('admin.posts.checked_status')}</label>
-                    <CustomSelect
-                        options={checkOptions}
-                        value={isCheckedFilter}
-                        onChange={(v) => {
-                            setIsCheckedFilter(v);
-                            setPage(1);
-                        }}
-                    />
+                    <CustomSelect options={checkOptions} value={isCheckedFilter} onChange={(v) =>
+                    {
+                        setIsCheckedFilter(v);
+                        setPage(1);
+                    }}/>
                 </div>
-
                 <Button type="submit" className="h-[28px] px-[15px] mb-[1px]">{t('action.find')}</Button>
             </form>
 
@@ -220,21 +237,15 @@ export const PostsManager = ({ currentUser }) => {
             >
                 {posts.map(post => (
                     <div key={post.id} className="bg-bg-box border border-border p-[12px] flex flex-col">
-
                         <div className="flex justify-between items-center bg-bg-page border border-border p-[6px_10px] mb-[10px]">
                             <div className="flex items-center gap-[10px]">
                                 <span className="font-bold text-text-muted">ID: {post.id}</span>
                                 {post.is_checked ? (
-                                    <span className="text-theme-success font-bold flex items-center gap-[4px]">
-                                        <VerifiedIcon width={12} height={12} className="fill-current" /> {t('admin.posts.checked')}
-                                    </span>
+                                    <span className="text-theme-success font-bold flex items-center gap-[4px]"><VerifiedIcon width={12} height={12} className="fill-current"/> {t('admin.posts.checked')}</span>
                                 ) : (
-                                    <span className="text-[#d39e00] font-bold">
-                                        {t('admin.posts.unchecked')}
-                                    </span>
+                                    <span className="text-[#d39e00] font-bold">{t('admin.posts.unchecked')}</span>
                                 )}
                             </div>
-
                             <div className="flex gap-[6px]">
                                 {isAdmin && (
                                     <button
@@ -242,51 +253,30 @@ export const PostsManager = ({ currentUser }) => {
                                         onClick={() => handleToggleCheck(post.id)}
                                         title={post.is_checked ? t('admin.posts.mark_unchecked') : t('admin.posts.mark_checked')}
                                     >
-                                        {post.is_checked ? <CloseIcon width={14} height={14} /> : <VerifiedIcon width={14} height={14} className="fill-current" />}
+                                        {post.is_checked ? <CloseIcon width={14} height={14}/> : <VerifiedIcon width={14} height={14} className="fill-current"/>}
                                     </button>
                                 )}
                                 {isAdmin && (
-                                    <button
-                                        className="cursor-pointer p-[6px] rounded-[2px] transition-colors flex items-center justify-center border border-border text-text-muted hover:border-theme-link hover:text-theme-link bg-transparent outline-none"
-                                        onClick={() => startEditing(post)}
-                                        title={t('action.edit')}
-                                    >
-                                        <EditIcon width={14} height={14} />
+                                    <button className="cursor-pointer p-[6px] rounded-[2px] transition-colors flex items-center justify-center border border-border text-text-muted hover:border-theme-link hover:text-theme-link bg-transparent outline-none"
+                                            onClick={() => startEditing(post)} title={t('action.edit')}>
+                                        <EditIcon width={14} height={14}/>
                                     </button>
                                 )}
-                                <button
-                                    className="cursor-pointer p-[6px] rounded-[2px] transition-colors flex items-center justify-center border border-border text-text-muted hover:border-theme-error hover:text-theme-error bg-transparent outline-none"
-                                    onClick={() => handleDelete(post.id)}
-                                    title={t('action.delete')}
-                                >
-                                    <DeleteIcon width={14} height={14} />
+                                <button className="cursor-pointer p-[6px] rounded-[2px] transition-colors flex items-center justify-center border border-border text-text-muted hover:border-theme-error hover:text-theme-error bg-transparent outline-none"
+                                        onClick={() => handleDelete(post.id)} title={t('action.delete')}>
+                                    <DeleteIcon width={14} height={14}/>
                                 </button>
                             </div>
                         </div>
 
                         <div className="opacity-95 admin-readonly-post">
-                            <PostItem
-                                post={post}
-                                readonly={true}
-                                currentUsername={currentUser?.username}
-                                isAdmin={isAdmin}
-                                onEdit={() => startEditing(post)}
-                                onDelete={handleDelete}
-                            />
+                            <PostItem post={post} readonly={true} currentUsername={currentUser?.username} isAdmin={isAdmin} onEdit={() => startEditing(post)} onDelete={handleDelete}/>
                         </div>
-
                     </div>
                 ))}
             </InfiniteScrollList>
 
-            {editingPost && (
-                <EditPostModal
-                    isOpen={!!editingPostId}
-                    post={editingPost}
-                    onClose={cancelEditing}
-                    onSaveSuccess={saveEdit}
-                />
-            )}
+            {editingPost && <EditPostModal isOpen={!!editingPostId} post={editingPost} onClose={cancelEditing} onSaveSuccess={saveEdit}/>}
         </div>
     );
 };

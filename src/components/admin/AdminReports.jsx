@@ -1,94 +1,143 @@
-import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router";
-import { useTranslation } from "react-i18next";
+import {useState, useEffect, useCallback} from "react";
+import {Link, useSearchParams} from "react-router";
+import {useTranslation} from "react-i18next";
 import AdminService from "../../services/admin.service";
-import { notifySuccess, notifyError } from "../common/Notify";
-import { useModal } from "../../context/ModalContext";
-import { useDateFormatter } from "../../hooks/useDateFormatter";
+import {notifySuccess, notifyError} from "../common/Notify";
+import {useModal} from "../../context/ModalContext";
+import {useDateFormatter} from "../../hooks/useDateFormatter";
 import Button from "../ui/Button.jsx";
 import CustomSelect from "../ui/CustomSelect.jsx";
 
-export default function AdminReports() {
-    const { t } = useTranslation();
-    const { openPrompt } = useModal();
+export default function AdminReports()
+{
+    const {t} = useTranslation();
+    const {openPrompt} = useModal();
     const formatDate = useDateFormatter();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Беремо всі початкові значення З ПОСИЛАННЯ
+    const [filters, setFilters] = useState({
+        status: searchParams.get('status') || 'pending',
+        date:   searchParams.get('date') || 'all',
+        reason: searchParams.get('reason') || 'all',
+        type:   searchParams.get('type') || 'all',
+        search: searchParams.get('search') || ''
+    });
+    const [searchInput, setSearchInput] = useState(filters.search);
 
     const [reports, setReports] = useState([]);
-    const [stats, setStats] = useState({ total: 0, pending: 0, resolved: 0, rejected: 0 });
+    const [stats, setStats] = useState({total: 0, pending: 0, resolved: 0, rejected: 0});
     const [loading, setLoading] = useState(true);
 
-    const [filters, setFilters] = useState({ status: 'pending', date: 'all', reason: 'all', type: 'all', search: '' });
-    const [searchInput, setSearchInput] = useState('');
+    // Синхронізація Стейту у URL
+    useEffect(() =>
+    {
+        const params = new URLSearchParams();
+        const currentTab = searchParams.get('tab');
+        if (currentTab) params.set('tab', currentTab);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilters(prev => {
+        if (filters.search) params.set('search', filters.search);
+        if (filters.status && filters.status !== 'all') params.set('status', filters.status);
+        if (filters.date && filters.date !== 'all') params.set('date', filters.date);
+        if (filters.type && filters.type !== 'all') params.set('type', filters.type);
+        if (filters.reason && filters.reason !== 'all') params.set('reason', filters.reason);
+
+        if (params.toString() !== searchParams.toString())
+        {
+            setSearchParams(params, {replace: true});
+        }
+    }, [filters]);
+
+    // Дебаунс для вводу пошуку
+    useEffect(() =>
+    {
+        const timer = setTimeout(() =>
+        {
+            setFilters(prev =>
+            {
                 if (prev.search === searchInput) return prev;
-                return { ...prev, search: searchInput };
+                return {...prev, search: searchInput};
             });
         }, 800);
         return () => clearTimeout(timer);
     }, [searchInput]);
 
-    const fetchReports = useCallback((currentFilters) => {
+    const fetchReports = useCallback((currentFilters) =>
+    {
         setLoading(true);
         AdminService.getReports(currentFilters)
-        .onSuccess((res) => {
-            setStats(res.stats || { total: 0, pending: 0, resolved: 0, rejected: 0 });
+        .onSuccess((res) =>
+        {
+            setStats(res.stats || {total: 0, pending: 0, resolved: 0, rejected: 0});
             setReports(res.reports || []);
             setLoading(false);
         })
-        .onError((err) => {
+        .onError((err) =>
+        {
             notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
             setLoading(false);
         });
     }, [t]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         fetchReports(filters);
     }, [filters, fetchReports]);
 
-    const handleFilterChange = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
+    const handleFilterChange = (key, value) =>
+    {
+        setFilters(prev => ({...prev, [key]: value}));
     };
 
-    const handleAction = async (reportId, actionType) => {
+    const handleAction = async (reportId, actionType) =>
+    {
         let title = '';
         if (actionType === 'revert') title = t('admin.reports.prompt_revert');
-        else if (actionType === 'resolve') title = t('admin.reports.prompt_resolve');
-        else title = t('admin.reports.prompt_reject');
+        else if (actionType === 'resolve') title = t('admin.reports.btn_resolve');
+        else title = t('admin.reports.btn_reject');
 
         const responseText = await openPrompt(t('admin.common.prompt_placeholder'), title, true);
         if (responseText === null) return;
 
         AdminService.handleReport(reportId, actionType, responseText.trim())
-        .onSuccess((res) => {
+        .onSuccess((res) =>
+        {
             notifySuccess(t(`api.success.${res.code}`));
             fetchReports(filters);
         })
-        .onError((err) => {
+        .onError((err) =>
+        {
             notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
         });
     };
 
-    const renderCompactTarget = (report) => {
+    const renderCompactTarget = (report) =>
+    {
         const target = report.target;
 
-        if (!target) {
-            return <span className="text-text-muted italic">{t('admin.reports.target_deleted')}</span>;
-        }
+        if (!target) return <span className="text-text-muted italic">{t('admin.reports.target_deleted')}</span>;
 
         const isDeleted = target.is_deleted || target.is_hard_deleted;
         const formattedDate = target.created_at ? formatDate(target.created_at) : '';
         const targetIdLabel = <span className="text-[9px] ml-[5px] text-text-muted">(ID: {target.id})</span>;
 
-        if (isDeleted) {
+        if (isDeleted)
+        {
             let deletedText = '';
-            switch (target.type) {
-                case 'Post': deletedText = t('admin.reports.target_post', { date: formattedDate }); break;
-                case 'Comment': deletedText = t('admin.reports.target_comment', { date: formattedDate }); break;
-                case 'User': deletedText = `@${target.username}`; break;
-                default: deletedText = t('admin.reports.target_deleted', { id: target.id }); break;
+            switch (target.type)
+            {
+                case 'Post':
+                    deletedText = t('admin.reports.target_post', {date: formattedDate});
+                    break;
+                case 'Comment':
+                    deletedText = t('admin.reports.target_comment', {date: formattedDate});
+                    break;
+                case 'User':
+                    deletedText = `@${target.username}`;
+                    break;
+                default:
+                    deletedText = t('admin.reports.target_deleted', {id: target.id});
+                    break;
             }
             return (
                 <span className="line-through text-text-muted">
@@ -97,22 +146,24 @@ export default function AdminReports() {
             );
         }
 
-        switch (target.type) {
+        switch (target.type)
+        {
             case 'Post':
                 return (
                     <span>
                         <Link to={`/post/${target.id}`} className="text-theme-link hover:underline no-underline bg-transparent" target="_blank">
-                            {t('admin.reports.target_post', { date: formattedDate })}
+                            {t('admin.reports.target_post', {date: formattedDate})}
                         </Link>
                         {targetIdLabel}
                     </span>
                 );
-            case 'Comment': {
+            case 'Comment':
+            {
                 const commentUrl = target.post_id ? `/post/${target.post_id}?comment=${target.id}` : '#';
                 return (
                     <span>
                         <Link to={commentUrl} className="text-theme-link hover:underline no-underline bg-transparent" target="_blank">
-                            {t('admin.reports.target_comment', { date: formattedDate })}
+                            {t('admin.reports.target_comment', {date: formattedDate})}
                         </Link>
                         {targetIdLabel}
                     </span>
@@ -131,7 +182,7 @@ export default function AdminReports() {
                 return (
                     <span>
                         <Link to={`/stickers/${target.id}`} className="text-theme-link hover:underline no-underline bg-transparent" target="_blank">
-                            {t('admin.reports.target_stickerpack', { id: target.id })}
+                            {t('admin.reports.target_stickerpack', {id: target.id})}
                         </Link>
                         {targetIdLabel}
                     </span>
@@ -140,7 +191,7 @@ export default function AdminReports() {
                 return (
                     <span>
                         <Link to={`/space/${target.id}`} className="text-theme-link hover:underline no-underline bg-transparent" target="_blank">
-                            {t('admin.reports.target_space', { id: target.id })}
+                            {t('admin.reports.target_space', {id: target.id})}
                         </Link>
                         {targetIdLabel}
                     </span>
@@ -150,61 +201,74 @@ export default function AdminReports() {
         }
     };
 
-    const getStatusBadge = (status) => {
+    const getStatusBadge = (status) =>
+    {
         let colors = "";
-        switch (status) {
-            case 'pending': colors = "text-[#d39e00] border-[#d39e00]"; break;
-            case 'resolved': colors = "text-theme-success border-theme-success"; break;
-            case 'rejected': colors = "text-theme-error border-theme-error"; break;
-            default: colors = "text-text-main border-border";
+        switch (status)
+        {
+            case 'pending':
+                colors = "text-[#d39e00] border-[#d39e00]";
+                break;
+            case 'resolved':
+                colors = "text-theme-success border-theme-success";
+                break;
+            case 'rejected':
+                colors = "text-theme-error border-theme-error";
+                break;
+            default:
+                colors = "text-text-main border-border";
         }
         return `inline-block px-[6px] py-[2px] text-[10px] font-bold border bg-bg-page ${colors}`;
     };
 
-    const getStatusBorder = (status) => {
-        switch (status) {
-            case 'resolved': return "border-l-[3px] border-l-theme-success";
-            case 'rejected': return "border-l-[3px] border-l-theme-error";
-            default: return "";
+    const getStatusBorder = (status) =>
+    {
+        switch (status)
+        {
+            case 'resolved':
+                return "border-l-[3px] border-l-theme-success";
+            case 'rejected':
+                return "border-l-[3px] border-l-theme-error";
+            default:
+                return "";
         }
     };
 
-    // Опції для CustomSelect
     const statusOptions = [
-        { value: 'all', label: t('admin.common.total') },
-        { value: 'pending', label: t('admin.common.pending') },
-        { value: 'resolved', label: t('admin.common.resolved') },
-        { value: 'rejected', label: t('admin.common.rejected') }
+        {value: 'all', label: t('admin.common.total')},
+        {value: 'pending', label: t('admin.common.pending')},
+        {value: 'resolved', label: t('admin.common.resolved')},
+        {value: 'rejected', label: t('admin.common.rejected')}
     ];
 
     const dateOptions = [
-        { value: 'all', label: t('admin.reports.filters.date_all') },
-        { value: 'today', label: t('admin.reports.filters.date_today') },
-        { value: 'yesterday', label: t('admin.reports.filters.date_yesterday') },
-        { value: 'week', label: t('admin.reports.filters.date_week') },
-        { value: 'month', label: t('admin.reports.filters.date_month') }
+        {value: 'all', label: t('admin.reports.filters.date_all')},
+        {value: 'today', label: t('admin.reports.filters.date_today')},
+        {value: 'yesterday', label: t('admin.reports.filters.date_yesterday')},
+        {value: 'week', label: t('admin.reports.filters.date_week')},
+        {value: 'month', label: t('admin.reports.filters.date_month')}
     ];
 
     const typeOptions = [
-        { value: 'all', label: t('admin.reports.filters.type_all') },
-        { value: 'user', label: t('admin.reports.filters.type_user') },
-        { value: 'post', label: t('admin.reports.filters.type_post') },
-        { value: 'comment', label: t('admin.reports.filters.type_comment') },
-        { value: 'stickerpack', label: t('admin.reports.filters.type_stickerpack') },
-        { value: 'space', label: t('admin.reports.filters.type_space') }
+        {value: 'all', label: t('admin.reports.filters.type_all')},
+        {value: 'user', label: t('admin.reports.filters.type_user')},
+        {value: 'post', label: t('admin.reports.filters.type_post')},
+        {value: 'comment', label: t('admin.reports.filters.type_comment')},
+        {value: 'stickerpack', label: t('admin.reports.filters.type_stickerpack')},
+        {value: 'space', label: t('admin.reports.filters.type_space')}
     ];
 
     const reasonOptions = [
-        { value: 'all', label: t('admin.reports.filters.reason_all') },
-        { value: 'spam', label: t('reports.reasons.spam') },
-        { value: 'nsfw', label: t('reports.reasons.nsfw') },
-        { value: 'harassment', label: t('reports.reasons.harassment') },
-        { value: 'fake_info', label: t('reports.reasons.fake_info') },
-        { value: 'illegal', label: t('reports.reasons.illegal') },
-        { value: 'bullying', label: t('reports.reasons.bullying') },
-        { value: 'child_abuse', label: t('reports.reasons.child_abuse') },
-        { value: 'scam', label: t('reports.reasons.scam') },
-        { value: 'hate_speech', label: t('reports.reasons.hate_speech') }
+        {value: 'all', label: t('admin.reports.filters.reason_all')},
+        {value: 'spam', label: t('reports.reasons.spam')},
+        {value: 'nsfw', label: t('reports.reasons.nsfw')},
+        {value: 'harassment', label: t('reports.reasons.harassment')},
+        {value: 'fake_info', label: t('reports.reasons.fake_info')},
+        {value: 'illegal', label: t('reports.reasons.illegal')},
+        {value: 'bullying', label: t('reports.reasons.bullying')},
+        {value: 'child_abuse', label: t('reports.reasons.child_abuse')},
+        {value: 'scam', label: t('reports.reasons.scam')},
+        {value: 'hate_speech', label: t('reports.reasons.hate_speech')}
     ];
 
     return (
@@ -274,14 +338,13 @@ export default function AdminReports() {
                 <div className="flex flex-col gap-[10px]">
                     {reports.map((report) => (
                         <div key={report.id} className="bg-bg-box border border-border p-[10px] flex justify-between text-[11px]">
-
                             <div className="flex-1 flex flex-col">
                                 <div className="mb-[4px]">
                                     <span className="text-text-muted mr-[5px]">{t('common.date')}:</span>
                                     <span>{formatDate(report.created_at)}</span>
                                 </div>
                                 <div className="mb-[4px]">
-                                    <span className="text-text-muted mr-[5px]">{t('admin.reports.from')}:</span>
+                                    <span className="text-text-muted mr-[5px]">{t('admin.common.from')}:</span>
                                     <Link to={`/${report.reporter?.username}`} className="text-theme-link hover:underline bg-transparent no-underline">
                                         {report.reporter?.first_name} {report.reporter?.last_name} (@{report.reporter?.username})
                                     </Link>
@@ -310,7 +373,7 @@ export default function AdminReports() {
                                     <div className="mt-[8px] mb-[4px]">
                                         <span className="text-text-muted mr-[5px]">{t('common.status')}:</span>
                                         <span className={getStatusBadge(report.status)}>
-                                            {t(`admin.stats.${report.status}`)}
+                                            {t(`admin.common.${report.status}`)}
                                         </span>
                                     </div>
                                 ) : (

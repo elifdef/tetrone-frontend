@@ -1,5 +1,5 @@
 import {useState, useEffect, useCallback} from "react";
-import {Link} from "react-router";
+import {Link, useSearchParams} from "react-router";
 import {useTranslation} from "react-i18next";
 import AdminService from "../../services/admin.service";
 import {notifySuccess, notifyError} from "../common/Notify";
@@ -13,23 +13,26 @@ export default function AdminAppeals()
     const {t} = useTranslation();
     const {openPrompt} = useModal();
     const formatDate = useDateFormatter();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const initialSearch = searchParams.get('search') || '';
 
     const [appeals, setAppeals] = useState([]);
     const [stats, setStats] = useState({total: 0, pending: 0, resolved: 0, rejected: 0});
     const [loading, setLoading] = useState(true);
 
-    const [filters, setFilters] = useState({
-        status: 'pending',
-        date:   'all',
-        search: ''
-    });
+    const [filters, setFilters] = useState({status: 'pending', date: 'all', search: initialSearch});
+    const [searchInput, setSearchInput] = useState(initialSearch);
 
-    const [searchInput, setSearchInput] = useState('');
-
-    const handleFilterChange = (key, value) =>
+    useEffect(() =>
     {
-        setFilters(prev => ({...prev, [key]: value}));
-    };
+        const params = new URLSearchParams(searchParams);
+        if (filters.search) params.set('search', filters.search);
+        else params.delete('search');
+        if (params.toString() !== searchParams.toString()) {
+            setSearchParams(params, {replace: true});
+        }
+    }, [filters.search, searchParams, setSearchParams]);
 
     useEffect(() =>
     {
@@ -66,11 +69,14 @@ export default function AdminAppeals()
         fetchAppeals(filters);
     }, [filters, fetchAppeals]);
 
+    const handleFilterChange = (key, value) =>
+    {
+        setFilters(prev => ({...prev, [key]: value}));
+    };
+
     const handleAction = async (appealId, actionType) =>
     {
-        const title = actionType === 'resolve'
-            ? t('admin.appeals.prompt_approve')
-            : t('admin.appeals.prompt_reject');
+        const title = actionType === 'resolve' ? t('admin.appeals.btn_approve') : t('admin.appeals.btn_reject');
 
         const responseText = await openPrompt(t('admin.common.prompt_placeholder'), title, true);
         if (responseText === null) return;
@@ -93,17 +99,10 @@ export default function AdminAppeals()
         switch (status)
         {
             case 'open':
-            case 'in_progress':
-                colors = "text-[#d39e00] border-[#d39e00]";
-                break;
-            case 'resolved':
-                colors = "text-theme-success border-theme-success";
-                break;
-            case 'closed':
-                colors = "text-theme-error border-theme-error";
-                break;
-            default:
-                colors = "text-text-main border-border";
+            case 'in_progress': colors = "text-[#d39e00] border-[#d39e00]"; break;
+            case 'resolved': colors = "text-theme-success border-theme-success"; break;
+            case 'closed': colors = "text-theme-error border-theme-error"; break;
+            default: colors = "text-text-main border-border";
         }
         return `inline-block px-[6px] py-[2px] text-[10px] font-bold border bg-bg-page ${colors}`;
     };
@@ -112,12 +111,9 @@ export default function AdminAppeals()
     {
         switch (status)
         {
-            case 'resolved':
-                return "border-l-[3px] border-l-theme-success";
-            case 'closed':
-                return "border-l-[3px] border-l-theme-error";
-            default:
-                return "";
+            case 'resolved': return "border-l-[3px] border-l-theme-success";
+            case 'closed': return "border-l-[3px] border-l-theme-error";
+            default: return "";
         }
     };
 
@@ -126,18 +122,13 @@ export default function AdminAppeals()
         switch (status)
         {
             case 'open':
-            case 'in_progress':
-                return t('admin.common.pending');
-            case 'resolved':
-                return t('admin.common.approved');
-            case 'closed':
-                return t('admin.common.rejected');
-            default:
-                return status;
+            case 'in_progress': return t('admin.common.pending');
+            case 'resolved': return t('admin.common.approved');
+            case 'closed': return t('admin.common.rejected');
+            default: return status;
         }
     };
 
-    // Опції для CustomSelect
     const statusOptions = [
         {value: 'all', label: t('admin.common.total')},
         {value: 'pending', label: t('admin.common.pending')},
@@ -206,12 +197,12 @@ export default function AdminAppeals()
                 <div className="flex flex-col gap-[10px]">
                     {appeals.map((appeal) =>
                     {
-                        const appealText = appeal.messages?.[0]?.message || appeal.message;
+                        // ФІКС: Шукаємо повідомлення за юзернеймом, а не за id
+                        const firstMessage = appeal.messages?.find(m => m.user?.username === appeal.user?.username)?.message || t('admin.appeals.no_message');
                         const isPending = appeal.status === 'open' || appeal.status === 'in_progress';
 
                         return (
                             <div key={appeal.id} className="bg-bg-box border border-border p-[10px] flex justify-between text-[11px]">
-                                {/* Інфо-блок */}
                                 <div className="flex-1 flex flex-col">
                                     <div className="mb-[4px]">
                                         <span className="text-text-muted mr-[5px]">{t('common.date')}:</span>
@@ -224,16 +215,13 @@ export default function AdminAppeals()
                                         </Link>
                                     </div>
 
-                                    {appealText && (
-                                        <div className="mt-[8px] mb-[4px]">
-                                            <div className="text-text-muted mb-[4px]">{t('admin.appeals.message')}:</div>
-                                            <div className="italic bg-bg-page border-l-[2px] border-theme-link p-[5px_8px] text-text-muted">
-                                                "{appealText}"
-                                            </div>
+                                    <div className="mt-[8px] mb-[4px]">
+                                        <div className="text-text-muted mb-[4px]">{t('admin.appeals.message')}:</div>
+                                        <div className="italic bg-bg-page border-l-[2px] border-theme-link p-[5px_8px] text-text-muted whitespace-pre-wrap">
+                                            "{firstMessage}"
                                         </div>
-                                    )}
+                                    </div>
 
-                                    {/* Блок рішення */}
                                     {isPending ? (
                                         <div className="mt-[8px] mb-[4px]">
                                             <span className="text-text-muted mr-[5px]">{t('common.status')}:</span>
@@ -278,7 +266,6 @@ export default function AdminAppeals()
                                     )}
                                 </div>
 
-                                {/* Блок дій */}
                                 <div className="flex flex-col gap-[6px] min-w-[140px] items-stretch ml-[15px]">
                                     {isPending && (
                                         <>

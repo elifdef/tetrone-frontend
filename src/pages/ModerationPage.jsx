@@ -29,7 +29,7 @@ const ModerationPage = () => {
         { id: 'reports', label: t('admin.reports.tab') },
         { id: 'tickets', label: t('admin.support.support_tickets') },
         { id: 'posts', label: t('common.posts') },
-        { id: 'users', label: t('admin.users_management') }
+        { id: 'users', label: t('admin.users.title') }
     ], [t]);
 
     const handleTabChange = (tabId) => { 

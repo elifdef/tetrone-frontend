@@ -80,13 +80,13 @@ export default function AppRoutes() {
                     } />
 
                     <Route path="/control-panel" element={
-                        <RoleGuard allowedRoles={[userRole.Admin, userRole.Creator]}>
+                        <RoleGuard allowedRoles={[userRole.Admin, userRole.Owner]}>
                             <AdminPage />
                         </RoleGuard>
                     } />
 
                     <Route path="/control-panel/users/:username" element={
-                        <RoleGuard allowedRoles={[userRole.Admin, userRole.Creator]}>
+                        <RoleGuard allowedRoles={[userRole.Admin, userRole.Owner]}>
                             <AdminUserInfo />
                         </RoleGuard>
                     } />

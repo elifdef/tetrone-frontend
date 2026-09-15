@@ -24,7 +24,7 @@ export default function DatabaseManager() {
     const hasPrompted = useRef(false);
 
     useEffect(() => {
-        if (user?.role !== userRole.Creator) {
+        if (user?.role !== userRole.Owner) {
             navigate('/control-panel');
             return;
         }
@@ -41,7 +41,7 @@ export default function DatabaseManager() {
             }
 
             const res = await AuthService.verifyPassword(password);
-            if (res.success) {
+            if (res) {
                 setIsVerified(true);
             } else {
                 toast.error(res.message || t('admin.query_failed'));
