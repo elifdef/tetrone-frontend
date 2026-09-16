@@ -16,7 +16,7 @@ const PIE_COLORS = [
     'var(--theme-text-muted)'
 ];
 
-export default function Dashboard() {
+export default function AdminDashboard() {
     const { t } = useTranslation();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);

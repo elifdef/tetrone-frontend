@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { usePageTitle } from "../hooks/usePageTitle";
 import { AuthContext } from "../context/AuthContext";
 import { userRole } from '../config';
-import { AdminTabs } from '../components/admin/AdminTabs';
+import Tabs from '../components/ui/Tabs';
 import { UsersManager } from '../components/admin/UsersManager';
 import AdminTickets from '../components/admin/AdminTickets';
 
@@ -46,7 +46,7 @@ const SupportPanelPage = () => {
         <div className="tetrone-card-wrapper">
             <h2 className="tetrone-section-title">{t('common.support_panel')}</h2>
             
-            <AdminTabs 
+            <Tabs 
                 tabs={tabs} 
                 activeTab={activeTab} 
                 onTabChange={handleTabChange} 

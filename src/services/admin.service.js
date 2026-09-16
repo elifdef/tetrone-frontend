@@ -69,13 +69,6 @@ const AdminService = {
         method: 'POST'
     }),
 
-    getDatabaseTables: () => fetchClient(`/admin/database/tables`),
-
-    executeDbQuery: (query) => fetchClient(`/admin/database/query`, {
-        method: 'POST',
-        body: { query }
-    }),
-
     closeTicket: (id, reason = '') => fetchClient(`/admin/tickets/${id}/close`, {
         method: 'POST',
         body: { reason }

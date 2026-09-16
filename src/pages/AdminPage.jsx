@@ -4,15 +4,14 @@ import {useNavigate, useSearchParams} from 'react-router';
 import {usePageTitle} from "../hooks/usePageTitle";
 import {AuthContext} from "../context/AuthContext";
 import {userRole} from '../config';
-import Dashboard from '../components/admin/AdminDashboard';
+import AdminDashboard from '../components/admin/AdminDashboard';
 import AdminReports from '../components/admin/AdminReports';
 import {PostsManager} from '../components/admin/PostsManager';
 import {UsersManager} from '../components/admin/UsersManager';
-import Tabs from '../components/ui/Tabs';
 import AdminAppeals from '../components/admin/AdminAppeals';
 import AdminTickets from '../components/admin/AdminTickets';
-import DatabaseManager from '../components/admin/DatabaseManager';
 import StaffLogs from '../components/admin/StaffLogs';
+import Tabs from '../components/ui/Tabs';
 
 const AdminPage = () =>
 {
@@ -21,7 +20,6 @@ const AdminPage = () =>
     const navigate = useNavigate();
 
     const isAdmin = currentUser?.role >= userRole.Admin;
-    const isCreator = currentUser?.role === userRole.Owner;
 
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'dashboard';
@@ -36,7 +34,7 @@ const AdminPage = () =>
 
     const adminTabs = useMemo(() =>
     {
-        const tabs = [
+        return [
             {id: 'dashboard', label: t('admin.dashboard.title')},
             {id: 'reports', label: t('admin.reports.title')},
             {id: 'appeals', label: t('admin.appeals.title')},
@@ -45,14 +43,7 @@ const AdminPage = () =>
             {id: 'users', label: t('admin.users.title')},
             {id: 'staff-logs', label: t('admin.staff_logs.title')}
         ];
-
-        if (isCreator)
-        {
-            tabs.push({id: 'database', label: t('admin.database')});
-        }
-
-        return tabs;
-    }, [t, isCreator]);
+    }, [t]);
 
     const currentTabTitle = adminTabs.find(tab => tab.id === activeTab)?.label || t('common.admin_panel');
     usePageTitle(`${t('common.admin_panel')} - ${currentTabTitle}`);
@@ -67,7 +58,7 @@ const AdminPage = () =>
         switch (activeTab)
         {
             case 'dashboard':
-                return <Dashboard/>;
+                return <AdminDashboard/>;
             case 'reports':
                 return <AdminReports/>;
             case 'appeals':
@@ -80,8 +71,6 @@ const AdminPage = () =>
                 return <UsersManager canBan={true}/>;
             case 'staff-logs':
                 return <StaffLogs/>;
-            case 'database':
-                return isCreator ? <DatabaseManager/> : null;
             default:
                 return null;
         }

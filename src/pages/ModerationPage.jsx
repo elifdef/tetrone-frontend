@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { usePageTitle } from "../hooks/usePageTitle";
 import { AuthContext } from "../context/AuthContext";
 import { userRole } from '../config';
-import { AdminTabs } from '../components/admin/AdminTabs';
+import Tabs from '../components/ui/Tabs';
 import { PostsManager } from '../components/admin/PostsManager';
 import { UsersManager } from '../components/admin/UsersManager';
 import AdminReports from '../components/admin/AdminReports';
@@ -52,7 +52,7 @@ const ModerationPage = () => {
         <div className="tetrone-card-wrapper">
             <h2 className="tetrone-section-title">{t('common.moderator_panel')}</h2>
             
-            <AdminTabs 
+            <Tabs 
                 tabs={tabs} 
                 activeTab={activeTab} 
                 onTabChange={handleTabChange} 
