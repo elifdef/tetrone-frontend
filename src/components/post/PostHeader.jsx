@@ -28,6 +28,8 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
     const target = post.target;
     const isAvatarUpdate = post.is_avatar_update === true;
 
+    const isEdited = post.updated_at && post.updated_at !== post.created_at;
+
     // Авторство тепер перевіряємо через post.author
     const isAuthor = currentUsername && (currentUsername === author.username);
 
@@ -64,7 +66,7 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
     return (
         <div className="border-t border-border pt-[5px] flex items-start max-md:px-[10px] max-md:items-center">
             <Link to={authorLink} className="shrink-0 mr-[10px]" onClick={handleLinkClick}>
-                <Avatar user={author} className="w-[50px] h-[50px] object-cover block rounded-[4px]" />
+                <Avatar user={author} className="w-[50px] h-[50px] object-cover block" />
             </Link>
 
             <div className="flex flex-col text-[11px] flex-1 min-w-0">
@@ -101,23 +103,34 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
                     )}
                 </div>
 
-                <Link to={`/post/${post.id}`} className="text-[10px] mt-[2px] text-text-muted hover:underline no-underline" onClick={handleLinkClick}>
-                    {formatDate(post.created_at)}
-                </Link>
+                <div className="flex items-center gap-[4px] mt-[2px] text-[10px] text-text-muted">
+                    <Link to={`/post/${post.id}`} className="text-text-muted hover:underline no-underline" onClick={handleLinkClick}>
+                        {formatDate(post.created_at)}
+                    </Link>
+                    
+                    {isEdited && (
+                        <span 
+                            className="italic cursor-help" 
+                            title={`${t('common.updated')}: ${formatDate(post.updated_at)}`}
+                        >
+                            ({t('common.edited')})
+                        </span>
+                    )}
+                </div>
             </div>
 
             {showActions && (
                 <div className="relative ml-auto" ref={menuRef}>
                     <button
                         type="button"
-                        className={`bg-transparent border-none text-text-muted cursor-pointer p-[6px] flex items-center justify-center outline-none transition-none rounded-[2px] ${showMenu ? 'text-theme-link bg-bg-page' : 'hover:bg-bg-page hover:text-text-main'}`}
+                        className={`bg-transparent border-none text-text-muted cursor-pointer p-[6px] flex items-center justify-center outline-none transition-none ${showMenu ? 'text-theme-link bg-bg-page' : 'hover:bg-bg-page hover:text-text-main'}`}
                         onClick={() => setShowMenu(!showMenu)}
                     >
                         <DotsIcon width={16} height={16} />
                     </button>
 
                     {showMenu && (
-                        <div className="absolute right-0 top-full mt-[2px] bg-bg-box border border-border shadow-sm flex flex-col min-w-[150px] py-[2px] z-[100] rounded-[2px]">
+                        <div className="absolute right-0 top-full mt-[2px] bg-bg-box border border-border shadow-sm flex flex-col min-w-[150px] py-[2px] z-[100]">
                             {canEdit && (
                                 <button type="button" className={menuItemClass} onClick={() => { onEdit(post); setShowMenu(false); }}>
                                     <EditIcon width={14} height={14} /> {t('action.edit')}

@@ -311,11 +311,11 @@
       "check_post": "Перевірив пост",
       "update_post": "Оновив пост",
       "delete_post": "Видалив пост",
-      "restore_content":"Відновив контент"
+      "restore_content": "Відновив контент"
     },
     "staff_logs": {
       "title": "Аудит",
-      "staff_list_title":"Персонал",
+      "staff_list_title": "Персонал",
       "top_performers": "Топ Персоналу",
       "actions_count": "дій",
       "actions_total": "дій всього",
@@ -327,17 +327,13 @@
       "target_id": "ID об'єкта",
       "empty_logs": "Записів не знайдено",
       "actions_total_label": "Всього виконано дій",
-      
       "tab_dashboard": "Дашбоард",
       "tab_staff_list": "Весь персонал",
-      
       "role_label": "Посада",
       "hours_axis": "Години (0-23)",
-      
       "pagination_prev": "Попередня",
       "pagination_next": "Наступна",
       "pagination_page": "Сторінка {{page}} з {{total}}",
-
       "bi_heatmap": "Теплова карта навантаження",
       "bi_heatmap_desc": "Відображає інтенсивність дій по годинах і днях тижня. Чим темніший квадрат, тим більше дій. Допомагає знайти 'мертві зони'.",
       "bi_severity": "Індекс жорсткості",
@@ -609,7 +605,8 @@
     "video": "Відео",
     "welcome": "Ласкаво просимо",
     "yes": "Так",
-    "you": "Ви: "
+    "you": "Ви: ",
+    "updated": "Оновлено"
   },
   "cookie": {
     "variants": [
