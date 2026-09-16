@@ -157,10 +157,6 @@
     }
   },
   "admin": {
-    "actions": {
-      "change_role": "Змінити посаду",
-      "reason_prompt": "Причина:"
-    },
     "common": {
       "approved": "Схвалено",
       "pending": "Очікують",
@@ -294,6 +290,66 @@
       "stats_tickets": "Тікети",
       "stats_warnings": "Попередження",
       "status_banned_full": "ЗАБЛОКОВАНО"
+    },
+    "actions": {
+      "change_role": "Змінити посаду",
+      "reason_prompt": "Причина:",
+      "mute_user": "Видав мут",
+      "unmute_user": "Зняв мут",
+      "ban_user": "Заблокував",
+      "unban_user": "Розблокував",
+      "issue_warning": "Видав попередження",
+      "edit_user_role": "Змінив посаду",
+      "soft_delete_user": "Видалив юзера",
+      "close_ticket": "Закрив тікет",
+      "reopen_ticket": "Відкрив тікет",
+      "reply_ticket": "Відповів у тікет",
+      "reply_to_ticket": "Відповів у тікет",
+      "resolve_report": "Схвалив скаргу",
+      "reject_report": "Відхилив скаргу",
+      "assign_ticket": "Взяв тікет в роботу",
+      "check_post": "Перевірив пост",
+      "update_post": "Оновив пост",
+      "delete_post": "Видалив пост",
+      "restore_content":"Відновив контент"
+    },
+    "staff_logs": {
+      "title": "Аудит",
+      "staff_list_title":"Персонал",
+      "top_performers": "Топ Персоналу",
+      "actions_count": "дій",
+      "actions_total": "дій всього",
+      "actions_today": "Статистика дій за сьогодні",
+      "chart_activity": "Графік активності (останні 7 днів)",
+      "audit_trail": "Журнал дій (Audit Log)",
+      "staff_member": "Персонал",
+      "action": "Дія",
+      "target_id": "ID об'єкта",
+      "empty_logs": "Записів не знайдено",
+      "actions_total_label": "Всього виконано дій",
+      
+      "tab_dashboard": "Дашбоард",
+      "tab_staff_list": "Весь персонал",
+      
+      "role_label": "Посада",
+      "hours_axis": "Години (0-23)",
+      
+      "pagination_prev": "Попередня",
+      "pagination_next": "Наступна",
+      "pagination_page": "Сторінка {{page}} з {{total}}",
+
+      "bi_heatmap": "Теплова карта навантаження",
+      "bi_heatmap_desc": "Відображає інтенсивність дій по годинах і днях тижня. Чим темніший квадрат, тим більше дій. Допомагає знайти 'мертві зони'.",
+      "bi_severity": "Індекс жорсткості",
+      "bi_severity_desc": "Співвідношення виданих банів/мутів до попереджень. Чим вище число, тим суворіший модератор.",
+      "bi_mttr": "MTTR",
+      "bi_mttr_desc": "Або швидкість реакції. Середній час у хвилинах від створення звернення або скарги до її закриття.",
+      "bi_reverts": "Скасовані рішення",
+      "bi_reverts_desc": "Кількість дій, які були скасовані іншими (наприклад, зняття бану через помилку). Маркер точності.",
+      "bi_anomaly": "Аномалія активності",
+      "bi_anomaly_desc": "Модератор перевищив свою середню норму активності більш ніж на 200% за останні 24 години!",
+      "bi_minutes": "хв.",
+      "back_to_global": "Повернутися назад"
     }
   },
   "api": {
@@ -585,6 +641,15 @@
     "at": "о",
     "today_at": "Сьогодні о {{time}}",
     "yesterday_at": "Вчора о {{time}}",
+    "days": {
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб",
+      "sun": "Нд"
+    },
     "months": {
       "jan": "Січень",
       "feb": "Лютий",
@@ -742,7 +807,6 @@
     "vote_many": "{{count}} голосів",
     "vote_one": "{{count}} голос"
   },
-
   "verbs": {
     "wrote_male": "Написав",
     "wrote_female": "Написала",
@@ -798,7 +862,6 @@
     "bans_one": "{{count}} бан",
     "bans_few": "{{count}} бани",
     "bans_many": "{{count}} банів",
-
     "stat_resolved": "{{count}} підтв.",
     "stat_rejected": "{{count}} відхил.",
     "stat_pending": "{{count}} очікує",

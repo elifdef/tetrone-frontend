@@ -4,7 +4,7 @@ import {useNavigate, useSearchParams} from 'react-router';
 import {usePageTitle} from "../hooks/usePageTitle";
 import {AuthContext} from "../context/AuthContext";
 import {userRole} from '../config';
-import Dashboard from '../components/admin/Dashboard';
+import Dashboard from '../components/admin/AdminDashboard';
 import AdminReports from '../components/admin/AdminReports';
 import {PostsManager} from '../components/admin/PostsManager';
 import {UsersManager} from '../components/admin/UsersManager';
@@ -54,7 +54,6 @@ const AdminPage = () =>
         return tabs;
     }, [t, isCreator]);
 
-    // ФІКС: Знаходимо назву поточного табу і динамічно встановлюємо Title
     const currentTabTitle = adminTabs.find(tab => tab.id === activeTab)?.label || t('common.admin_panel');
     usePageTitle(`${t('common.admin_panel')} - ${currentTabTitle}`);
 

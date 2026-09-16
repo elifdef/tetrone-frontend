@@ -58,7 +58,7 @@ export const useProfileSettings = (isSetupMode = false) => {
         setFormData(prev => ({ ...prev, avatarFile: file }));
     };
 
-    const handleSubmit = async (e) => {
+   const handleSubmit = (e) => {
         e.preventDefault();
 
         // якщо користувач зніме disabled через DevTools
@@ -81,7 +81,7 @@ export const useProfileSettings = (isSetupMode = false) => {
         data.append('first_name', formData.first_name);
         data.append('last_name', formData.last_name || '');
         data.append('birth_date', formData.birth_date || '');
-        data.append('bio', formData.bio || '');
+        data.append('bio', formData.bio ? JSON.stringify(formData.bio) : '');
         data.append('country', formData.country || '');
         data.append('gender', formData.gender || '0');
 
@@ -89,24 +89,23 @@ export const useProfileSettings = (isSetupMode = false) => {
             data.append('avatar', formData.avatarFile);
         }
 
-        try {
-            const res = await UserService.updateProfile(user.username, data);
-
-            if (res.success) {
+        UserService.updateProfile(user.username, data)
+            .onSuccess((res) => {
                 setUser(prev => ({ ...prev, ...previewUser, is_setup_complete: true }));
 
                 if (isSetupMode) {
                     window.location.href = `/${user.username}`;
                 } else {
-                    notifySuccess(res.message);
+                    notifySuccess(t(`api.success.${res.code}`));
                     setFormData(prev => ({ ...prev, avatarFile: null }));
                 }
-            }
-        } catch (error) {
-            notifyError(error.message || t('common.error'));
-        } finally {
-            dismissToast(toastId);
-        }
+            })
+            .onError((err) => {
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            })
+            .onFinally(() => {
+                dismissToast(toastId);
+            });
     };
 
     return { formData, previewUser, canSubmit, handleChange, handleFileChange, handleSubmit, avatarFile: formData.avatarFile };

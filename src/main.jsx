@@ -13,7 +13,7 @@ import "./styles/global.css";
 import {ThemeProvider} from "./context/ThemeContext.jsx";
 import {APP_ENV} from "./config.js";
 
-if (APP_ENV === 'dev')
+if (APP_ENV !== 'dev')
 {
     import('/src/utils/react-scan-init.js').then((module) =>
     {

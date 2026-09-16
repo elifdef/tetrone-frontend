@@ -76,12 +76,6 @@ const AdminService = {
         body: { query }
     }),
 
-    getStaffLogs: (page = 1) => fetchClient(`/admin/staff-logs?page=${page}`),
-
-    getStaffLogsSummary: () => fetchClient(`/admin/staff-logs/summary`),
-
-    getStaffLogsCharts: () => fetchClient(`/admin/staff-logs/charts`),
-
     closeTicket: (id, reason = '') => fetchClient(`/admin/tickets/${id}/close`, {
         method: 'POST',
         body: { reason }
@@ -119,6 +113,11 @@ const AdminService = {
         method: 'POST',
         body: { role, reason }
     }),
+
+    getStaffLogs: (page = 1) => fetchClient(`/admin/staff-logs?page=${page}`),
+    getAdminLogs: (adminId, page = 1) => fetchClient(`/admin/staff-logs/${adminId}?page=${page}`),
+    getStaffLogsSummary: () => fetchClient('/admin/staff-logs/summary'),
+    getStaffLogsCharts: () => fetchClient('/admin/staff-logs/charts'),
 };
 
 export default AdminService;

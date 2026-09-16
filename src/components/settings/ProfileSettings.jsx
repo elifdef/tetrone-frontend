@@ -69,30 +69,40 @@ export default function ProfileSettings({ isSetupMode = false }) {
                                 />
                             </div>
                         </div>
-
                         {/* Дата народження, Країна, Стать */}
                         <div className="flex gap-[15px] w-full max-md:flex-col">
                             <div className="flex-1">
                                 <DateInput
                                     label={`${t('common.birthday')} *`}
-                                    name="birth_date"
+                                    name="birth_date" // Тут name був, але краще підстрахувати onChange
                                     value={formData.birth_date}
-                                    onChange={handleChange}
+                                    onChange={(eOrVal) => {
+                                        const value = eOrVal?.target ? eOrVal.target.value : eOrVal;
+                                        handleChange({ target: { name: 'birth_date', value } });
+                                    }}
                                     required={isSetupMode}
                                 />
                             </div>
                             <div className="flex-1">
                                 <CountrySelect
+                                    name="country" // ДОДАНО
                                     value={formData.country}
-                                    onChange={handleChange}
+                                    onChange={(eOrVal) => {
+                                        const value = eOrVal?.target ? eOrVal.target.value : eOrVal;
+                                        handleChange({ target: { name: 'country', value } });
+                                    }}
                                 />
                             </div>
                             <div className="flex-1">
                                 <GenderSelect
-                                    value={formData.gender}
-                                    onChange={handleChange}
-                                    required={isSetupMode}
+                                    name="gender" // ДОДАНО
                                     label={`${t('common.gender')} *`}
+                                    value={formData.gender}
+                                    onChange={(eOrVal) => {
+                                        const value = eOrVal?.target ? eOrVal.target.value : eOrVal;
+                                        handleChange({ target: { name: 'gender', value } });
+                                    }}
+                                    required={isSetupMode}
                                 />
                             </div>
                         </div>
