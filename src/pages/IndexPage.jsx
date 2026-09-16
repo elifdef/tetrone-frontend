@@ -5,8 +5,9 @@ import StatsService from "../services/public.service";
 import LandingAuthWidget from "../components/landing/LandingAuthWidget";
 import RecentUsersSection from "../components/landing/RecentUsersSection";
 import StatsSection from "../components/landing/StatsSection";
-import WelcomeSection from "../components/landing/WelcomeSection";
-import SiteNewsSection from "../components/landing/SiteNewsSection"; // <--- Імпортуємо
+import WelcomeHeader from "../components/landing/WelcomeHeader";
+import FeaturesSection from "../components/landing/FeaturesSection";
+import MobileAuthBlock from "../components/landing/MobileAuthBlock";
 
 export default function IndexPage() {
     usePageTitle();
@@ -17,29 +18,34 @@ export default function IndexPage() {
     useEffect(() => {
         const fetchData = async () => {
             const data = await StatsService.getLanding();
-            setStats(data.stats)
-            setRecentUsers(data.users);
+            setStats(data.stats);
+            setRecentUsers(data.users || []);
         };
         fetchData();
     }, []);
 
     return (
         <div className="flex flex-col min-h-screen text-[11px] bg-bg-page text-text-main font-tahoma">
-            <div className="w-full max-w-[960px] mx-auto my-[20px] flex flex-col md:flex-row gap-[15px] flex-1 px-[10px] md:px-0 box-border">
-
-                {/* Ліва колонка (~65%) */}
-                <div className="w-full md:w-[65%] flex flex-col gap-[15px]">
-                    <WelcomeSection />
-
-                    {/* ТУТ НАШІ НОВИНИ */}
-                    <SiteNewsSection />
+            <div className="w-full max-w-[960px] mx-auto md:my-[20px] px-[10px] md:px-0 box-border flex-1 flex flex-col">
+                {/* мобільна версія */}
+                <div className="flex flex-col gap-[8px] md:hidden flex-1 pb-0 mb-0">                    <WelcomeHeader isMobile={true} />
+                    <StatsSection {...stats} isMobile={true} />
+                    <RecentUsersSection users={recentUsers} isMobile={true} />
+                    <MobileAuthBlock />
+                    <FeaturesSection isMobile={true} />
                 </div>
 
-                {/* Права колонка (~35%) */}
-                <div className="w-full md:w-[35%] flex flex-col gap-[15px]">
-                    <LandingAuthWidget />
-                    <StatsSection {...stats} />
-                    <RecentUsersSection users={recentUsers} />
+                {/* десктоп версія */}
+                <div className="hidden md:flex flex-row gap-[15px] w-full">
+                    <div className="w-[65%] flex flex-col gap-[15px]">
+                        <WelcomeHeader isMobile={false} />
+                        <FeaturesSection isMobile={false} />
+                    </div>
+                    <div className="w-[35%] flex flex-col gap-[15px]">
+                        <LandingAuthWidget />
+                        <StatsSection {...stats} isMobile={false} />
+                        <RecentUsersSection users={recentUsers} isMobile={false} />
+                    </div>
                 </div>
 
             </div>
