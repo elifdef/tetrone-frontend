@@ -12,7 +12,6 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
     const [pollData, setPollData] = useState(null);
     const [showPollCreator, setShowPollCreator] = useState(false);
 
-    // Усі файли та прев'юшки керуються тут
     const formTools = usePostForm(0);
     const { external } = usePostMedia(content, [], { removed_previews: removedPreviews });
 
@@ -37,12 +36,12 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (publishedAt = null, canComment = true) => {
         const emptyEditor = isEditorEmpty(content);
 
         if (emptyEditor && formTools.files.length === 0 && !pollData) {
             notifyError(t('api.error.ERR_POST_EMPTY'));
-            return;
+            return false;
         }
 
         const payload = {};
@@ -50,10 +49,11 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
         if (pollData) payload.poll = pollData;
         if (removedPreviews.length > 0) payload.youtube = { removed_previews: removedPreviews };
 
-        // ФІКС: Чиста поліморфіка (без старих space_username)
         if (options.author_username) payload.author_username = options.author_username;
         if (options.target_username) payload.target_username = options.target_username;
-        if (options.published_at) payload.published_at = options.published_at;
+        if (publishedAt) payload.published_at = publishedAt;
+        
+        payload.can_comment = canComment;
 
         const success = await onSubmitSuccess(payload, formTools.files);
 
@@ -62,21 +62,14 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
             setRemovedPreviews([]);
             setPollData(null);
             formTools.clearFiles();
+            return true;
         }
+        return false;
     };
 
     return {
-        content,
-        setContent,
-        pollData,
-        setPollData,
-        showPollCreator,
-        setShowPollCreator,
-        removedPreviews,
-        toggleYouTubePreview,
-        toggleMediaFlag,
-        external,
-        handleSubmit,
+        content, setContent, pollData, setPollData, showPollCreator, setShowPollCreator,
+        removedPreviews, toggleYouTubePreview, toggleMediaFlag, external, handleSubmit,
         ...formTools
     };
 };

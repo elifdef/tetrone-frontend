@@ -11,15 +11,18 @@ import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
 
 const PostItem = ({
-                      post, onEdit, onDelete, isOwner, currentUsername, onLikeToggle, onRepostSuccess,
-                      isInner = false, readonly = false, depth = 1, isAdmin = false
-                  }) => {
+    post, onEdit, onDelete, isOwner, currentUsername, onLikeToggle, onRepostSuccess,
+    isInner = false, readonly = false, depth = 1, isAdmin = false,
+    onPublishNow, onPinToggle
+}) => {
     const { t } = useTranslation();
 
     const {
         postData, isReposting, isReportModalOpen, setIsReportModalOpen,
         updateLocalPost, toggleLike, createRepost
     } = usePostActions(post, readonly, onLikeToggle, onRepostSuccess);
+
+    const isScheduled = postData.is_published === false;
 
     const handleToggleReaction = async (stickerPayload, event) => {
         if (readonly && !isAdmin) return;
@@ -84,8 +87,22 @@ const PostItem = ({
 
     const originalAuthorColor = postData.original_post?.user?.personalization?.username_color;
 
+    const baseClasses = isInner ? 'mt-[12px] ml-[16px] pl-[16px] border-l-[2px] border-border' : 'mt-[10px] first:border-t-0 first:pt-[5px] max-md:mx-[-10px] max-md:border-x-0';
+    const scheduledClasses = isScheduled ? 'opacity-70 bg-bg-page border border-dashed border-theme-warning/40 p-[10px]' : '';
+
+    const pinnedClasses = postData.is_pinned && !isInner ? 'bg-[rgba(0,102,204,0.02)] border-[2px] border-theme-link/30 rounded-[4px] p-[10px_10px_0_10px] shadow-sm relative overflow-hidden mb-[15px]' : '';
+
     return (
-        <div className={`${isInner ? 'mt-[12px] ml-[16px] pl-[16px] border-l-[2px] border-border' : 'mt-[10px] first:border-t-0 first:pt-[5px] max-md:mx-[-10px] max-md:border-x-0'}`}>
+        <div className={`${baseClasses} ${scheduledClasses} ${pinnedClasses}`}>
+            {postData.is_pinned && !isInner && (
+                <div className="absolute top-0 left-0 w-[4px] h-full bg-theme-link"></div>
+            )}
+
+            {isScheduled && (
+                <div className="bg-[rgba(255,153,0,0.1)] border border-[rgba(255,153,0,0.3)] text-[#ff9900] text-[11px] px-[10px] py-[6px] mb-[5px]">
+                    {t('post.will_be_published')}: <strong>{postData.published_at}</strong>
+                </div>
+            )}
 
             <PostHeader
                 post={postData}
@@ -93,12 +110,14 @@ const PostItem = ({
                 currentUsername={currentUsername}
                 onEdit={onEdit}
                 onDelete={onDelete}
-                onReport={!isInner && !readonly ? () => setIsReportModalOpen(true) : null}
+                onReport={!isInner && !readonly && !isScheduled ? () => setIsReportModalOpen(true) : null}
                 readonly={readonly}
                 isAdmin={isAdmin}
+                onPublishNow={onPublishNow}
+                onPinToggle={onPinToggle}
             />
 
-            <div className={`text-[11px] leading-[1.4] pl-[60px] mt-[5px] mb-[5px] max-md:pl-[10px] max-md:mt-[10px] post-text`}>
+            <div className={`text-[11px] leading-[1.4] pl-[60px] mt-[5px] mb-[5px] max-md:pl-[10px] max-md:mt-[10px] post-text ${isScheduled ? 'pointer-events-none' : ''}`}>
                 <PostContent
                     content={postData.content}
                     post={postData}
@@ -116,7 +135,7 @@ const PostItem = ({
                         <PostItem
                             post={postData.original_post}
                             isInner={true}
-                            readonly={true} // РЕПОСТ ЗАВЖДИ READONLY
+                            readonly={true}
                             depth={depth + 1}
                         />
                     ) : postData.original_post_id && depth >= 3 ? (
@@ -127,7 +146,7 @@ const PostItem = ({
                 </div>
             )}
 
-            {!isInner && (
+            {!isInner && !isScheduled && (
                 <PostFooter
                     postId={postData.id}
                     isLiked={postData.is_liked}
@@ -154,6 +173,8 @@ export default memo(PostItem, (prevProps, nextProps) => {
     if (prevProps.post.comments_count !== nextProps.post.comments_count) return false;
     if (prevProps.post.reposts_count !== nextProps.post.reposts_count) return false;
     if (prevProps.post.is_liked !== nextProps.post.is_liked) return false;
+    if (prevProps.post.is_published !== nextProps.post.is_published) return false;
+    if (prevProps.post.is_pinned !== nextProps.post.is_pinned) return false;
     if (JSON.stringify(prevProps.post.reactions) !== JSON.stringify(nextProps.post.reactions)) return false;
     if (JSON.stringify(prevProps.post.content) !== JSON.stringify(nextProps.post.content)) return false;
     return true;

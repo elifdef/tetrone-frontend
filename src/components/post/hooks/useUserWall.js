@@ -1,145 +1,221 @@
-import {useCallback, useState} from 'react';
-import {useInfiniteQuery, useMutation, useQueryClient} from "@tanstack/react-query";
-import {useTranslation} from 'react-i18next';
-import {notifyError, notifySuccess} from "../../common/Notify";
-import {useModal} from "../../../context/ModalContext";
+import { useCallback, useState } from 'react';
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
+import { notifyError, notifySuccess } from "../../common/Notify";
+import { useModal } from "../../../context/ModalContext";
 import PostService from '../../../services/post.service';
 
-export const useUserWall = (profileUser) =>
-{
-    const {t} = useTranslation();
-    const {openConfirm} = useModal();
+export const useUserWall = (profileUser, activeTab = 'all') => {
+    const { t } = useTranslation();
+    const { openConfirm } = useModal();
     const queryClient = useQueryClient();
-    const queryKey = ['wall', profileUser?.username];
+
+    // Додаємо activeTab у queryKey, щоб кеш для "Всі" і "Відкладені" був різним
+    const queryKey = ['wall', profileUser?.username, activeTab];
     const [editingPostId, setEditingPostId] = useState(null);
 
-    const {data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage} = useInfiniteQuery({
+    const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey,
-        queryFn:          ({pageParam = 1}) => PostService.getUserPosts(profileUser?.username, pageParam),
-        getNextPageParam: (lastPage) =>
-                          {
-                              const meta = lastPage?.meta;
-                              return meta && meta.current_page < meta.last_page ? meta.current_page + 1 : undefined;
-                          },
+        queryFn: ({ pageParam = 1 }) => PostService.getUserPosts(profileUser?.username, pageParam, activeTab),
+        getNextPageParam: (lastPage) => {
+            const meta = lastPage?.meta;
+            return meta && meta.current_page < meta.last_page ? meta.current_page + 1 : undefined;
+        },
         initialPageParam: 1,
-        enabled:          !!profileUser?.username
+        enabled: !!profileUser?.username
     });
 
-    // Витягуємо пости з кожної сторінки
     const posts = data?.pages.flatMap(page => page.posts || []) || [];
     const countPosts = data?.pages[0]?.meta?.total || 0;
 
     const createMutation = useMutation({
-        mutationFn: ({payload, images}) => PostService.create({payload, images, target_username: profileUser.username}),
-        onSuccess:  (res) =>
-                    {
-                        if (res && res.ok)
-                        { // ФІКС: перевіряємо res.ok замість res
-                            queryClient.setQueryData(queryKey, (oldData) =>
-                            {
-                                if (!oldData) return oldData;
-                                const newPages = [...oldData.pages];
-                                const createdPost = res.post;
+        mutationFn: ({ payload, images }) => PostService.create({ payload, images, target_username: profileUser.username }),
+        onSuccess: (res) => {
+            if (res && res.ok) {
+                const createdPost = res.post;
 
-                                if (newPages.length > 0 && createdPost)
-                                {
-                                    newPages[0] = {...newPages[0], posts: [createdPost, ...(newPages[0].posts || [])]};
-                                }
-                                return {...oldData, pages: newPages};
-                            });
-                        } else
-                        {
-                            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+                if (!createdPost.is_published && activeTab !== 'scheduled') {
+                    queryClient.invalidateQueries(['wall', profileUser?.username, 'scheduled']);
+                    return;
+                }
+
+                queryClient.setQueryData(queryKey, (oldData) => {
+                    if (!oldData) return oldData;
+                    const newPages = [...oldData.pages];
+
+                    if (newPages.length > 0 && createdPost) {
+                        const currentPosts = newPages[0].posts || [];
+
+                        // Якщо перший пост закріплений - вставляємо НОВИЙ пост ПІСЛЯ нього
+                        if (currentPosts.length > 0 && currentPosts[0].is_pinned) {
+                            newPages[0] = {
+                                ...newPages[0],
+                                posts: [currentPosts[0], createdPost, ...currentPosts.slice(1)]
+                            };
+                        } else {
+                            // Якщо закріплених немає - ставимо на самий верх
+                            newPages[0] = {
+                                ...newPages[0],
+                                posts: [createdPost, ...currentPosts]
+                            };
                         }
                     }
+                    return { ...oldData, pages: newPages };
+                });
+            } else {
+                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            }
+        }
+    });
+
+    const pinMutation = useMutation({
+        mutationFn: (postId) => PostService.togglePin(postId),
+        onSuccess: (res, pinnedId) => {
+            if (res && res.ok) {
+                queryClient.setQueryData(queryKey, (oldData) => {
+                    if (!oldData) return oldData;
+
+                    // Збираємо всі пости в один масив для сортування
+                    let allPosts = oldData.pages.flatMap(page => page.posts || []);
+                    const isPinning = res.code === 'POST_PINNED';
+
+                    allPosts = allPosts.map(p => ({
+                        ...p,
+                        is_pinned: p.id === pinnedId ? isPinning : false
+                    }));
+
+                    // Сортуємо: закріплений завжди перший, інші за датою створення
+                    allPosts.sort((a, b) => {
+                        if (a.is_pinned) return -1;
+                        if (b.is_pinned) return 1;
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+
+                    // Розбиваємо назад на сторінки (щоб не зламати пагінацію)
+                    let offset = 0;
+                    const newPages = oldData.pages.map(page => {
+                        const length = page.posts ? page.posts.length : 0;
+                        const pagePosts = allPosts.slice(offset, offset + length);
+                        offset += length;
+                        return { ...page, posts: pagePosts };
+                    });
+
+                    return { ...oldData, pages: newPages };
+                });
+            } else {
+                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            }
+        }
     });
 
     const editMutation = useMutation({
-        mutationFn: ({postId, updateData}) => PostService.update(postId, updateData),
-        onSuccess:  (res, variables) =>
-                    {
-                        if (res && res.ok)
-                        { // ФІКС: раніше тут було res.success (яке undefined)
-                            queryClient.setQueryData(queryKey, (oldData) =>
-                            {
-                                if (!oldData) return oldData;
-                                const updatedPost = res.post || res.data;
+        mutationFn: ({ postId, updateData }) => PostService.update(postId, updateData),
+        onSuccess: (res, variables) => {
+            if (res && res.ok) {
+                queryClient.setQueryData(queryKey, (oldData) => {
+                    if (!oldData) return oldData;
+                    const updatedPost = res.post || res.data;
 
-                                return {
-                                    ...oldData,
-                                    pages: oldData.pages.map(page => ({
-                                        ...page,
-                                        // Шукаємо і замінюємо пост у масиві posts
-                                        posts: (page.posts || []).map(p => p.id === variables.postId ? updatedPost : p)
-                                    }))
-                                };
-                            });
-                            notifySuccess(t(`api.success.${res.code || 'SUCCESS'}`));
-                            setEditingPostId(null);
-                        } else
-                        {
-                            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
-                        }
-                    }
+                    return {
+                        ...oldData,
+                        pages: oldData.pages.map(page => ({
+                            ...page,
+                            posts: (page.posts || []).map(p => p.id === variables.postId ? updatedPost : p)
+                        }))
+                    };
+                });
+                notifySuccess(t(`api.success.${res.code || 'SUCCESS'}`));
+                setEditingPostId(null);
+            } else {
+                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            }
+        }
     });
 
     const deleteMutation = useMutation({
         mutationFn: (postId) => PostService.delete(postId),
-        onSuccess:  (res, deletedId) =>
-                    {
-                        if (res && res.ok)
-                        { // ФІКС: перевіряємо res.ok
-                            queryClient.setQueryData(queryKey, (oldData) =>
-                            {
-                                if (!oldData) return oldData;
-                                return {
-                                    ...oldData,
-                                    pages: oldData.pages.map(page => ({
-                                        ...page,
-                                        // Фільтруємо масив posts
-                                        posts: (page.posts || []).filter(p => p.id !== deletedId)
-                                    }))
-                                };
-                            });
-                        } else
-                        {
-                            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
-                        }
-                    }
+        onSuccess: (res, deletedId) => {
+            if (res && res.ok) {
+                queryClient.setQueryData(queryKey, (oldData) => {
+                    if (!oldData) return oldData;
+                    return {
+                        ...oldData,
+                        pages: oldData.pages.map(page => ({
+                            ...page,
+                            posts: (page.posts || []).filter(p => p.id !== deletedId)
+                        }))
+                    };
+                });
+            } else {
+                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            }
+        }
     });
 
-    const createPost = async (payload, images) =>
-    {
-        await createMutation.mutateAsync({payload, images});
+    // МУТАЦІЯ ДЛЯ ПУБЛІКАЦІЇ ЗАРАЗ
+    const publishNowMutation = useMutation({
+        mutationFn: (postId) => PostService.publishNow(postId),
+        onSuccess: (res, publishedId) => {
+            if (res && res.ok) {
+                queryClient.setQueryData(queryKey, (oldData) => {
+                    if (!oldData) return oldData;
+                    return {
+                        ...oldData,
+                        pages: oldData.pages.map(page => ({
+                            ...page,
+                            // Якщо ми на вкладці "Відкладені", просто прибираємо пост з екрана.
+                            // Якщо на "Всі", оновлюємо його статус
+                            posts: activeTab === 'scheduled'
+                                ? (page.posts || []).filter(p => p.id !== publishedId)
+                                : (page.posts || []).map(p => p.id === publishedId ? { ...p, is_published: true, published_at: null } : p)
+                        }))
+                    };
+                });
+                notifySuccess(t('post.published_success', 'Запис опубліковано'));
+            } else {
+                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            }
+        }
+    });
+
+    const createPost = async (payload, images) => {
+        await createMutation.mutateAsync({ payload, images });
         return true;
     };
 
-    const saveEdit = async (postId, updateData) => await editMutation.mutateAsync({postId, updateData});
+    const saveEdit = async (postId, updateData) => await editMutation.mutateAsync({ postId, updateData });
 
-    const handleDelete = useCallback(async (postId) =>
-    {
+    const handleDelete = useCallback(async (postId) => {
         const isConfirmed = await openConfirm(t('action.delete'));
         if (!isConfirmed) return;
         await deleteMutation.mutateAsync(postId);
     }, [openConfirm, t, deleteMutation]);
 
-    const handleRepostSuccess = (newPost) =>
-    {
-        queryClient.setQueryData(queryKey, (oldData) =>
-        {
+    const handlePublishNow = useCallback(async (postId) => {
+        const isConfirmed = await openConfirm(t('post.confirm_publish_now'));
+        if (!isConfirmed) return;
+        await publishNowMutation.mutateAsync(postId);
+    }, [openConfirm, t, publishNowMutation]);
+
+    const handlePinToggle = useCallback(async (postId) => {
+        await pinMutation.mutateAsync(postId);
+    }, [pinMutation]);
+
+    const handleRepostSuccess = (newPost) => {
+        queryClient.setQueryData(queryKey, (oldData) => {
             if (!oldData) return oldData;
             const newPages = [...oldData.pages];
-            if (newPages.length > 0)
-            {
-                newPages[0] = {...newPages[0], posts: [newPost, ...(newPages[0].posts || [])]};
+            if (newPages.length > 0) {
+                newPages[0] = { ...newPages[0], posts: [newPost, ...(newPages[0].posts || [])] };
             }
-            return {...oldData, pages: newPages};
+            return { ...oldData, pages: newPages };
         });
     };
 
     return {
         posts, countPosts, isPageLoading: isLoading, hasMore: !!hasNextPage, isLoadingMore: isFetchingNextPage,
-        loadMore:                         fetchNextPage, createPost, handleDelete, editingPostId, handleRepostSuccess,
-        startEditing:                     (post) => setEditingPostId(post.id), cancelEditing: () => setEditingPostId(null), saveEdit
+        loadMore: fetchNextPage, createPost, handleDelete, editingPostId, handleRepostSuccess,
+        startEditing: (post) => setEditingPostId(post.id), cancelEditing: () => setEditingPostId(null), saveEdit,
+        handlePublishNow, handlePinToggle
     };
 };

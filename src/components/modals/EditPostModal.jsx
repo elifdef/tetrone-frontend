@@ -13,6 +13,17 @@ import {notifySuccess, notifyError} from '../common/Notify';
 import Modal from '../modals/Modal';
 import Tabs from '../ui/Tabs';
 import {useModal} from "../../context/ModalContext.jsx";
+import Checkbox from '../ui/Checkbox';
+import DateInput from '../ui/DateInput';
+
+// Конвертація ISO в формат YYYY-MM-DDTHH:mm для інпута
+const toLocalISOString = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const tzOffset = date.getTimezoneOffset() * 60000; 
+    const localISOTime = (new Date(date - tzOffset)).toISOString().slice(0, -1);
+    return localISOTime.substring(0, 16);
+};
 
 export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
 {
@@ -24,6 +35,11 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
     const [allowedPacks, setAllowedPacks] = useState([]);
     const [blockedPacks, setBlockedPacks] = useState([]);
     const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+    // Нові стейти для редагування налаштувань відкладеного поста
+    const [isScheduled, setIsScheduled] = useState(false);
+    const [scheduleDate, setScheduleDate] = useState('');
+    const [canComment, setCanComment] = useState(true);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [globalPacks, setGlobalPacks] = useState([]);
@@ -41,6 +57,14 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         handleFileSelect, handlePaste, removeFile: removeNewFile
     } = useEditPost(post, async (postId, editData) =>
     {
+        // Перед збереженням додаємо поля дати та коментарів до payload
+        if (isScheduled && scheduleDate) {
+            const dateObj = new Date(scheduleDate);
+            editData.published_at = dateObj.toISOString();
+        }
+        // Можна редагувати коментарі тільки для відкладених (або якщо бекенд це підтримує)
+        editData.payload = { ...editData.payload, can_comment: canComment };
+
         if (onSaveSuccess) await onSaveSuccess(postId, editData);
         onClose();
     });
@@ -50,6 +74,10 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         if (isOpen && post)
         {
             setActiveTab('content');
+            setIsScheduled(!post.is_published);
+            setScheduleDate(post.published_at ? toLocalISOString(post.published_at) : '');
+            setCanComment(post.can_comment ?? true);
+
             if (post.reaction_config)
             {
                 setMaxLimit(post.reaction_config.max_limit || 8);
@@ -66,10 +94,10 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         }
     }, [isOpen, post]);
 
+    // ... useEffect для стікерів та togglePackState залишаються без змін ...
     useEffect(() =>
     {
         if (activeTab !== 'settings') return;
-
         const delayDebounceFn = setTimeout(() =>
         {
             setIsLoadingPacks(true);
@@ -78,11 +106,8 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
             .onError(err => console.error(err))
             .onFinally(() => setIsLoadingPacks(false));
         }, 500);
-
         return () => clearTimeout(delayDebounceFn);
     }, [searchQuery, activeTab]);
-
-    if (!isOpen || !post) return null;
 
     const togglePackState = (packId) =>
     {
@@ -153,18 +178,16 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
     ];
 
     const handleAttemptClose = async () => {
-        const hasChanges = true; // твоя логіка перевірки
-
-        if (hasChanges) {
-            const confirm = await openConfirm(
-                t('common.unsaved_changes_desc'),
-                t('common.unsaved_changes_title'),
-                t('action.discard')
-            );
-            if (!confirm) return; // Юзер передумав
-        }
-        onClose(); // Закриваємо модалку
+        const confirm = await openConfirm(
+            t('common.unsaved_changes_desc'),
+            t('common.unsaved_changes_title'),
+            t('action.discard')
+        );
+        if (!confirm) return;
+        onClose();
     };
+
+    if (!isOpen || !post) return null;
 
     return (
         <Modal
@@ -177,20 +200,9 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
             onCloseRequest={handleAttemptClose}
             preventOutsideClose={true}
         >
-            <Tabs
-                tabs={editTabs}
-                activeTab={activeTab}
-                onChange={setActiveTab}
-                className="mb-[15px]"
-            />
+            <Tabs tabs={editTabs} activeTab={activeTab} onChange={setActiveTab} className="mb-[15px]" />
 
-            <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onPaste={handlePaste}
-                className="relative"
-            >
+            <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onPaste={handlePaste} className="relative">
                 {activeTab === 'content' && (
                     <>
                         {isDragging && (
@@ -199,24 +211,30 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
                             </div>
                         )}
 
-                        <div className="border border-input-border bg-input-bg rounded-[2px]">
-                            <SmartEditor
-                                preset="post"
-                                value={editContent}
-                                onChange={setEditContent}
-                            />
-                        </div>
-
-                        {post?.entities?.poll && (
-                            <div className="bg-bg-page border border-border p-[8px_12px] mt-[10px] flex items-center justify-between text-[12px] text-text-muted opacity-70 rounded-[2px] cursor-not-allowed">
-                                <span className="flex items-center gap-[6px] font-bold">
-                                    <PollIcon width={16} height={16}/> {post.entities.poll.question}
-                                </span>
-                                <span className="text-[10px] uppercase font-bold text-theme-error">
-                                    {t('poll.edit_locked')}
-                                </span>
+                        {isScheduled && (
+                            <div className="mb-[10px] p-[10px] bg-bg-page border border-border flex gap-[15px] items-end">
+                                <div className="flex-1">
+                                    <DateInput
+                                        label={t('editor.schedule_title')}
+                                        value={scheduleDate}
+                                        onChange={(e) => setScheduleDate(e.target.value)}
+                                        showTimeSelect={true}
+                                        minDate={new Date()}
+                                    />
+                                </div>
+                                <div className="pb-[8px]">
+                                    <Checkbox 
+                                        checked={canComment} 
+                                        onChange={(e) => setCanComment(e.target.checked)} 
+                                        label={t('post.allow_comments')} 
+                                    />
+                                </div>
                             </div>
                         )}
+
+                        <div className="border border-input-border bg-input-bg rounded-[2px]">
+                            <SmartEditor preset="post" value={editContent} onChange={setEditContent} />
+                        </div>
 
                         <MediaPreviews previews={existingMedia} onRemove={removeExistingMedia} isExisting={true}/>
                         <MediaPreviews previews={newPreviews} onRemove={removeNewFile}/>

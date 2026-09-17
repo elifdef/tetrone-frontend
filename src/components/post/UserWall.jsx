@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../context/AuthContext';
 import { useUserWall } from './hooks/useUserWall';
@@ -6,16 +6,19 @@ import WallHeader from './WallHeader';
 import CreatePostForm from './CreatePostForm';
 import WallPostList from './WallPostList';
 import InfiniteScrollList from '../common/InfiniteScrollList';
+import EditPostModal from '../modals/EditPostModal';
 
 export default function UserWall({ profileUser, isOwnProfile }) {
     const { user: authUser } = useContext(AuthContext);
     const { t } = useTranslation();
+    
+    const [showScheduled, setShowScheduled] = useState(false);
 
     if (profileUser.is_private && !isOwnProfile) {
         return null;
     }
 
-    const wallData = useUserWall(profileUser);
+    const wallData = useUserWall(profileUser, showScheduled ? 'scheduled' : 'all'); 
     const canWriteOnWall = Boolean(profileUser.permissions?.can_post_on_wall);
 
     return (
@@ -23,9 +26,15 @@ export default function UserWall({ profileUser, isOwnProfile }) {
             <WallHeader postsCount={wallData.countPosts} />
 
             {canWriteOnWall ? (
-                <CreatePostForm onSubmitSuccess={wallData.createPost} />
+                <CreatePostForm 
+                    onSubmitSuccess={wallData.createPost}
+                    onToggleScheduled={isOwnProfile ? () => setShowScheduled(!showScheduled) : null}
+                    showScheduled={showScheduled}
+                    setShowScheduled={setShowScheduled}
+                    currentUser={authUser}
+                />
             ) : (
-                authUser && !isOwnProfile && (
+                authUser && !isOwnProfile && !showScheduled && (
                     <div className="text-center text-text-muted p-[30px_20px] text-[13px] w-full box-border bg-bg-box my-[20px] mx-auto max-w-[500px]">
                         <span className="text-text-muted">{t('privacy.wall_posting_disabled')}</span>
                     </div>
@@ -40,7 +49,7 @@ export default function UserWall({ profileUser, isOwnProfile }) {
                 onLoadMore={wallData.loadMore}
                 emptyState={
                     <div className="text-center text-text-muted p-[30px_20px] text-[13px] w-full box-border bg-bg-box my-[20px] mx-auto max-w-[500px]">
-                        {t('empty.wall')}
+                        {showScheduled ? t('empty.no_scheduled_posts') : t('empty.wall')}
                     </div>
                 }
             >
@@ -54,8 +63,19 @@ export default function UserWall({ profileUser, isOwnProfile }) {
                     startEditing={wallData.startEditing}
                     handleDelete={wallData.handleDelete}
                     handleRepostSuccess={wallData.handleRepostSuccess}
+                    handlePublishNow={wallData.handlePublishNow} 
+                    handlePinToggle={wallData.handlePinToggle}
                 />
             </InfiniteScrollList>
+
+            {wallData.editingPostId && (
+                <EditPostModal
+                    isOpen={true}
+                    onClose={wallData.cancelEditing}
+                    post={wallData.posts.find(p => p.id === wallData.editingPostId)}
+                    onSaveSuccess={wallData.saveEdit}
+                />
+            )}
         </div>
     );
 }

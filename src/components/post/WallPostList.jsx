@@ -1,43 +1,27 @@
-import PostItem from '../post/PostItem';
-import EditPostModal from '../modals/EditPostModal';
+import PostItem from './PostItem';
 
-export default function WallPostList({
-                                         posts, authUser, profileUser,
-                                         editingPostId,
-                                         saveEdit, cancelEditing,
-                                         startEditing, handleDelete, handleRepostSuccess
-                                     }) {
-    // Порівнюємо строго по username, оскільки ID більше не віддається
-    const isWallOwner = authUser && profileUser && authUser.username === profileUser.username;
-    const editingPost = posts.find(post => post.id === editingPostId);
+export default function WallPostList({ 
+    posts, authUser, profileUser, editingPostId, saveEdit, 
+    cancelEditing, startEditing, handleDelete, handleRepostSuccess, 
+    handlePublishNow, handlePinToggle 
+}) {
+    if (!posts || posts.length === 0) return null;
 
     return (
-        <div className="mt-[10px]">
-            {posts.map(post => {
-                // ФІКС: беремо username з post.author, а не з post.user
-                const isAuthor = authUser && post.author && authUser.username === post.author.username;
-
-                return (
-                    <PostItem
-                        key={post.id}
-                        post={post}
-                        isOwner={isAuthor || isWallOwner}
-                        onEdit={isAuthor ? startEditing : null}
-                        currentUsername={authUser?.username}
-                        onDelete={handleDelete}
-                        onRepostSuccess={handleRepostSuccess}
-                    />
-                );
-            })}
-
-            {editingPost && (
-                <EditPostModal
-                    isOpen={!!editingPostId}
-                    post={editingPost}
-                    onClose={cancelEditing}
-                    onSaveSuccess={saveEdit}
+        <div className="flex flex-col gap-[15px]">
+            {posts.map(post => (
+                <PostItem
+                    key={post.id}
+                    post={post}
+                    currentUsername={authUser?.username}
+                    isOwner={authUser?.id === profileUser?.id}
+                    onEdit={startEditing}
+                    onDelete={handleDelete}
+                    onRepostSuccess={handleRepostSuccess}
+                    onPublishNow={handlePublishNow} // Кнопка "Опублікувати зараз"
+                    onPinToggle={handlePinToggle}   // Кнопка "Прикріпити"
                 />
-            )}
+            ))}
         </div>
     );
 }

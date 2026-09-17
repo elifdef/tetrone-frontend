@@ -606,7 +606,9 @@
     "welcome": "Ласкаво просимо",
     "yes": "Так",
     "you": "Ви: ",
-    "updated": "Оновлено"
+    "updated": "Оновлено",
+    "pin": "Закріпити",
+    "unpin": "Відкріпити"
   },
   "cookie": {
     "variants": [
@@ -690,6 +692,8 @@
     ]
   },
   "editor": {
+    "schedule_title": "Відкладена публікація",
+    "schedule_confirm": "Опублікувати пізніше",
     "add_col": "Додати колонку",
     "add_row": "Додати рядок",
     "blockquote": "Цитата",
@@ -761,7 +765,8 @@
     "subscribers": "Немає підписників",
     "subscriptions": "Немає підписок",
     "videos": "Нема відео",
-    "wall": "На стіні ще немає постів."
+    "wall": "На стіні ще немає постів.",
+    "no_scheduled_posts": "Немає відкладених постів"
   },
   "entities": {
     "comment_few": "{{count}} коментарі",
@@ -1085,7 +1090,10 @@
     "updated_avatar_female": "оновила аватар",
     "updated_avatar_male": "оновив аватар",
     "wrote_on_wall_female": "написала на стіні",
-    "wrote_on_wall_male": "написав на стіні"
+    "wrote_on_wall_male": "написав на стіні",
+    "allow_comments": "Включити коментарі",
+    "confirm_publish_now": "Опублікувати цей запис зараз?",
+    "will_be_published": "Буде опубліковано о"
   },
   "privacy": {
     "account_is_private": "Цей акаунт закритий",

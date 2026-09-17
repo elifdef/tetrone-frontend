@@ -15,38 +15,36 @@ export default function CreatePostForm({
                                            space = null,
                                            isSpaceAdmin = false,
                                            targetUsername = null,
-                                           currentUser
+                                           currentUser,
+                                           onToggleScheduled = null,
+                                           showScheduled = false,
+                                           setShowScheduled = null
                                        }) {
     const { t } = useTranslation();
-
-    // За замовчуванням пишемо від свого імені
     const [authorUsername, setAuthorUsername] = useState(currentUser?.username || '');
-    const [publishedAt, setPublishedAt] = useState(null);
 
     const {
-        content, setContent,
-        pollData, setPollData,
-        showPollCreator, setShowPollCreator,
-        removedPreviews, toggleYouTubePreview,
-        external, handleSubmit,
-        files, previews, isDragging,
-        handleDragOver, handleDragLeave, handleDrop,
-        handleFileSelect, handlePaste, removeFile,
-        isSubmitting, toggleMediaFlag
+        content, setContent, pollData, setPollData, showPollCreator, setShowPollCreator,
+        removedPreviews, toggleYouTubePreview, external, handleSubmit, files, previews, 
+        isDragging, handleDragOver, handleDragLeave, handleDrop, handleFileSelect, 
+        handlePaste, removeFile, isSubmitting, toggleMediaFlag
     } = useCreatePost(onSubmitSuccess, {
         author_username: authorUsername,
-        target_username: targetUsername || null,
-        published_at: publishedAt
+        target_username: targetUsername || null
     });
 
-    const handlePublish = () => {
-        setPublishedAt(null);
-        setTimeout(handleSubmit, 0); // Даємо React час оновити стейт перед сабмітом
+    const handlePublishClick = async (canComment) => {
+        const success = await handleSubmit(null, canComment);
+        if (success && showScheduled && setShowScheduled) {
+            setShowScheduled(false);
+        }
     };
 
-    const handleSchedule = (date) => {
-        setPublishedAt(date);
-        setTimeout(handleSubmit, 0);
+    const handleScheduleClick = async (date, canComment) => {
+        const success = await handleSubmit(date, canComment);
+        if (success && setShowScheduled) {
+            setShowScheduled(true);
+        }
     };
 
     const ownedSpaces = isSpaceAdmin && space ? [space] : [];
@@ -60,7 +58,6 @@ export default function CreatePostForm({
             onPaste={handlePaste}
         >
             <div className="flex items-start gap-[10px]">
-                {/* Аватарка / Вибір автора */}
                 {isSpaceAdmin && currentUser ? (
                     <IdentitySwitcher
                         currentUser={currentUser}
@@ -70,15 +67,10 @@ export default function CreatePostForm({
                     />
                 ) : currentUser ? (
                     <div className="shrink-0 w-[38px] h-[38px] rounded-[4px] border border-border overflow-hidden">
-                        <img
-                            src={currentUser.avatar || '/default-avatar.png'}
-                            alt={currentUser.username}
-                            className="w-full h-full object-cover"
-                        />
+                        <img src={currentUser.avatar || '/default-avatar.png'} alt={currentUser.username} className="w-full h-full object-cover" />
                     </div>
                 ) : null}
 
-                {/* Редактор */}
                 <div className="flex-1 min-w-0">
                     <SmartEditor
                         preset="post"
@@ -90,7 +82,6 @@ export default function CreatePostForm({
                 </div>
             </div>
 
-            {/* Опитування */}
             {pollData && (
                 <div
                     className="bg-bg-page border border-border p-[8px_12px] flex items-center justify-between cursor-pointer hover:bg-input-bg transition-colors text-[12px] text-text-main rounded-[2px]"
@@ -111,18 +102,36 @@ export default function CreatePostForm({
                 </div>
             )}
 
-            {/* Прев'ю медіа та YouTube */}
             <MediaPreviews previews={previews} onRemove={removeFile} onToggleFlag={toggleMediaFlag}/>
             <YouTubePreviews youtubeLinks={external.youtube} removedPreviews={removedPreviews} onToggle={toggleYouTubePreview} />
 
-            {/* Нижня панель */}
             <div className="flex justify-between items-center mt-[4px] pt-[8px] border-t border-border">
-                <AttachBar onFileSelect={handleFileSelect} />
-                <PublishButton
-                    onPublish={handlePublish}
-                    onSchedule={handleSchedule}
-                    isSubmitting={isSubmitting}
-                />
+                <div className="flex items-center gap-[15px]">
+                    <AttachBar onFileSelect={handleFileSelect} />
+                </div>
+                
+                <div className="flex items-center gap-[10px]">
+                    {onToggleScheduled && (
+                        <button
+                            type="button"
+                            onClick={onToggleScheduled}
+                            className={`bg-transparent border-none cursor-pointer p-[4px] flex items-center justify-center outline-none transition-colors rounded-[2px] ${showScheduled ? 'text-theme-link bg-[rgba(0,102,204,0.1)]' : 'text-text-muted hover:text-theme-link hover:bg-bg-page'}`}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </button>
+                    )}
+                    
+                    <PublishButton
+                        onPublish={handlePublishClick}
+                        onSchedule={handleScheduleClick}
+                        isSubmitting={isSubmitting}
+                    />
+                </div>
             </div>
 
             <PollCreatorModal
