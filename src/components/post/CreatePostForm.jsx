@@ -11,22 +11,22 @@ import PollCreatorModal from '../modals/PollCreatorModal';
 import { PollIcon, CloseIcon } from '../ui/Icons';
 
 export default function CreatePostForm({
-                                           onSubmitSuccess,
-                                           space = null,
-                                           isSpaceAdmin = false,
-                                           targetUsername = null,
-                                           currentUser,
-                                           onToggleScheduled = null,
-                                           showScheduled = false,
-                                           setShowScheduled = null
-                                       }) {
+    onSubmitSuccess,
+    space = null,
+    isSpaceAdmin = false,
+    targetUsername = null,
+    currentUser,
+    onToggleScheduled = null,
+    showScheduled = false,
+    placeholder
+}) {
     const { t } = useTranslation();
     const [authorUsername, setAuthorUsername] = useState(currentUser?.username || '');
 
     const {
         content, setContent, pollData, setPollData, showPollCreator, setShowPollCreator,
-        removedPreviews, toggleYouTubePreview, external, handleSubmit, files, previews, 
-        isDragging, handleDragOver, handleDragLeave, handleDrop, handleFileSelect, 
+        removedPreviews, toggleYouTubePreview, external, handleSubmit, files, previews,
+        isDragging, handleDragOver, handleDragLeave, handleDrop, handleFileSelect,
         handlePaste, removeFile, isSubmitting, toggleMediaFlag
     } = useCreatePost(onSubmitSuccess, {
         author_username: authorUsername,
@@ -34,57 +34,93 @@ export default function CreatePostForm({
     });
 
     const handlePublishClick = async (canComment) => {
-        const success = await handleSubmit(null, canComment);
-        if (success && showScheduled && setShowScheduled) {
-            setShowScheduled(false);
+        try {
+            await handleSubmit(null, canComment);
+            if (showScheduled && onToggleScheduled) {
+                onToggleScheduled();
+            }
+        } catch (error) {
+            console.error("Publish error:", error);
         }
     };
 
     const handleScheduleClick = async (date, canComment) => {
-        const success = await handleSubmit(date, canComment);
-        if (success && setShowScheduled) {
-            setShowScheduled(true);
+        try {
+            await handleSubmit(date, canComment);
+            if (onToggleScheduled && !showScheduled) {
+                onToggleScheduled();
+            }
+        } catch (error) {
+            console.error("Schedule error:", error);
         }
     };
 
     const ownedSpaces = isSpaceAdmin && space ? [space] : [];
 
+    const editorPlaceholder = isDragging
+        ? t('wall.drop_files_here')
+        : (placeholder || t('action.write_post'));
+
     return (
         <div
-            className={`flex flex-col gap-[10px] w-full bg-bg-box border border-border p-[12px] rounded-[2px] shadow-sm transition-colors ${isDragging ? 'bg-input-bg' : ''}`}
+            className={`flex flex-col gap-[10px] w-full transition-colors pb-[15px] ${isDragging ? 'bg-[rgba(91,155,213,0.05)]' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onPaste={handlePaste}
         >
-            <div className="flex items-start gap-[10px]">
-                {isSpaceAdmin && currentUser ? (
-                    <IdentitySwitcher
-                        currentUser={currentUser}
-                        ownedSpaces={ownedSpaces}
-                        selectedUsername={authorUsername}
-                        onChangeIdentity={setAuthorUsername}
-                    />
-                ) : currentUser ? (
-                    <div className="shrink-0 w-[38px] h-[38px] rounded-[4px] border border-border overflow-hidden">
-                        <img src={currentUser.avatar || '/default-avatar.png'} alt={currentUser.username} className="w-full h-full object-cover" />
-                    </div>
-                ) : null}
+            <div className="flex items-start gap-[12px]">
 
-                <div className="flex-1 min-w-0">
-                    <SmartEditor
-                        preset="post"
-                        placeholder={isDragging ? t('wall.drop_files_here') : t('action.write_post')}
-                        value={content}
-                        onChange={setContent}
-                        onAddPoll={!pollData ? () => setShowPollCreator(true) : null}
-                    />
+                <div className="shrink-0 mt-[1px]">
+                    {isSpaceAdmin && currentUser ? (
+                        <IdentitySwitcher
+                            currentUser={currentUser}
+                            ownedSpaces={ownedSpaces}
+                            selectedUsername={authorUsername}
+                            onChangeIdentity={setAuthorUsername}
+                        />
+                    ) : currentUser ? (
+                        <div className="w-[40px] h-[40px] border border-border overflow-hidden">
+                            <img src={currentUser.avatar || '/default-avatar.png'} alt={currentUser.username} className="w-full h-full object-cover" />
+                        </div>
+                    ) : null}
+                </div>
+
+                <div className="flex-1 flex items-end bg-bg-box border border-border focus-within:border-theme-link transition-colors min-h-[42px] min-w-0">
+
+                    <div className="flex flex-col justify-end pb-[7px] pl-[8px] shrink-0">
+                        <AttachBar
+                            onFileSelect={handleFileSelect}
+                            onAddPoll={() => setShowPollCreator(true)}
+                            hasPoll={!!pollData}
+                        />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                        <SmartEditor
+                            preset="post"
+                            placeholder={editorPlaceholder}
+                            value={content}
+                            onChange={setContent}
+                        />
+                    </div>
+
+                    <div className="pb-[6px] pr-[6px] shrink-0 flex items-center">
+                        <PublishButton
+                            onPublish={handlePublishClick}
+                            onSchedule={handleScheduleClick}
+                            isSubmitting={isSubmitting}
+                            onToggleScheduled={onToggleScheduled}
+                            showScheduled={showScheduled}
+                        />
+                    </div>
+
                 </div>
             </div>
 
             {pollData && (
                 <div
-                    className="bg-bg-page border border-border p-[8px_12px] flex items-center justify-between cursor-pointer hover:bg-input-bg transition-colors text-[12px] text-text-main rounded-[2px]"
+                    className="bg-bg-page border border-border p-[8px_12px] flex items-center justify-between cursor-pointer hover:bg-input-bg transition-colors text-[12px] text-text-main ml-[52px]"
                     onClick={() => setShowPollCreator(true)}
                     title={t('poll.click_to_edit')}
                 >
@@ -102,36 +138,9 @@ export default function CreatePostForm({
                 </div>
             )}
 
-            <MediaPreviews previews={previews} onRemove={removeFile} onToggleFlag={toggleMediaFlag}/>
-            <YouTubePreviews youtubeLinks={external.youtube} removedPreviews={removedPreviews} onToggle={toggleYouTubePreview} />
-
-            <div className="flex justify-between items-center mt-[4px] pt-[8px] border-t border-border">
-                <div className="flex items-center gap-[15px]">
-                    <AttachBar onFileSelect={handleFileSelect} />
-                </div>
-                
-                <div className="flex items-center gap-[10px]">
-                    {onToggleScheduled && (
-                        <button
-                            type="button"
-                            onClick={onToggleScheduled}
-                            className={`bg-transparent border-none cursor-pointer p-[4px] flex items-center justify-center outline-none transition-colors rounded-[2px] ${showScheduled ? 'text-theme-link bg-[rgba(0,102,204,0.1)]' : 'text-text-muted hover:text-theme-link hover:bg-bg-page'}`}
-                        >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                        </button>
-                    )}
-                    
-                    <PublishButton
-                        onPublish={handlePublishClick}
-                        onSchedule={handleScheduleClick}
-                        isSubmitting={isSubmitting}
-                    />
-                </div>
+            <div className="ml-[52px]">
+                <MediaPreviews previews={previews} onRemove={removeFile} onToggleFlag={toggleMediaFlag} />
+                <YouTubePreviews youtubeLinks={external.youtube} removedPreviews={removedPreviews} onToggle={toggleYouTubePreview} />
             </div>
 
             <PollCreatorModal

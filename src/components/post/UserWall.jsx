@@ -23,15 +23,21 @@ export default function UserWall({ profileUser, isOwnProfile }) {
 
     return (
         <div className="bg-bg-box border border-border p-[15px] mt-[15px] max-md:mx-[-10px] max-md:border-x-0">
-            <WallHeader postsCount={wallData.countPosts} />
+            <WallHeader 
+                postsCount={wallData.countPosts} 
+                showScheduled={showScheduled}
+                onToggleScheduled={isOwnProfile ? () => setShowScheduled(!showScheduled) : null}
+                hasScheduledPosts={wallData.posts.some(p => !p.is_published)} // Передаємо у шапку
+            />
 
             {canWriteOnWall ? (
                 <CreatePostForm 
-                    onSubmitSuccess={wallData.createPost}
+                    onSubmitSuccess={wallData.createPost} // Тепер передає чистий DTO
                     onToggleScheduled={isOwnProfile ? () => setShowScheduled(!showScheduled) : null}
                     showScheduled={showScheduled}
                     setShowScheduled={setShowScheduled}
                     currentUser={authUser}
+                    hasScheduledPosts={wallData.posts.some(p => !p.is_published)} // Передаємо для годинника біля кнопки
                 />
             ) : (
                 authUser && !isOwnProfile && !showScheduled && (

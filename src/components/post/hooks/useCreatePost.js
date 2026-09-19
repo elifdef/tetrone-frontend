@@ -40,24 +40,28 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
         const emptyEditor = isEditorEmpty(content);
 
         if (emptyEditor && formTools.files.length === 0 && !pollData) {
-            notifyError(t('api.error.ERR_POST_EMPTY'));
+            notifyError(t('api.errors.ERR_POST_EMPTY'));
             return false;
         }
 
-        const payload = {};
-        if (!emptyEditor) payload.text = content;
-        if (pollData) payload.poll = pollData;
-        if (removedPreviews.length > 0) payload.youtube = { removed_previews: removedPreviews };
+        const contentPayload = {};
+        if (!emptyEditor) contentPayload.text = content;
+        if (pollData) contentPayload.poll = pollData;
+        if (removedPreviews.length > 0) contentPayload.youtube = { removed_previews: removedPreviews };
 
-        if (options.author_username) payload.author_username = options.author_username;
-        if (options.target_username) payload.target_username = options.target_username;
-        if (publishedAt) payload.published_at = publishedAt;
-        
-        payload.can_comment = canComment;
+        const finalData = {
+            payload: Object.keys(contentPayload).length > 0 ? contentPayload : null,
+            author_username: options.author_username || undefined,
+            target_username: options.target_username || undefined,
+            published_at: publishedAt || null,
+            can_comment: canComment,
+            images: formTools.files // Файли тепер передаються прямо всередині об'єкта
+        };
 
-        const success = await onSubmitSuccess(payload, formTools.files);
+        // Відправляємо 1 аргумент
+        const success = await onSubmitSuccess(finalData);
 
-        if (success) {
+        if (success !== false && success !== undefined) {
             setContent('');
             setRemovedPreviews([]);
             setPollData(null);

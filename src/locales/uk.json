@@ -544,7 +544,7 @@
     "date": "Дата",
     "deleted": "Видалено",
     "document": "Документ",
-    "edited": "Редаговано",
+    "edited": "змінено",
     "error": "Помилка",
     "female": "Жіноча",
     "first_name": "Ім’я",
@@ -692,7 +692,7 @@
     ]
   },
   "editor": {
-    "schedule_title": "Відкладена публікація",
+    "schedule_title": "Відкладені пости",
     "schedule_confirm": "Опублікувати пізніше",
     "add_col": "Додати колонку",
     "add_row": "Додати рядок",
@@ -733,7 +733,21 @@
     "text_styles": "Стилі тексту",
     "toggle_header_col": "Заголовок (колонка)",
     "toggle_header_row": "Заголовок (рядок)",
-    "underline": "Підкреслений"
+    "underline": "Підкреслений",
+    "align_left": "По лівому краю",
+    "align_center": "По центру",
+    "align_right": "По правому краю",
+    "enter_link": "Введіть посилання:",
+    "format_panel_title": "Форматування тексту",
+    "details_title": "Деталі",
+    "details_text": "Прихований текст",
+    "link": "Посилання",
+    "category_styles": "Стилі тексту",
+    "category_align": "Вирівнювання",
+    "category_headers": "Заголовки",
+    "category_lists": "Списки",
+    "category_blocks": "Блокові елементи",
+    "category_tables": "Таблиці"
   },
   "empty": {
     "activity": "Немає даних для відображення",
@@ -903,7 +917,9 @@
     "find_friends": "Знайти друзів",
     "global_feed": "Глобальна стрічка",
     "my_feed": "Моя стрічка",
-    "view_global_feed": "Переглянути глобальну стрічку"
+    "view_global_feed": "Переглянути глобальну стрічку",
+    "whats_new": "Сьогодні я хочу повідати вам про...",
+    "create_post_title": "Новий пост"
   },
   "first_setup": {
     "fill_details": "Заповніть дані, щоб інші користувачі могли вас знайти",
@@ -1093,7 +1109,8 @@
     "wrote_on_wall_male": "написав на стіні",
     "allow_comments": "Включити коментарі",
     "confirm_publish_now": "Опублікувати цей запис зараз?",
-    "will_be_published": "Буде опубліковано о"
+    "will_be_published": "Буде опубліковано о",
+    "pinned": "Прикріплено"
   },
   "privacy": {
     "account_is_private": "Цей акаунт закритий",
@@ -1813,6 +1830,7 @@
   },
   "wall": {
     "drop_files_here": "Відпустіть щоб додати файли",
-    "title": "Стіна"
+    "title": "Стіна",
+    "scheduled": "Відкладені"
   }
 }

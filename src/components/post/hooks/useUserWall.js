@@ -10,7 +10,6 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
     const { openConfirm } = useModal();
     const queryClient = useQueryClient();
 
-    // Додаємо activeTab у queryKey, щоб кеш для "Всі" і "Відкладені" був різним
     const queryKey = ['wall', profileUser?.username, activeTab];
     const [editingPostId, setEditingPostId] = useState(null);
 
@@ -29,13 +28,17 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
     const countPosts = data?.pages[0]?.meta?.total || 0;
 
     const createMutation = useMutation({
-        mutationFn: ({ payload, images }) => PostService.create({ payload, images, target_username: profileUser.username }),
+        // ФІКС: Приймаємо єдиний готовий об'єкт postData, просто додаємо цільову стіну
+        mutationFn: (postData) => PostService.create({ 
+            ...postData, 
+            target_username: profileUser.username 
+        }),
         onSuccess: (res) => {
             if (res && res.ok) {
                 const createdPost = res.post;
 
                 if (!createdPost.is_published && activeTab !== 'scheduled') {
-                    queryClient.invalidateQueries(['wall', profileUser?.username, 'scheduled']);
+                    queryClient.invalidateQueries({ queryKey: ['wall', profileUser?.username, 'scheduled'] });
                     return;
                 }
 
@@ -46,14 +49,12 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                     if (newPages.length > 0 && createdPost) {
                         const currentPosts = newPages[0].posts || [];
 
-                        // Якщо перший пост закріплений - вставляємо НОВИЙ пост ПІСЛЯ нього
                         if (currentPosts.length > 0 && currentPosts[0].is_pinned) {
                             newPages[0] = {
                                 ...newPages[0],
                                 posts: [currentPosts[0], createdPost, ...currentPosts.slice(1)]
                             };
                         } else {
-                            // Якщо закріплених немає - ставимо на самий верх
                             newPages[0] = {
                                 ...newPages[0],
                                 posts: [createdPost, ...currentPosts]
@@ -75,7 +76,6 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                 queryClient.setQueryData(queryKey, (oldData) => {
                     if (!oldData) return oldData;
 
-                    // Збираємо всі пости в один масив для сортування
                     let allPosts = oldData.pages.flatMap(page => page.posts || []);
                     const isPinning = res.code === 'POST_PINNED';
 
@@ -84,14 +84,12 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                         is_pinned: p.id === pinnedId ? isPinning : false
                     }));
 
-                    // Сортуємо: закріплений завжди перший, інші за датою створення
                     allPosts.sort((a, b) => {
                         if (a.is_pinned) return -1;
                         if (b.is_pinned) return 1;
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
 
-                    // Розбиваємо назад на сторінки (щоб не зламати пагінацію)
                     let offset = 0;
                     const newPages = oldData.pages.map(page => {
                         const length = page.posts ? page.posts.length : 0;
@@ -152,7 +150,6 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
         }
     });
 
-    // МУТАЦІЯ ДЛЯ ПУБЛІКАЦІЇ ЗАРАЗ
     const publishNowMutation = useMutation({
         mutationFn: (postId) => PostService.publishNow(postId),
         onSuccess: (res, publishedId) => {
@@ -163,23 +160,22 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                         ...oldData,
                         pages: oldData.pages.map(page => ({
                             ...page,
-                            // Якщо ми на вкладці "Відкладені", просто прибираємо пост з екрана.
-                            // Якщо на "Всі", оновлюємо його статус
                             posts: activeTab === 'scheduled'
                                 ? (page.posts || []).filter(p => p.id !== publishedId)
                                 : (page.posts || []).map(p => p.id === publishedId ? { ...p, is_published: true, published_at: null } : p)
                         }))
                     };
                 });
-                notifySuccess(t('post.published_success', 'Запис опубліковано'));
+                notifySuccess(t('post.published_success'));
             } else {
                 notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
             }
         }
     });
 
-    const createPost = async (payload, images) => {
-        await createMutation.mutateAsync({ payload, images });
+    // ФІКС: Тепер ми приймаємо єдиний об'єкт postData, який згенерував useCreatePost
+    const createPost = async (postData) => {
+        await createMutation.mutateAsync(postData);
         return true;
     };
 

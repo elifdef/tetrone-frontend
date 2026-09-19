@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { EditIcon, DeleteIcon, ReplyIcon, ReportIcon, DotsIcon, LikeIcon } from '../ui/Icons';
 import RichText from '../common/RichText';
-import SmartEditor from '../editor/SmartEditor'; // Додано імпорт SmartEditor
+import SmartEditor from '../editor/SmartEditor';
 import { isEditorEmpty } from '../../utils/editorHelpers';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
@@ -25,6 +25,8 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
 
     const isOwner = currentUser && currentUser.username === comment.user.username;
     const canReport = currentUser && !isOwner;
+
+    const isEdited = comment.updated_at && comment.updated_at !== comment.created_at;
 
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(comment.content);
@@ -164,9 +166,9 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
 
     const hasChildren = comment.children && comment.children.length > 0;
     const avatarSizeClass = depth === 1 ? 'w-[40px] h-[40px]' : 'w-[32px] h-[32px]';
-
-    // Класи для пунктів меню
     const dropItemClass = "bg-transparent border-none py-[6px] px-[12px] flex items-center gap-[6px] text-left cursor-pointer transition-colors whitespace-nowrap text-[11px] w-full outline-none text-text-main hover:bg-bg-page hover:text-theme-link";
+
+    const usernameColor = comment.user.personalization?.username_color;
 
     return (
         <div className={`comment-thread depth-${depth}`}>
@@ -180,14 +182,26 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
 
                 <div className="flex-1 min-w-0 flex flex-col">
                     <div className="flex items-center gap-[8px] mb-[4px] min-h-[16px]">
-                        <Link to={`/${comment.user.username}`} className="text-theme-link font-bold text-[11px] no-underline hover:underline">
+                        <Link 
+                            to={`/${comment.user.username}`} 
+                            className="text-theme-link font-bold text-[11px] no-underline hover:underline"
+                            style={usernameColor ? { color: usernameColor } : undefined}
+                        >
                             {comment.user.first_name} {comment.user.last_name}
                         </Link>
-                        <span className="text-[10px] text-text-muted">{formatDate(comment.created_at)}</span>
+                        
+                        <span className="text-[10px] text-text-muted">
+                            {formatDate(comment.created_at)}
+                            {isEdited && (
+                                <span className="italic ml-[4px]">
+                                    ({t('common.edited')} {formatDate(comment.updated_at)})
+                                </span>
+                            )}
+                        </span>
 
                         {(isOwner || canReport) && !isEditing && (
                             <div className="relative ml-auto px-[4px] cursor-pointer text-text-muted hover:text-text-main flex items-center" ref={menuRef}>
-                                <button type="button" className="bg-transparent border-none p-0 cursor-pointer text-inherit" onClick={() => setShowMenu(!showMenu)}>
+                                <button type="button" className="bg-transparent border-none p-0 cursor-pointer text-inherit outline-none" onClick={() => setShowMenu(!showMenu)}>
                                     <DotsIcon />
                                 </button>
 
@@ -244,7 +258,6 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                                 onClick={handleLike}
                                 disabled={!currentUser}
                             >
-                                {/* ФІКС: Замінено на LikeIcon із динамічним класом fill-current */}
                                 <LikeIcon width={14} height={14} className={comment.is_liked ? 'fill-current' : ''} />
                                 {comment.likes_count || 0}
                             </button>

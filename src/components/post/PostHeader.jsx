@@ -31,7 +31,7 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
     const isPinned = post.is_pinned === true;
 
     const isAuthor = currentUsername && (currentUsername === author.username);
-    
+
     const wallOwnerUsername = target ? target.username : author.username;
     const isWallOwner = currentUsername && (currentUsername === wallOwnerUsername);
 
@@ -102,15 +102,20 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
                     </div>
 
                     <div className="flex items-center gap-[4px] mt-[2px] text-[10px] text-text-muted">
+
                         <Link to={`/post/${post.id}`} className="text-text-muted hover:underline no-underline" onClick={handleLinkClick}>
                             {formatDate(post.created_at)}
                         </Link>
 
                         {isEdited && !isScheduled && (
-                            <span className="italic cursor-help" title={`${t('common.updated')}: ${formatDate(post.updated_at)}`}>
+                            <span
+                                className="italic text-text-muted cursor-help"
+                                title={`${t('common.edited')} ${formatDate(post.updated_at)}`} // Виправлено зайву дужку тут
+                            >
                                 ({t('common.edited')})
                             </span>
                         )}
+
                     </div>
                 </div>
 
@@ -134,7 +139,7 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
 
                                 {canPin && !isScheduled && (
                                     <button type="button" className={menuItemClass} onClick={() => { onPinToggle(post.id); setShowMenu(false); }}>
-                                        {isPinned ? <UnpinIcon width={14} height={14} /> : <PinIcon width={14} height={14} />} 
+                                        {isPinned ? <UnpinIcon width={14} height={14} /> : <PinIcon width={14} height={14} />}
                                         {isPinned ? t('common.unpin') : t('common.pin')}
                                     </button>
                                 )}

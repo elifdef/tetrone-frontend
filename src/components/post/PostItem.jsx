@@ -9,11 +9,12 @@ import ReportModal from "../modals/ReportModal";
 import PostService from '../../services/post.service';
 import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
+import { PinIcon } from '../ui/Icons';
 
 const PostItem = ({
     post, onEdit, onDelete, isOwner, currentUsername, onLikeToggle, onRepostSuccess,
     isInner = false, readonly = false, depth = 1, isAdmin = false,
-    onPublishNow, onPinToggle
+    onPublishNow, onPinToggle, isFeed = false
 }) => {
     const { t } = useTranslation();
 
@@ -23,6 +24,8 @@ const PostItem = ({
     } = usePostActions(post, readonly, onLikeToggle, onRepostSuccess);
 
     const isScheduled = postData.is_published === false;
+    
+    const showPinnedHighlight = postData.is_pinned && !isInner && !isFeed && !isScheduled;
 
     const handleToggleReaction = async (stickerPayload, event) => {
         if (readonly && !isAdmin) return;
@@ -74,28 +77,31 @@ const PostItem = ({
             const res = await PostService.toggleReaction(postData.id, stickerId);
             if (res && res.code && res.code.startsWith('ERR_')) {
                 updateLocalPost({ reactions: previousReactions });
-                notifyError(t(`api.errors.${res.code}`));
+                notifyError(t(`api.error.${res.code}`));
                 return;
             }
             if (res) updateLocalPost({ reactions: res.reactions || (res.post ? res.post.reactions : []) });
-            else { updateLocalPost({ reactions: previousReactions }); notifyError(t('api.errors.ERR_NETWORK')); }
+            else { updateLocalPost({ reactions: previousReactions }); notifyError(t('api.error.ERR_NETWORK')); }
         } catch (error) {
             updateLocalPost({ reactions: previousReactions });
             console.error(error);
         }
     };
 
-    const originalAuthorColor = postData.original_post?.user?.personalization?.username_color;
+    const originalAuthorColor = postData.original_post?.author?.personalization?.username_color || postData.original_post?.user?.personalization?.username_color;
 
-    const baseClasses = isInner ? 'mt-[12px] ml-[16px] pl-[16px] border-l-[2px] border-border' : 'mt-[10px] first:border-t-0 first:pt-[5px] max-md:mx-[-10px] max-md:border-x-0';
+    const baseClasses = isInner ? 'mt-[8px] ml-[10px] pl-[10px] border-l-[2px] border-border' : 'mt-[10px] first:border-t-0 first:pt-[5px] max-md:mx-[-10px] max-md:border-x-0';
     const scheduledClasses = isScheduled ? 'opacity-70 bg-bg-page border border-dashed border-theme-warning/40 p-[10px]' : '';
-
-    const pinnedClasses = postData.is_pinned && !isInner ? 'bg-[rgba(0,102,204,0.02)] border-[2px] border-theme-link/30 rounded-[4px] p-[10px_10px_0_10px] shadow-sm relative overflow-hidden mb-[15px]' : '';
+    
+    const pinnedClasses = showPinnedHighlight ? 'border-l-[3px] border-theme-link bg-[rgba(91,155,213,0.03)] p-[12px] mb-[15px]' : '';
 
     return (
         <div className={`${baseClasses} ${scheduledClasses} ${pinnedClasses}`}>
-            {postData.is_pinned && !isInner && (
-                <div className="absolute top-0 left-0 w-[4px] h-full bg-theme-link"></div>
+            
+            {showPinnedHighlight && (
+                <div className="flex items-center gap-[6px] text-theme-link text-[10px] font-bold uppercase tracking-wider mb-[10px]">
+                    <PinIcon width={12} height={12} /> {t('post.pinned')}
+                </div>
             )}
 
             {isScheduled && (
@@ -105,7 +111,7 @@ const PostItem = ({
             )}
 
             <PostHeader
-                post={postData}
+                post={{ ...postData, is_pinned: isFeed ? false : postData.is_pinned }}
                 isOwner={isOwner}
                 currentUsername={currentUsername}
                 onEdit={onEdit}
@@ -128,7 +134,7 @@ const PostItem = ({
 
             {postData.is_repost && (
                 <div
-                    className="mt-[12px] p-[12px] border border-border bg-[rgba(128,128,128,0.05)]"
+                    className="ml-[60px] pl-[10px] border-l-[2px]"
                     style={originalAuthorColor ? { borderLeftColor: originalAuthorColor } : {}}
                 >
                     {postData.original_post_id && postData.original_post && depth < 3 ? (

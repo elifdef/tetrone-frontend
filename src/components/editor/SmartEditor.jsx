@@ -6,26 +6,28 @@ import useEditorExtensions from './hooks/useEditorExtensions';
 import useOnClickOutside from './hooks/useOnClickOutside';
 import { decodeTipTapContent } from '../common/RichText';
 
-import StyleMenu from './menus/StyleMenu';
-import AttachmentMenu from './menus/AttachmentMenu';
+import FloatingFormatMenu from './FloatingFormatMenu';
 import StickerPicker from './StickerPicker';
-import { EmojiIcon } from '../ui/Icons';
+import { EmojiIcon, FormatTextIcon } from '../ui/Icons';
 
 export default function SmartEditor({
-                                        value,
-                                        onChange,
-                                        placeholder = '',
-                                        className = '',
-                                        onEnter = null,
-                                        preset = 'post',
-                                        onAddPoll = null,
-                                        stickerPacks = [],
-                                        favoriteStickers = [],
-                                        isStickersLoading = false,
-                                    }) {
+    value,
+    onChange,
+    placeholder = '',
+    className = '',
+    onEnter = null,
+    preset = 'post',
+    stickerPacks = [],
+    favoriteStickers = [],
+    isStickersLoading = false
+}) {
     const { t } = useTranslation();
+
+    const [showFormatMenu, setShowFormatMenu] = useState(false);
     const [showPicker, setShowPicker] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isEmpty, setIsEmpty] = useState(true);
+
     const pickerRef = useRef(null);
 
     useOnClickOutside(pickerRef, (e) => {
@@ -39,65 +41,63 @@ export default function SmartEditor({
     useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
     const extensions = useEditorExtensions({ preset, placeholder, onEnterRef });
-
-    // Декодуємо лише один раз при ініціалізації
     const initialContent = useMemo(() => decodeTipTapContent(value), []);
 
     const editor = useEditor({
         extensions,
-        content: initialContent, // Передаємо початковий контент сюди!
+        content: initialContent,
         onUpdate: ({ editor }) => {
             onChangeRef.current(editor.getJSON());
+            setIsEmpty(editor.isEmpty);
         },
-    }, [preset]); // Залежність тільки від preset
+    }, [preset]);
 
-    // Синхронізація ззовні: якщо value приходить порожнім (після відправки)
     useEffect(() => {
         if (editor && (!value || Object.keys(value).length === 0) && !editor.isDestroyed) {
             editor.commands.clearContent();
+            setIsEmpty(true);
         }
     }, [value, editor]);
 
     if (!editor) return null;
 
     return (
-        <div className="relative flex flex-col w-full box-border">
-            <StyleMenu editor={editor} />
+        <div className={`relative flex flex-1 items-end w-full min-w-0 ${className}`}>
 
-            <div
-                className={`relative flex flex-col bg-input-bg border border-input-border min-h-[120px] w-full box-border rounded-[2px] transition-colors focus-within:border-theme-link ${className}`}
-                onClick={() => editor.chain().focus().run()}
-            >
-                <div className="flex-1 px-[15px] pt-[15px] pb-[40px] cursor-text overflow-y-auto">
-                    <EditorContent
-                        editor={editor}
-                        className="outline-none h-full text-[13px] leading-[1.5] [&>div.ProseMirror]:min-h-[60px] [&>div.ProseMirror]:outline-none"
-                    />
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 flex justify-between items-end p-[5px] pointer-events-none">
-                    <div className="pointer-events-auto">
-                        <AttachmentMenu editor={editor} onAddPoll={onAddPoll} />
+            <div className="flex-1 py-[10px] px-[8px] cursor-text max-h-[250px] overflow-y-auto relative min-w-0" onClick={() => editor.chain().focus().run()}>
+                {isEmpty && (
+                    <div className="absolute top-[10px] left-[8px] text-text-muted pointer-events-none text-[13px] italic whitespace-nowrap overflow-hidden text-ellipsis right-[8px]">
+                        {placeholder}
                     </div>
+                )}
+                <EditorContent
+                    editor={editor}
+                    className="outline-none h-full text-[13px] leading-[1.5] break-words whitespace-pre-wrap [&>div.ProseMirror]:min-h-[20px] [&>div.ProseMirror]:outline-none [&>div.ProseMirror]:break-words"
+                />
+            </div>
 
-                    <div className="pointer-events-auto">
-                        <button
-                            type="button"
-                            className="tetrone-editor-side-btn bg-transparent border-none text-text-muted cursor-pointer p-[8px] flex items-center justify-center transition-colors hover:text-theme-link hover:bg-[rgba(255,255,255,0.05)] rounded-[2px] outline-none"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowPicker(!showPicker);
-                            }}
-                            title={t('editor.toolbar_stickers')}
-                        >
-                            <EmojiIcon width={20} height={20} />
-                        </button>
-                    </div>
-                </div>
+            <div className="flex items-center gap-[6px] pb-[6px] pr-[6px] pl-[4px] shrink-0 self-end pointer-events-auto">
+                <button
+                    type="button"
+                    className={`bg-transparent border-none cursor-pointer w-[24px] h-[24px] p-0 flex items-center justify-center transition-colors outline-none ${showFormatMenu ? 'text-theme-link bg-[rgba(0,102,204,0.1)]' : 'text-text-muted hover:text-theme-link hover:bg-[rgba(255,255,255,0.05)]'}`}
+                    onClick={(e) => { e.stopPropagation(); setShowFormatMenu(!showFormatMenu); }}
+                    title={t('editor.format_text')}
+                >
+                    <FormatTextIcon width={16} height={16} />
+                </button>
+
+                <button
+                    type="button"
+                    className={`tetrone-editor-side-btn bg-transparent border-none cursor-pointer w-[24px] h-[24px] p-0 flex items-center justify-center transition-colors outline-none ${showPicker ? 'text-theme-link bg-[rgba(0,102,204,0.1)]' : 'text-text-muted hover:text-theme-link hover:bg-[rgba(255,255,255,0.05)]'}`}
+                    onClick={(e) => { e.stopPropagation(); setShowPicker(!showPicker); }}
+                    title={t('editor.toolbar_stickers')}
+                >
+                    <EmojiIcon width={16} height={16} />
+                </button>
             </div>
 
             {showPicker && (
-                <div className="absolute bottom-[calc(100%+5px)] right-0 z-[100] border border-border rounded-[2px] shadow-[0_4px_20px_rgba(0,0,0,0.4)]" ref={pickerRef}>
+                <div className="absolute bottom-[calc(100%+5px)] right-0 z-[100] border border-border shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden" ref={pickerRef}>
                     <StickerPicker
                         packs={stickerPacks}
                         favorites={favoriteStickers}
@@ -119,6 +119,8 @@ export default function SmartEditor({
                     />
                 </div>
             )}
+
+            <FloatingFormatMenu isOpen={showFormatMenu} editor={editor} onClose={() => setShowFormatMenu(false)} />
         </div>
     );
 }

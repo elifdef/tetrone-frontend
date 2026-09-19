@@ -4,37 +4,17 @@ class PostService {
     async create(data) {
         const hasFiles = data.images && data.images.length > 0;
 
-        // Допоміжна функція: витягує дані, якщо вони випадково потрапили всередину payload
-        const extract = (key, defaultVal) => {
-            if (data[key] !== undefined && data[key] !== null) return data[key];
-            if (data.payload && data.payload[key] !== undefined && data.payload[key] !== null) return data.payload[key];
-            return defaultVal;
-        };
-
+        // Дані приходять чистими прямо з хука useCreatePost
         const requestData = {
             payload: data.payload || null,
-            space_username: extract('space_username', null),
-            is_posted_as_space: extract('is_posted_as_space', false),
-            target_username: extract('target_username', null),
-            author_username: extract('author_username', null),
-            original_post_id: extract('original_post_id', null),
-            // Тепер published_at та can_comment коректно дістануться з payload
-            published_at: extract('published_at', null),
-            can_comment: extract('can_comment', true),
+            space_username: data.space_username || null,
+            is_posted_as_space: data.is_posted_as_space || false,
+            target_username: data.target_username || null,
+            author_username: data.author_username || null,
+            original_post_id: data.original_post_id || null,
+            published_at: data.published_at || null,
+            can_comment: data.can_comment !== undefined ? data.can_comment : true,
         };
-
-        // Очищаємо payload від системних полів, щоб зберігати в БД тільки чистий текст
-        if (requestData.payload) {
-            delete requestData.payload.author_username;
-            delete requestData.payload.target_username;
-            delete requestData.payload.published_at;
-            delete requestData.payload.can_comment;
-
-            // Якщо після очищення там нічого не лишилося (наприклад, тільки картинка), робимо null
-            if (Object.keys(requestData.payload).length === 0) {
-                requestData.payload = null;
-            }
-        }
 
         if (hasFiles) {
             const formData = new FormData();
@@ -97,7 +77,6 @@ class PostService {
         return await fetchClient(`/posts/${id}`, { method: 'DELETE' });
     }
 
-    // Для відкладених постів (миттєва публікація)
     async publishNow(id) {
         const formData = new FormData();
         formData.append('_method', 'PUT');
@@ -107,7 +86,6 @@ class PostService {
         return await fetchClient(`/posts/${id}`, { method: 'POST', body: formData });
     }
 
-    // Для прикріплення постів
     async togglePin(id) {
         return await fetchClient(`/posts/${id}/pin`, { method: 'POST' });
     }
