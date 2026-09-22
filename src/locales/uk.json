@@ -1227,11 +1227,13 @@
     "context_message": "Хто може писати мені",
     "context_profile": "Хто бачить мій профіль",
     "context_wall_post": "Хто може писати на моїй стіні",
+    "context_poll_vote": "Хто може брати участь в моїх голосуваннях",
+    "context_reaction": "Хто може залишати реакції",
     "level_custom": "Вибрані користувачі",
     "level_everyone": "Всі",
     "level_friends": "Тільки друзі",
     "level_nobody": "Ніхто",
-    "manage_exceptions": "Налаштувати винятки",
+    "manage_exceptions": "Винятки",
     "wall_posting_disabled": "Користувач заборонив залишати записи на своїй стіні."
   },
   "profile": {

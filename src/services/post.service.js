@@ -130,6 +130,11 @@ class PostService {
             body: configData
         });
     }
+
+    // НОВИЙ МЕТОД ДЛЯ ГРАФІКІВ
+    async getPollStats(postId) {
+        return await fetchClient(`/posts/${postId}/poll/stats`);
+    }
 }
 
 export default new PostService();

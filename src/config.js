@@ -52,6 +52,27 @@ export const SOUNDS_CONFIG = [
     },
 ];
 
+// приватність
+export const PRIVACY = {
+    CONTEXTS: [
+        'profile',
+        'avatar',
+        'dob',
+        'country',
+        'message',
+        'wall_post',
+        'comment',
+        'poll_vote',
+        'reaction',
+    ],
+    LEVELS: {
+        EVERYONE: 0,
+        FRIENDS: 1,
+        NOBODY: 2,
+        CUSTOM: 3,
+    }
+};
+
 // Утиліта для генерації точного шляху до файлу
 export const getSoundPathById = (id) =>
 {

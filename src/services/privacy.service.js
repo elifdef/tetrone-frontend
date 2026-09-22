@@ -1,37 +1,33 @@
 import fetchClient from '../api/client';
 
 const PrivacyService = {
-    getSettings: async () =>
-                 {
-                     return fetchClient('/settings/privacy');
-                 },
+    getSettings: () => {
+        return fetchClient('/settings/privacy');
+    },
 
-    updateSetting: async (context, level) =>
-                   {
-                       return fetchClient('/settings/privacy', {
-                           method: 'PATCH',
-                           body:   {context, level}
-                       });
-                   },
+    updateSetting: (context, level) => {
+        return fetchClient('/settings/privacy', {
+            method: 'PATCH',
+            body: { context, level }
+        });
+    },
 
-    setException: async (targetUserId, context, isAllowed) =>
-                  {
-                      return fetchClient('/settings/privacy/exceptions', {
-                          method: 'POST',
-                          body:   {
-                              target_username: targetUserId,
-                              context,
-                              is_allowed:      isAllowed
-                          }
-                      });
-                  },
+    setException: (targetUsername, context, isAllowed) => {
+        return fetchClient('/settings/privacy/exceptions', {
+            method: 'POST',
+            body: {
+                target_username: targetUsername,
+                context,
+                is_allowed: isAllowed
+            }
+        });
+    },
 
-    deleteException: async (exceptionId) =>
-                     {
-                         return fetchClient(`/settings/privacy/exceptions/${exceptionId}`, {
-                             method: 'DELETE'
-                         });
-                     }
+    deleteException: (targetUsername, context) => {
+        return fetchClient(`/settings/privacy/exceptions/${targetUsername}/${context}`, {
+            method: 'DELETE'
+        });
+    }
 };
 
 export default PrivacyService;

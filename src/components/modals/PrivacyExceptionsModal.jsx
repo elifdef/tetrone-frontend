@@ -1,15 +1,14 @@
-import {useState, useEffect, useMemo, useRef} from 'react';
-import {useTranslation} from 'react-i18next';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Modal from './Modal.jsx';
 import PrivacyService from '../../services/privacy.service';
 import UserService from '../../services/user.service';
 import Button from '../ui/Button';
-import {notifyError, notifySuccess} from '../common/Notify';
+import { notifyError, notifySuccess } from '../common/Notify';
 import Avatar from '../ui/Avatar';
 
-export default function PrivacyExceptionsModal({isOpen, onClose, context, initialExceptions, onSaveSuccess})
-{
-    const {t} = useTranslation();
+export default function PrivacyExceptionsModal({ isOpen, onClose, context, initialExceptions, onSaveSuccess }) {
+    const { t } = useTranslation();
 
     const [searchResults, setSearchResults] = useState([]);
     const [search, setSearch] = useState('');
@@ -21,10 +20,8 @@ export default function PrivacyExceptionsModal({isOpen, onClose, context, initia
 
     const searchTimeoutRef = useRef(null);
 
-    useEffect(() =>
-    {
-        if (isOpen && context)
-        {
+    useEffect(() => {
+        if (isOpen && context) {
             const contextEx = initialExceptions.filter(ex => ex.context === context && ex.is_allowed);
             const usernames = contextEx
             .map(ex => ex.target_user?.username)
@@ -37,50 +34,40 @@ export default function PrivacyExceptionsModal({isOpen, onClose, context, initia
         }
     }, [isOpen, context, initialExceptions]);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         if (!isOpen) return;
 
-        if (searchTimeoutRef.current)
-        {
+        if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
 
-        searchTimeoutRef.current = setTimeout(() =>
-        {
+        searchTimeoutRef.current = setTimeout(() => {
             fetchUsers(search);
         }, 400);
 
         return () => clearTimeout(searchTimeoutRef.current);
     }, [search, isOpen]);
 
-    const fetchUsers = async (searchQuery) =>
-    {
+    const fetchUsers = (searchQuery) => {
         setIsLoading(true);
-        try
-        {
-            const params = {};
-            if (searchQuery.trim() !== '')
-            {
-                params['filter[search]'] = searchQuery;
-            }
+        const params = {};
 
-            const res = await UserService.getUsers(params);
-
-            const fetchedUsers = res.users || [];
-            setSearchResults(fetchedUsers);
-
-        } catch (error)
-        {
-            notifyError(t('common.error'));
-        } finally
-        {
-            setIsLoading(false);
+        if (searchQuery.trim() !== '') {
+            params['filter[search]'] = searchQuery;
         }
+
+        UserService.getUsers(params)
+        .onSuccess((res) => {
+            setSearchResults(res.users || []);
+            setIsLoading(false);
+        })
+        .onError((err) => {
+            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            setIsLoading(false);
+        });
     };
 
-    const handleToggle = (username) =>
-    {
+    const handleToggle = (username) => {
         setLocalAllowedUsernames(prev =>
             prev.includes(username)
                 ? prev.filter(u => u !== username)
@@ -88,75 +75,72 @@ export default function PrivacyExceptionsModal({isOpen, onClose, context, initia
         );
     };
 
-    const isDirty = useMemo(() =>
-    {
+    const isDirty = useMemo(() => {
         if (initialUsernames.length !== localAllowedUsernames.length) return true;
         return !localAllowedUsernames.every(u => initialUsernames.includes(u));
     }, [initialUsernames, localAllowedUsernames]);
 
-    const handleSave = async () =>
-    {
+    const handleSave = () => {
         if (!isDirty) return;
         setIsSaving(true);
 
-        try
-        {
-            const addedUsernames = localAllowedUsernames.filter(u => !initialUsernames.includes(u));
-            const removedUsernames = initialUsernames.filter(u => !localAllowedUsernames.includes(u));
+        const addedUsernames = localAllowedUsernames.filter(u => !initialUsernames.includes(u));
+        const removedUsernames = initialUsernames.filter(u => !localAllowedUsernames.includes(u));
 
-            const promises = [];
-
-            addedUsernames.forEach(username =>
-            {
-                promises.push(PrivacyService.setException(username, context, true));
-            });
-
-            removedUsernames.forEach(username =>
-            {
-                const exceptionId = initialExceptions.find(
-                    ex => (ex.target_username === username || ex.target_user?.username === username) && ex.context === context
-                )?.id;
-
-                if (exceptionId)
-                {
-                    promises.push(PrivacyService.deleteException(exceptionId));
-                }
-            });
-
-            await Promise.all(promises);
-            notifySuccess(t('settings.exceptions_saved'));
-
-            if (onSaveSuccess) onSaveSuccess();
-            onClose();
-
-        } catch (error)
-        {
-            notifyError(t('common.error'));
-        } finally
-        {
+        const totalRequests = addedUsernames.length + removedUsernames.length;
+        if (totalRequests === 0) {
             setIsSaving(false);
+            return;
         }
+
+        let completed = 0;
+        let hasError = false;
+
+        const checkCompletion = () => {
+            completed++;
+            if (completed === totalRequests && !hasError) {
+                notifySuccess(t('settings.exceptions_saved'));
+                if (onSaveSuccess) onSaveSuccess();
+                onClose();
+                setIsSaving(false);
+            }
+        };
+
+        const handleError = (err) => {
+            if (!hasError) {
+                hasError = true;
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                setIsSaving(false);
+            }
+        };
+
+        addedUsernames.forEach(username => {
+            PrivacyService.setException(username, context, true)
+            .onSuccess(checkCompletion)
+            .onError(handleError);
+        });
+
+        removedUsernames.forEach(username => {
+            PrivacyService.deleteException(username, context)
+            .onSuccess(checkCompletion)
+            .onError(handleError);
+        });
     };
 
-    const displayUsers = useMemo(() =>
-    {
+    const displayUsers = useMemo(() => {
         const usersMap = new Map();
 
-        initialExceptions.forEach(ex =>
-        {
-            if (ex.context === context && ex.is_allowed && ex.target_user)
-            {
+        initialExceptions.forEach(ex => {
+            if (ex.context === context && ex.is_allowed && ex.target_user) {
                 usersMap.set(ex.target_user.username, ex.target_user);
             }
         });
 
-        searchResults.forEach(user =>
-        {
+        searchResults.forEach(user => {
             usersMap.set(user.username, user);
         });
 
-        return Array.from(usersMap.values()).filter(u =>
-        {
+        return Array.from(usersMap.values()).filter(u => {
             if (!search.trim()) return true;
             const fullName = `${u.first_name || ''} ${u.last_name || ''} ${u.username}`.toLowerCase();
             return fullName.includes(search.toLowerCase());
@@ -164,14 +148,14 @@ export default function PrivacyExceptionsModal({isOpen, onClose, context, initia
     }, [searchResults, initialExceptions, context, search]);
 
     const footerButtons = (
-        <>
+        <div className="flex justify-end gap-[10px] w-full">
             <Button variant="secondary" onClick={onClose} disabled={isSaving}>
                 {t('action.cancel')}
             </Button>
             <Button onClick={handleSave} disabled={!isDirty || isSaving}>
                 {isSaving ? t('common.loading') : t('action.save')}
             </Button>
-        </>
+        </div>
     );
 
     const modalTitle = context
@@ -185,12 +169,12 @@ export default function PrivacyExceptionsModal({isOpen, onClose, context, initia
             title={modalTitle}
             sizeClass="modal-md"
             footer={footerButtons}
-            bodyClassName="tetrone-exceptions-modal-body"
+            bodyClassName="p-[15px]"
         >
-            <div className="tetrone-mb-15">
+            <div className="mb-[15px]">
                 <input
                     type="text"
-                    className="tetrone-form-input tetrone-w-full"
+                    className="w-full bg-input-bg border border-input-border text-text-main p-[6px_10px] text-[11px] outline-none focus:border-theme-link transition-colors placeholder:text-text-muted"
                     placeholder={t('action.search')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -198,39 +182,44 @@ export default function PrivacyExceptionsModal({isOpen, onClose, context, initia
                 />
             </div>
 
-            <div className="tetrone-exceptions-list-container">
+            <div className="flex flex-col border border-border bg-bg-box h-[300px] overflow-y-auto custom-scrollbar">
                 {isLoading && displayUsers.length === 0 ? (
-                    <div className="tetrone-empty-state">{t('common.loading')}</div>
+                    <div className="p-[20px] text-center text-[11px] text-text-muted italic flex-1 flex items-center justify-center">
+                        {t('common.loading')}
+                    </div>
                 ) : displayUsers.length > 0 ? (
-                    displayUsers.map(user =>
-                    {
+                    displayUsers.map(user => {
                         const isChecked = localAllowedUsernames.includes(user.username);
                         const nameColor = user.personalization?.username_color;
 
                         return (
-                            <div key={user.username} className="tetrone-mini-user-card" onClick={() => !isSaving && handleToggle(user.username)}>
-                                <div className="tetrone-mini-user-info">
+                            <div
+                                key={user.username}
+                                className="flex items-center justify-between p-[8px_10px] border-b border-border last:border-b-0 cursor-pointer hover:bg-[rgba(128,128,128,0.05)] transition-colors"
+                                onClick={() => !isSaving && handleToggle(user.username)}
+                            >
+                                <div className="flex items-center gap-[10px]">
                                     <Avatar
                                         user={user}
-                                        className="tetrone-mini-user-avatar"
+                                        className="w-[32px] h-[32px] object-cover shrink-0"
                                     />
-                                    <div className="tetrone-mini-user-text">
+                                    <div className="flex flex-col">
                                         <span
-                                            className="tetrone-mini-user-name"
-                                            style={nameColor ? {color: nameColor} : undefined}
+                                            className="text-[11px] font-bold leading-tight"
+                                            style={nameColor ? { color: nameColor } : { color: 'var(--color-text-main)' }}
                                         >
                                             {user.first_name} {user.last_name}
                                         </span>
-                                        <span className="tetrone-mini-user-username">
+                                        <span className="text-[10px] text-text-muted leading-tight mt-[2px]">
                                             @{user.username}
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="tetrone-mini-user-action">
+                                <div className="flex items-center shrink-0 ml-[10px]">
                                     <input
                                         type="checkbox"
-                                        className="tetrone-checkbox"
+                                        className="m-0 pointer-events-none accent-theme-link w-[14px] h-[14px]"
                                         checked={isChecked}
                                         readOnly
                                         disabled={isSaving}
@@ -240,7 +229,7 @@ export default function PrivacyExceptionsModal({isOpen, onClose, context, initia
                         );
                     })
                 ) : (
-                    <div className="tetrone-empty-state">
+                    <div className="p-[20px] text-center text-[11px] text-text-muted italic flex-1 flex items-center justify-center">
                         {t('empty.list')}
                     </div>
                 )}

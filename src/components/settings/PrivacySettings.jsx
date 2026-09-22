@@ -4,16 +4,8 @@ import PrivacyService from '../../services/privacy.service';
 import { notifyError, notifySuccess } from '../common/Notify';
 import Button from '../ui/Button';
 import PrivacyExceptionsModal from '../modals/PrivacyExceptionsModal';
-
-const PRIVACY_CONTEXTS = [
-    'profile',
-    'avatar',
-    'dob',
-    'country',
-    'message',
-    'wall_post',
-    'comment'
-];
+import CustomSelect from '../ui/CustomSelect';
+import { PRIVACY } from '../../config';
 
 export default function PrivacySettings() {
     const { t } = useTranslation();
@@ -30,34 +22,31 @@ export default function PrivacySettings() {
         loadSettings();
     }, []);
 
-    const loadSettings = async () => {
+    const loadSettings = () => {
         setIsLoading(true);
-        try {
-            const res = await PrivacyService.getSettings();
 
-            if (res && res.privacy) {
-                const rawSettings = Array.isArray(res.privacy.settings) && res.privacy.settings.length === 0
-                    ? {}
-                    : (res.privacy.settings || {});
+        PrivacyService.getSettings()
+        .onSuccess((res) => {
+            const rawSettings = Array.isArray(res.privacy.settings) && res.privacy.settings.length === 0
+                ? {}
+                : (res.privacy.settings || {});
 
-                const normalizedSettings = {};
-                PRIVACY_CONTEXTS.forEach(context => {
-                    normalizedSettings[context] = rawSettings[context] !== undefined
-                        ? parseInt(rawSettings[context], 10)
-                        : 0;
-                });
+            const normalizedSettings = {};
+            PRIVACY.CONTEXTS.forEach(context => {
+                normalizedSettings[context] = rawSettings[context] !== undefined
+                    ? parseInt(rawSettings[context], 10)
+                    : (context === 'poll_vote' ? PRIVACY.LEVELS.FRIENDS : PRIVACY.LEVELS.EVERYONE);
+            });
 
-                setInitialSettings(normalizedSettings);
-                setLocalSettings(normalizedSettings);
-                setExceptions(res.privacy.exceptions || []);
-            } else {
-                notifyError(t('common.error'));
-            }
-        } catch (error) {
-            notifyError(t('common.error'));
-        } finally {
+            setInitialSettings(normalizedSettings);
+            setLocalSettings(normalizedSettings);
+            setExceptions(res.privacy.exceptions || []);
             setIsLoading(false);
-        }
+        })
+        .onError((err) => {
+            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            setIsLoading(false);
+        });
     };
 
     const isDirty = useMemo(() => {
@@ -71,85 +60,109 @@ export default function PrivacySettings() {
         }));
     };
 
-    const handleSaveAll = async () => {
+    const handleSaveAll = () => {
         if (!isDirty) return;
         setIsSaving(true);
 
-        try {
-            const changedKeys = Object.keys(localSettings).filter(
-                key => localSettings[key] !== initialSettings[key]
-            );
+        const changedKeys = Object.keys(localSettings).filter(
+            key => localSettings[key] !== initialSettings[key]
+        );
 
-            for (const context of changedKeys) {
-                await PrivacyService.updateSetting(context, localSettings[context]);
-            }
+        let completed = 0;
+        let hasError = false;
 
-            setInitialSettings(localSettings);
-            notifySuccess(t('settings.privacy_saved'));
-        } catch (error) {
-            notifyError(t('common.error'));
-        } finally {
-            setIsSaving(false);
-        }
+        changedKeys.forEach(context => {
+            PrivacyService.updateSetting(context, localSettings[context])
+            .onSuccess((res) => {
+                completed++;
+                if (completed === changedKeys.length && !hasError) {
+                    setInitialSettings(localSettings);
+                    notifySuccess(t(`api.success.${res.code || 'SETTINGS_SAVED'}`));
+                    setIsSaving(false);
+                }
+            })
+            .onError((err) => {
+                if (!hasError) {
+                    hasError = true;
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    setIsSaving(false);
+                }
+            });
+        });
     };
+
+    const privacyOptions = [
+        { value: PRIVACY.LEVELS.EVERYONE, label: t('privacy.level_everyone') },
+        { value: PRIVACY.LEVELS.FRIENDS, label: t('privacy.level_friends') },
+        { value: PRIVACY.LEVELS.NOBODY, label: t('privacy.level_nobody') },
+        { value: PRIVACY.LEVELS.CUSTOM, label: t('privacy.level_custom') }
+    ];
 
     if (isLoading) return <div className="text-[11px] text-text-muted italic p-[20px] text-center">{t('common.loading')}</div>;
 
     return (
         <div className="flex flex-col gap-[15px]">
-            <div className="mb-[5px]">
+            <div className="mb-[10px]">
                 <h3 className="m-0 mb-[5px] text-[12px] font-bold text-theme-link border-b border-border pb-[5px]">{t('settings.privacy_title')}</h3>
                 <p className="m-0 text-[11px] text-text-muted">{t('settings.privacy_desc')}</p>
             </div>
 
-            <div className="bg-bg-box border border-border mb-0">
-                <div className="flex flex-col">
-                    {PRIVACY_CONTEXTS.map(context => {
-                        const currentValue = localSettings[context];
+            <div className="flex flex-col gap-[12px] text-[11px]">
+                {PRIVACY.CONTEXTS.map(context => {
+                    const currentValue = localSettings[context];
 
-                        return (
-                            <div key={context} className="flex justify-between items-center py-[8px] px-[15px] border-b border-dashed border-border last:border-b-0 max-md:flex-col max-md:items-start max-md:gap-[8px]">
-                                <div className="flex flex-col gap-[2px]">
-                                    <span className="text-[11px] text-text-main">
-                                        {t(`privacy.context_${context}`)}
-                                    </span>
-                                </div>
+                    // Фільтруємо винятки для поточного контексту
+                    const contextExceptions = exceptions.filter(ex => ex.context === context && ex.is_allowed);
+                    const hasExceptions = contextExceptions.length > 0;
 
-                                <div className="flex items-center gap-[10px] max-md:w-full max-md:justify-end">
-                                    <select
-                                        className="bg-input-bg border border-input-border text-text-main p-[4px] text-[11px] outline-none min-w-[150px] focus:border-theme-link max-md:flex-1"
-                                        value={currentValue}
-                                        onChange={(e) => handleLocalChange(context, e.target.value)}
-                                    >
-                                        <option value={0}>{t('privacy.level_everyone')}</option>
-                                        <option value={1}>{t('privacy.level_friends')}</option>
-                                        <option value={2}>{t('privacy.level_nobody')}</option>
-                                        <option value={3}>{t('privacy.level_custom')}</option>
-                                    </select>
+                    return (
+                        <div key={context} className="flex items-center max-md:flex-col max-md:items-start max-md:gap-[4px]">
+                            <div className="w-[180px] shrink-0 text-right pr-[15px] text-text-muted max-md:w-full max-md:text-left max-md:pr-0">
+                                {t(`privacy.context_${context}`)}:
+                            </div>
 
-                                    {currentValue === 3 && (
+                            <div className="flex items-center gap-[10px] flex-1 max-md:w-full">
+                                <CustomSelect
+                                    options={privacyOptions}
+                                    value={currentValue}
+                                    onChange={(val) => handleLocalChange(context, val)}
+                                    placeholder={t('common.select')}
+                                    className="w-[200px] max-md:flex-1 shrink-0"
+                                />
+
+                                {currentValue === PRIVACY.LEVELS.CUSTOM && (
+                                    <div className="flex items-center gap-[8px]">
                                         <Button
                                             variant="secondary"
                                             onClick={() => setActiveModalContext(context)}
                                         >
                                             {t('privacy.manage_exceptions')}
                                         </Button>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
 
-            <div className="mt-[10px] flex justify-end">
-                <Button
-                    variant="save"
-                    onClick={handleSaveAll}
-                    disabled={!isDirty || isSaving}
-                >
-                    {isSaving ? t('action.saving') : t('action.save')}
-                </Button>
+                                        {/* Показуємо хто або скільки додано у винятки */}
+                                        {hasExceptions && (
+                                            <span className="text-[10px] text-text-muted italic max-md:hidden">
+                                                {contextExceptions.length === 1
+                                                    ? `@${contextExceptions[0].target_user?.username}`
+                                                    : `(${contextExceptions.length})`
+                                                }
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+
+                <div className="flex mt-[10px] pt-[15px] border-t border-dashed border-border max-md:flex-col max-md:mt-0">
+                    <div className="w-[180px] shrink-0 max-md:hidden"></div>
+                    <div className="flex-1 flex justify-start pl-[0px]">
+                        <Button variant="save" onClick={handleSaveAll} disabled={!isDirty || isSaving}>
+                            {isSaving ? t('action.saving') : t('action.save')}
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <PrivacyExceptionsModal
