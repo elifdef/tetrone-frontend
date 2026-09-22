@@ -20,7 +20,7 @@ import AdminUserInfo from "../components/admin/AdminUserInfo";
 import { userRole } from "../config";
 import NotificationsPage from "../pages/NotificationsPage.jsx";
 import ActivityPage from "../pages/ActivityPage";
-import MessagesPage from "../pages/MessagesPage";
+import ChatPage from "../pages/ChatPage.jsx";
 import StickerShopPage from '../pages/StickerShopPage';
 import AdminPage from '../pages/AdminPage';
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
@@ -59,7 +59,7 @@ export default function AppRoutes() {
                 <Route element={<AuthGuard />}>
                     <Route path="/" element={<FeedPage />} />
                     <Route path="/friends" element={<FriendsPage />} />
-                    <Route path="/messages" element={<MessagesPage />} />
+                    <Route path="/messages" element={<ChatPage />} />
                     <Route path="/email-verify/:id/:hash" element={<FeedPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
