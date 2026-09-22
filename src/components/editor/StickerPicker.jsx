@@ -1,43 +1,53 @@
 import { useTranslation } from 'react-i18next';
 
 export default function StickerPicker({
-                                          packs, favorites, isLoading, searchQuery, onSearchChange, onSelect
+                                          packs = [], 
+                                          favorites = [], 
+                                          isLoading = false, 
+                                          searchQuery = '', 
+                                          onSearchChange, 
+                                          onSelect
                                       }) {
     const { t } = useTranslation();
     const isSearching = searchQuery.trim().length > 0;
     const query = searchQuery.toLowerCase();
 
     return (
-        <div className="w-[280px] h-[350px] bg-bg-box border border-border shadow-[0_4px_15px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="p-[8px] border-b border-border">
+        <div className="w-[280px] h-[350px] bg-bg-box border border-border shadow-[0_2px_10px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden font-tahoma text-[11px]" onClick={(e) => e.stopPropagation()}>
+            
+            <div className="p-[8px] border-b border-border bg-bg-page">
                 <input
                     type="text"
-                    className="w-full px-[10px] py-[8px] border border-input-border bg-input-bg text-text-main text-[13px] rounded focus:border-theme-link focus:outline-none"
+                    className="w-full px-[8px] py-[6px] border border-input-border bg-input-bg text-text-main text-[11px] outline-none focus:border-theme-link transition-colors"
                     placeholder={t('stickers.search_placeholder')}
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                 />
             </div>
 
-            <div className="flex-1 overflow-y-auto p-[10px]">
+            <div className="flex-1 overflow-y-auto p-[8px] bg-bg-box custom-scrollbar">
                 {isLoading ? (
-                    <div className="text-[11px] text-text-muted italic pl-[5px]">{t('common.loading')}</div>
+                    <div className="text-[11px] text-text-muted italic p-[10px] text-center">{t('common.loading')}</div>
                 ) : (
                     <>
-                        {!isSearching && (
+                        {!isSearching && favorites.length > 0 && (
                             <div className="mb-[15px]">
-                                <div className="text-[11px] text-text-muted mb-[8px] font-bold flex items-center gap-[5px]">⭐ {t('stickers.your_favorites')}</div>
-                                {favorites.length > 0 ? (
-                                    <div className="grid grid-cols-5 gap-[5px]">
-                                        {favorites.map(sticker => (
-                                            <button key={`fav-${sticker.id}`} type="button" className="bg-transparent border-none cursor-pointer p-[4px] hover:bg-bg-page transition-colors" onClick={() => onSelect(sticker, null)} title={`:${sticker.shortcode}:`}>
-                                                <img src={sticker.url || sticker.src} alt={sticker.shortcode} className="w-full h-auto" />
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-[11px] text-text-muted italic pl-[5px]">{t('stickers.no_favorites')}</div>
-                                )}
+                                <div className="text-[10px] text-text-muted mb-[6px] font-bold uppercase tracking-wider flex items-center gap-[4px]">
+                                    <span className="text-[#ff9900]">★</span> {t('stickers.your_favorites')}
+                                </div>
+                                <div className="grid grid-cols-5 gap-[2px]">
+                                    {favorites.map(sticker => (
+                                        <button 
+                                            key={`fav-${sticker.id}`} 
+                                            type="button" 
+                                            className="bg-transparent border border-transparent cursor-pointer p-[4px] hover:border-theme-link hover:bg-[rgba(91,155,213,0.05)] transition-colors outline-none flex items-center justify-center h-[48px]" 
+                                            onClick={() => onSelect(sticker, null)} 
+                                            title={`:${sticker.shortcode}:`}
+                                        >
+                                            <img src={sticker.url || sticker.src} alt={sticker.shortcode} className="max-w-full max-h-full object-contain pointer-events-none" />
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
@@ -46,24 +56,36 @@ export default function StickerPicker({
                                 ? pack.stickers.filter(s => s.shortcode.toLowerCase().includes(query) || (s.keywords && s.keywords.toLowerCase().includes(query)))
                                 : pack.stickers;
 
-                            if (filteredStickers.length === 0) return null;
+                            if (!filteredStickers || filteredStickers.length === 0) return null;
 
                             return (
                                 <div key={pack.id} className="mb-[15px]">
-                                    <div className="text-[11px] text-text-muted mb-[8px] font-bold flex items-center gap-[5px]">
-                                        <img src={pack.cover_url} alt="" className="w-[14px] h-[14px]" />
+                                    <div className="text-[10px] text-text-muted mb-[6px] font-bold uppercase tracking-wider flex items-center gap-[6px] border-b border-border pb-[4px]">
+                                        <img src={pack.cover_url} alt="" className="w-[12px] h-[12px] object-contain" />
                                         {pack.title}
                                     </div>
-                                    <div className="grid grid-cols-5 gap-[5px]">
+                                    <div className="grid grid-cols-5 gap-[2px]">
                                         {filteredStickers.map(sticker => (
-                                            <button key={sticker.id} type="button" className="bg-transparent border-none cursor-pointer p-[4px] hover:bg-bg-page transition-colors" onClick={() => onSelect(sticker, pack)} title={`:${sticker.shortcode}:`}>
-                                                <img src={sticker.url || sticker.src} alt={sticker.shortcode} className="w-full h-auto" />
+                                            <button 
+                                                key={sticker.id} 
+                                                type="button" 
+                                                className="bg-transparent border border-transparent cursor-pointer p-[4px] hover:border-theme-link hover:bg-[rgba(91,155,213,0.05)] transition-colors outline-none flex items-center justify-center h-[48px]" 
+                                                onClick={() => onSelect(sticker, pack)} 
+                                                title={`:${sticker.shortcode}:`}
+                                            >
+                                                <img src={sticker.url || sticker.src} alt={sticker.shortcode} className="max-w-full max-h-full object-contain pointer-events-none" />
                                             </button>
                                         ))}
                                     </div>
                                 </div>
                             );
                         })}
+                        
+                        {isSearching && packs.every(p => !p.stickers.some(s => s.shortcode.toLowerCase().includes(query))) && (
+                            <div className="text-[11px] text-text-muted italic p-[10px] text-center">
+                                {t('common.no_results')}
+                            </div>
+                        )}
                     </>
                 )}
             </div>

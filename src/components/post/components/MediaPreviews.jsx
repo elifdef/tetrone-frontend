@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import VideoPlayer from '../../ui/VideoPlayer';
-import { DocumentIcon, EyeOffIcon, DotsIcon } from "../../ui/Icons";
+import { DocumentIcon, EyeOffIcon, DotsIcon, EditIcon } from "../../ui/Icons"; // Додано EditIcon
 
-export default function MediaPreviews({ previews, onRemove, onToggleFlag, onToggleNSFW, isExisting = false }) {
+export default function MediaPreviews({ previews, onRemove, onToggleFlag, onToggleNSFW, isExisting = false, onEditClick }) {
     const { t } = useTranslation();
     const [contextMenu, setContextMenu] = useState(null);
     const menuRef = useRef(null);
@@ -42,7 +42,6 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
         else others.push(item);
     });
 
-    // ФІКС: Меню відкривається від координат кнопки
     const handleOpenMenu = (e, removeId, isSpoiler, isNsfw) => {
         e.preventDefault();
         e.stopPropagation();
@@ -73,7 +72,7 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
                     onClick={(e) => handleToggle(e, 'is_spoiler')}
                 >
                     <EyeOffIcon width={14} height={14} />
-                    {contextMenu.isSpoiler ? t('post.remove_spoiler', 'Прибрати спойлер') : t('post.add_spoiler', 'Сховати під спойлер')}
+                    {contextMenu.isSpoiler ? t('post.remove_spoiler') : t('post.add_spoiler')}
                 </button>
                 <div className="h-[1px] bg-border my-[2px]"></div>
                 <button
@@ -82,7 +81,7 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
                     onClick={(e) => handleToggle(e, 'is_nsfw')}
                 >
                     <span className="font-bold">18+</span>
-                    {contextMenu.isNsfw ? t('post.remove_nsfw_18', 'Прибрати 18+') : t('post.add_nsfw_18', 'Позначити 18+')}
+                    {contextMenu.isNsfw ? t('post.remove_nsfw_18') : t('post.add_nsfw_18')}
                 </button>
             </div>
         );
@@ -104,10 +103,9 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
             <>
                 <img src={srcUrl} alt="" className={`w-[100px] h-[100px] object-cover block transition-all ${!isExisting ? 'opacity-80' : ''} ${blurClass}`} />
 
-                {/* Індикатори перенесені ВНИЗ, щоб не перекривати кнопки */}
                 {isNsfw && (
                     <div className="absolute bottom-[5px] left-[5px] pointer-events-none bg-theme-error text-white px-[4px] py-[2px] rounded-[2px] z-10 font-bold text-[10px] tracking-wider shadow-sm">
-                        {t('post.nsfw_badge', '18+')}
+                        {t('post.nsfw_badge')}
                     </div>
                 )}
                 {isSpoiler && !isNsfw && (
@@ -131,16 +129,26 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
                         return (
                             <div key={key} className={`relative inline-block my-[5px] border p-[2px] bg-bg-box overflow-hidden ${isExisting ? 'border-[2px] border-theme-success' : 'border-border'}`}>
 
-                                {/* Кнопка ВИДАЛИТИ (Справа) */}
                                 <button type="button" className="absolute top-[5px] right-[5px] z-20 bg-[rgba(0,0,0,0.6)] text-white border-none cursor-pointer w-[20px] h-[20px] flex items-center justify-center text-[14px] leading-none hover:bg-theme-error outline-none transition-colors" onClick={() => onRemove(removeId)} title={t('action.delete')}>×</button>
 
-                                {/* Кнопка НАЛАШТУВАНЬ МЕДІА (Зліва) - ГАРАНТОВАНО ПРАЦЮЄ */}
+                                {/* КНОПКА РЕДАГУВАННЯ ФОТО (Тільки для картинок і тільки якщо є onEditClick) */}
+                                {isImage && onEditClick && (
+                                    <button
+                                        type="button"
+                                        className="absolute top-[30px] right-[5px] z-20 bg-[rgba(0,0,0,0.6)] text-white border-none cursor-pointer w-[20px] h-[20px] flex items-center justify-center hover:bg-theme-link outline-none transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); onEditClick(index); }}
+                                        title={t('action.edit')}
+                                    >
+                                        <EditIcon width={12} height={12} />
+                                    </button>
+                                )}
+
                                 {isImage && toggleHandler && (
                                     <button
                                         type="button"
                                         className="absolute top-[5px] left-[5px] z-20 bg-[rgba(0,0,0,0.6)] text-white border-none cursor-pointer w-[20px] h-[20px] flex items-center justify-center hover:bg-theme-link outline-none transition-colors rounded-[2px]"
                                         onClick={(e) => handleOpenMenu(e, removeId, isSpoiler, isNsfw)}
-                                        title={t('post.media_settings', 'Налаштування')}
+                                        title={t('post.media_settings')}
                                     >
                                         <DotsIcon width={12} height={12} />
                                     </button>
@@ -164,7 +172,6 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
                             <div key={key} className="relative mt-[10px] w-full border border-border bg-black">
                                 <button type="button" className="absolute top-[5px] right-[5px] z-30 bg-[rgba(0,0,0,0.6)] text-white border-none cursor-pointer w-[24px] h-[24px] flex items-center justify-center text-[16px] leading-none hover:bg-theme-error outline-none transition-colors" onClick={() => onRemove(removeId)} title={t('action.delete')}>×</button>
 
-                                {/* Кнопка НАЛАШТУВАНЬ МЕДІА (Зліва) */}
                                 {toggleHandler && (
                                     <button
                                         type="button"
@@ -175,7 +182,7 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
                                     </button>
                                 )}
 
-                                {isNsfw && <div className="absolute bottom-[10px] left-[10px] pointer-events-none bg-theme-error text-white px-[6px] py-[2px] rounded-[2px] z-20 font-bold text-[12px] tracking-wider shadow-sm">{t('post.nsfw_badge', '18+')}</div>}
+                                {isNsfw && <div className="absolute bottom-[10px] left-[10px] pointer-events-none bg-theme-error text-white px-[6px] py-[2px] rounded-[2px] z-20 font-bold text-[12px] tracking-wider shadow-sm">{t('post.nsfw_badge')}</div>}
                                 {isSpoiler && !isNsfw && <div className="absolute bottom-[10px] left-[10px] pointer-events-none bg-[rgba(0,0,0,0.6)] text-white p-[6px] rounded-[2px] z-20"><EyeOffIcon width={16} height={16} /></div>}
 
                                 <div className={`overflow-hidden w-full transition-all ${blurClass}`}>

@@ -691,6 +691,111 @@
       "Сервер зараз спілкується зі своїм внутрішнім Містером Роботом.\n Намагаємося переконати його просто встановити оновлення."
     ]
   },
+  "media_editor": {
+    "title": "Редагування зображення",
+
+    "tool_select": "Вибрати",
+    "tool_transform": "Трансформація",
+    "tool_crop": "Обрізати",
+    "tool_draw": "Малювати",
+    "tool_shapes": "Фігури",
+    "tool_text": "Текст",
+    "tool_sticker": "Стікер",
+    "tool_blur": "Фільтри",
+
+    "color": "Колір",
+    "size": "Розмір",
+
+    "add_rect": "Прямокутник",
+    "add_round_rect": "Закруглений прямокутник",
+    "add_circle": "Коло",
+    "add_triangle": "Трикутник",
+    "add_star": "Зірка",
+    "add_arrow": "Стрілка",
+    "add_highlight": "Підсвітка",
+    "add_censor": "Цензура",
+    "add_text": "Додати текст",
+
+    "rotate": "Повернути",
+    "rotate_left": "Повернути вліво",
+    "rotate_right": "Повернути вправо",
+
+    "flip_h": "По горизонталі",
+    "flip_v": "По вертикалі",
+
+    "duplicate": "Дублювати",
+
+    "center_h": "По центру горизонтально",
+    "center_v": "По центру вертикально",
+
+    "layer_forward": "На один рівень вперед",
+    "layer_front": "На передній план",
+    "layer_backward": "На один рівень назад",
+    "layer_back": "На задній план",
+
+    "opacity": "Прозорість",
+    "angle": "Кут",
+    "width": "Ширина",
+    "height": "Висота",
+
+    "fill": "Заливка",
+    "stroke": "Контур",
+
+    "bold": "Жирний",
+    "italic": "Курсив",
+    "underline": "Підкреслення",
+
+    "align_left": "Ліворуч",
+    "align_center": "По центру",
+    "align_right": "Праворуч",
+
+    "text_background": "Фон тексту",
+    "shadow": "Тінь",
+
+    "draw_pencil": "Олівець",
+    "draw_line": "Лінія",
+
+    "crop_ratio": "Пропорція",
+    "ratio_free": "Вільна",
+    "cancel_crop": "Скасувати",
+    "apply_crop": "Застосувати",
+
+    "filter": "Фільтр",
+    "filter_selected": "Вибране зображення",
+    "filter_original": "Основне зображення",
+    "filter_no_image": "Зображення недоступне",
+
+    "intensity": "Інтенсивність",
+
+    "filter_none": "Без фільтра",
+    "filter_grayscale": "Чорно-білий",
+    "filter_invert": "Інверсія",
+    "filter_brightness": "Яскравість",
+    "filter_contrast": "Контраст",
+    "filter_saturation": "Насиченість",
+    "filter_blur": "Розмиття",
+    "filter_noise": "Шум",
+    "filter_sharpen": "Різкість",
+
+    "zoom_in": "Збільшити",
+    "zoom_out": "Зменшити",
+    "zoom_reset": "Скинути масштаб",
+
+    "undo": "Скасувати останню дію",
+    "redo": "Повторити дію",
+    "deselect": "Зняти виділення",
+
+    "delete_selected": "Видалити",
+
+    "default_text": "Текст",
+
+    "loading": "Завантаження...",
+
+    "reset_all": "Скинути все",
+
+    "compare": "Порівняти",
+    "compare_hint": "Утримуйте для перегляду оригіналу"
+},
   "editor": {
     "schedule_title": "Відкладені пости",
     "schedule_confirm": "Опублікувати пізніше",

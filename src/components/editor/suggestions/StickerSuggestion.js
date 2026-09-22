@@ -2,8 +2,6 @@ import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import SuggestionList from '../SuggestionList.jsx';
 import StickerService from '../../../services/sticker.service.js';
-import Mention from '@tiptap/extension-mention';
-import mentionSuggestion from './mentionSuggestion.js';
 
 let cachedStickers = null;
 
@@ -20,8 +18,8 @@ export default {
                 attrs: {
                     id: props.id,
                     shortcode: props.shortcode,
-                    src: props.url,
-                    packName: props.pack_short_name
+                    src: props.url || props.src,
+                    packName: props.pack_short_name || props.packName
                 }
             })
             .insertContent(' ')
@@ -32,23 +30,29 @@ export default {
         if (query.length < 1) return [];
 
         if (!cachedStickers) {
-            try {
-                const res = await StickerService.getMyPacks();
-                if (res.success && Array.isArray(res.data)) {
-                    cachedStickers = res.data.flatMap(pack => {
-                        if (!Array.isArray(pack.stickers)) return [];
-                        return pack.stickers.map(sticker => ({
-                            ...sticker,
-                            pack_short_name: pack.short_name
-                        }));
+            // Обертаємо наш onSuccess у Promise, щоб Tiptap міг його почекати
+            await new Promise((resolve) => {
+                StickerService.getMyPacks()
+                    .onSuccess((res) => {
+                        if (res.data && Array.isArray(res.data)) {
+                            cachedStickers = res.data.flatMap(pack => {
+                                if (!Array.isArray(pack.stickers)) return [];
+                                return pack.stickers.map(sticker => ({
+                                    ...sticker,
+                                    pack_short_name: pack.short_name
+                                }));
+                            });
+                        } else {
+                            cachedStickers = [];
+                        }
+                        resolve(); // Сигнал для Tiptap, що ми завантажили
+                    })
+                    .onError((err) => {
+                        console.error("Помилка завантаження кешу:", err);
+                        cachedStickers = [];
+                        resolve(); // Відпускаємо Tiptap навіть при помилці
                     });
-                } else {
-                    cachedStickers = [];
-                }
-            } catch (e) {
-                console.error("Помилка завантаження кешу:", e);
-                cachedStickers = [];
-            }
+            });
         }
 
         const lowerQuery = query.toLowerCase();

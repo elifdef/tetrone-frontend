@@ -12,7 +12,9 @@ export const checkFileSize = (file) => {
 };
 
 export const validateImageFile = (file) => {
-    if (!file.type.startsWith('image/')) {
+    // Жорсткіша перевірка на дозволені типи (захист від завантаження скриптів під виглядом картинки)
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
         notifyError(i18n.t('error.not_image'));
         return false;
     }
@@ -20,7 +22,8 @@ export const validateImageFile = (file) => {
 };
 
 export const validateGenericFile = (file) => {
-    const forbiddenExtensions = ['.exe', '.bat', '.sh', '.js'];
+    // Розширений список заборонених форматів для безпеки
+    const forbiddenExtensions = ['.exe', '.bat', '.sh', '.js', '.php', '.py', '.cmd'];
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
     if (forbiddenExtensions.includes(ext)) {
@@ -32,9 +35,24 @@ export const validateGenericFile = (file) => {
 };
 
 export const formatFileSize = (bytes) => {
-    if (!bytes || bytes === 0) return '0 Bytes';
+    if (!bytes || bytes === 0) return '0 ' + i18n.t('file.bytes');
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    // Використовуємо переклади для Bytes, KB, MB
+    const sizes = [i18n.t('file.bytes'), i18n.t('file.kb'), i18n.t('file.mb'), i18n.t('file.gb')];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+// Конвертує Base64 рядок з редактора у повноцінний File об'єкт
+export const dataURLtoFile = (dataurl, filename) => {
+    let arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), 
+        n = bstr.length, 
+        u8arr = new Uint8Array(n);
+        
+    while(n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
 };

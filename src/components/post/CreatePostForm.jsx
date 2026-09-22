@@ -1,6 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query'; // ДОДАНО
 import { useCreatePost } from "./hooks/useCreatePost";
+import { useImageEditor } from "../../hooks/useImageEditor";
+import StickerService from '../../services/sticker.service'; // ДОДАНО
+
 import SmartEditor from '../editor/SmartEditor';
 import IdentitySwitcher from '../editor/IdentitySwitcher';
 import PublishButton from '../editor/PublishButton';
@@ -8,6 +12,7 @@ import AttachBar from './components/AttachBar';
 import MediaPreviews from './components/MediaPreviews';
 import YouTubePreviews from './components/YouTubePreviews';
 import PollCreatorModal from '../modals/PollCreatorModal';
+import MediaEditorModal from '../common/MediaEditorModal';
 import { PollIcon, CloseIcon } from '../ui/Icons';
 
 export default function CreatePostForm({
@@ -27,18 +32,33 @@ export default function CreatePostForm({
         content, setContent, pollData, setPollData, showPollCreator, setShowPollCreator,
         removedPreviews, toggleYouTubePreview, external, handleSubmit, files, previews,
         isDragging, handleDragOver, handleDragLeave, handleDrop, handleFileSelect,
-        handlePaste, removeFile, isSubmitting, toggleMediaFlag
+        handlePaste, removeFile, replaceFile, isSubmitting, toggleMediaFlag
     } = useCreatePost(onSubmitSuccess, {
         author_username: authorUsername,
         target_username: targetUsername || null
     });
 
+    const { isEditorOpen, editingFile, openEditor, closeEditor, handleSave } = useImageEditor(replaceFile);
+
+    // ФІКС 1: Робимо запит на сервер для стікерів 
+    // і передаємо їх в SmartEditor та MediaEditorModal
+    const { data: stickerPacks = [], isLoading: isStickersLoading } = useQuery({
+        queryKey: ['my_sticker_packs'],
+        queryFn: () => new Promise((resolve) => {
+            StickerService.getMyPacks()
+                .onSuccess(res => resolve(res.packs || res.data || []))
+                .onError(err => {
+                    console.error(err);
+                    resolve([]);
+                });
+        }),
+        staleTime: 5 * 60 * 1000 // Кешуємо на 5 хвилин
+    });
+
     const handlePublishClick = async (canComment) => {
         try {
             await handleSubmit(null, canComment);
-            if (showScheduled && onToggleScheduled) {
-                onToggleScheduled();
-            }
+            if (showScheduled && onToggleScheduled) onToggleScheduled();
         } catch (error) {
             console.error("Publish error:", error);
         }
@@ -47,19 +67,14 @@ export default function CreatePostForm({
     const handleScheduleClick = async (date, canComment) => {
         try {
             await handleSubmit(date, canComment);
-            if (onToggleScheduled && !showScheduled) {
-                onToggleScheduled();
-            }
+            if (onToggleScheduled && !showScheduled) onToggleScheduled();
         } catch (error) {
             console.error("Schedule error:", error);
         }
     };
 
     const ownedSpaces = isSpaceAdmin && space ? [space] : [];
-
-    const editorPlaceholder = isDragging
-        ? t('wall.drop_files_here')
-        : (placeholder || t('action.write_post'));
+    const editorPlaceholder = isDragging ? t('wall.drop_files_here') : (placeholder || t('action.write_post'));
 
     return (
         <div
@@ -67,7 +82,7 @@ export default function CreatePostForm({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onPaste={handlePaste}
+            onPasteCapture={handlePaste} // ФІКС 2: Змінено на onPasteCapture!
         >
             <div className="flex items-start gap-[12px]">
 
@@ -102,6 +117,8 @@ export default function CreatePostForm({
                             placeholder={editorPlaceholder}
                             value={content}
                             onChange={setContent}
+                            stickerPacks={stickerPacks} // ПЕРЕДАЄМО ПАКИ В РЕДАКТОР ПОСТА!
+                            isStickersLoading={isStickersLoading}
                         />
                     </div>
 
@@ -139,7 +156,19 @@ export default function CreatePostForm({
             )}
 
             <div className="ml-[52px]">
-                <MediaPreviews previews={previews} onRemove={removeFile} onToggleFlag={toggleMediaFlag} />
+                <MediaPreviews 
+                    previews={previews} 
+                    onRemove={removeFile} 
+                    onToggleFlag={toggleMediaFlag}
+                    onEditClick={(index) => {
+                        // ДОДАНО ДЛЯ ДІАГНОСТИКИ:
+                        console.log("1. КЛІК НА ОЛІВЕЦЬ. Index:", index);
+                        console.log("   Файл з files:", files[index]);
+                        console.log("   Прев'ю з previews:", previews[index]);
+                        
+                        openEditor(files[index] || previews[index], index);
+                    }} 
+                />
                 <YouTubePreviews youtubeLinks={external.youtube} removedPreviews={removedPreviews} onToggle={toggleYouTubePreview} />
             </div>
 
@@ -149,6 +178,16 @@ export default function CreatePostForm({
                 pollData={pollData}
                 onSave={(data) => { setPollData(data); setShowPollCreator(false); }}
             />
+            
+            {isEditorOpen && (
+                <MediaEditorModal
+                    isOpen={true}
+                    file={editingFile}
+                    onClose={closeEditor}
+                    onSave={handleSave}
+                    stickerPacks={stickerPacks}
+                />
+            )}
         </div>
     );
 }

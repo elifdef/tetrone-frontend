@@ -167,7 +167,6 @@ export default function FloatingFormatMenu({ editor, isOpen, onClose }) {
                 onMouseDown={handleMouseDown}
             >
                 <h3 className="m-0 text-[12px] font-bold text-modal-header-text flex items-center gap-[6px]">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
                     {t('editor.format_panel_title')}
                 </h3>
                 <button 
