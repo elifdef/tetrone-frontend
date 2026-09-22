@@ -1,22 +1,24 @@
 import fetchClient from "../api/client";
 
-class PostService {
-    async create(data) {
+class PostService
+{
+    create(data)
+    {
         const hasFiles = data.images && data.images.length > 0;
 
-        // Дані приходять чистими прямо з хука useCreatePost
         const requestData = {
-            payload: data.payload || null,
-            space_username: data.space_username || null,
+            payload:            data.payload || null,
+            space_username:     data.space_username || null,
             is_posted_as_space: data.is_posted_as_space || false,
-            target_username: data.target_username || null,
-            author_username: data.author_username || null,
-            original_post_id: data.original_post_id || null,
-            published_at: data.published_at || null,
-            can_comment: data.can_comment !== undefined ? data.can_comment : true,
+            target_username:    data.target_username || null,
+            author_username:    data.author_username || null,
+            original_post_id:   data.original_post_id || null,
+            published_at:       data.published_at || null,
+            can_comment:        data.can_comment !== undefined ? data.can_comment : true,
         };
 
-        if (hasFiles) {
+        if (hasFiles)
+        {
             const formData = new FormData();
 
             if (requestData.payload) formData.append('payload', JSON.stringify(requestData.payload));
@@ -26,114 +28,130 @@ class PostService {
             if (requestData.author_username) formData.append('author_username', requestData.author_username);
             if (requestData.original_post_id) formData.append('original_post_id', requestData.original_post_id);
             if (requestData.published_at) formData.append('published_at', requestData.published_at);
-            
-            // Відправляємо 1 або 0 для булевих значень
+
             formData.append('can_comment', requestData.can_comment ? '1' : '0');
 
-            data.images.forEach((file, index) => {
+            data.images.forEach((file, index) =>
+            {
                 formData.append('media[]', file);
                 formData.append(`media_spoiler[${index}]`, file.is_spoiler ? '1' : '0');
                 formData.append(`media_nsfw[${index}]`, file.is_nsfw ? '1' : '0');
             });
 
-            return await fetchClient('/posts', { method: 'POST', body: formData });
+            return fetchClient('/posts', {method: 'POST', body: formData});
         }
 
-        // Відправляємо JSON, якщо файлів немає
-        return await fetchClient('/posts', {
+        return fetchClient('/posts', {
             method: 'POST',
-            body: requestData
+            body:   requestData
         });
     }
 
-    async update(id, data) {
+    update(id, data)
+    {
         const formData = new FormData();
         formData.append('_method', 'PUT');
 
-        if (data.payload) {
+        if (data.payload)
+        {
             formData.append('payload', JSON.stringify(data.payload));
         }
 
-        if (data.images && data.images.length > 0) {
-            data.images.forEach((file, index) => {
+        if (data.images && data.images.length > 0)
+        {
+            data.images.forEach((file, index) =>
+            {
                 formData.append('media[]', file);
                 formData.append(`media_spoiler[${index}]`, file.is_spoiler ? '1' : '0');
                 formData.append(`media_nsfw[${index}]`, file.is_nsfw ? '1' : '0');
             });
         }
 
-        if (data.deletedMedia && data.deletedMedia.length > 0) {
+        if (data.deletedMedia && data.deletedMedia.length > 0)
+        {
             data.deletedMedia.forEach((mediaId) => formData.append('deleted_media[]', mediaId));
         }
 
-        return await fetchClient(`/posts/${id}`, { method: 'POST', body: formData });
+        return fetchClient(`/posts/${id}`, {method: 'POST', body: formData});
     }
 
-    async get(id) {
-        return await fetchClient(`/posts/${id}`);
+    get(id)
+    {
+        return fetchClient(`/posts/${id}`);
     }
 
-    async delete(id) {
-        return await fetchClient(`/posts/${id}`, { method: 'DELETE' });
+    delete(id)
+    {
+        return fetchClient(`/posts/${id}`, {method: 'DELETE'});
     }
 
-    async publishNow(id) {
+    publishNow(id)
+    {
         const formData = new FormData();
         formData.append('_method', 'PUT');
         formData.append('is_published', '1');
-        formData.append('published_at', ''); 
+        formData.append('published_at', '');
 
-        return await fetchClient(`/posts/${id}`, { method: 'POST', body: formData });
+        return fetchClient(`/posts/${id}`, {method: 'POST', body: formData});
     }
 
-    async togglePin(id) {
-        return await fetchClient(`/posts/${id}/pin`, { method: 'POST' });
+    togglePin(id)
+    {
+        return fetchClient(`/posts/${id}/pin`, {method: 'POST'});
     }
 
-    async toggleLike(postId) {
-        return await fetchClient(`/posts/${postId}/like`, { method: 'POST' });
+    toggleLike(postId)
+    {
+        return fetchClient(`/posts/${postId}/like`, {method: 'POST'});
     }
 
-    async getUserPosts(username, pageNumber = 1, tab = 'all') {
-        return await fetchClient(`/users/${username}/posts?page=${pageNumber}&tab=${tab}`);
+    getUserPosts(username, pageNumber = 1, tab = 'all')
+    {
+        return fetchClient(`/users/${username}/posts?page=${pageNumber}&tab=${tab}`);
     }
 
-    async votePoll(postId, optionIds) {
-        return await fetchClient(`/posts/${postId}/poll/vote`, {
+    votePoll(postId, optionIds)
+    {
+        return fetchClient(`/posts/${postId}/poll/vote`, {
             method: 'POST',
-            body: { option_ids: optionIds }
+            body:   {option_ids: optionIds}
         });
     }
 
-    async getPollVoters(postId) {
-        return await fetchClient(`/posts/${postId}/poll/voters`);
+    getPollVoters(postId)
+    {
+        return fetchClient(`/posts/${postId}/poll/voters`);
     }
 
-    async closePoll(postId) {
-        return await fetchClient(`/posts/${postId}/poll/close`, { method: 'POST' });
+    closePoll(postId)
+    {
+        return fetchClient(`/posts/${postId}/poll/close`, {method: 'POST'});
     }
 
-    async getUserAvatars(username) {
-        return await fetchClient(`/users/${username}/avatars`);
+    getUserAvatars(username)
+    {
+        return fetchClient(`/users/${username}/avatars`);
     }
 
-    async toggleReaction(postId, stickerId) {
-        return await fetchClient(`/posts/${postId}/reactions`, {
+    toggleReaction(postId, stickerId)
+    {
+        return fetchClient(`/posts/${postId}/reactions`, {
             method: 'POST',
-            body: { sticker_id: stickerId }
+            body:   {sticker_id: stickerId}
         });
     }
 
-    async updateReactionConfig(postId, configData) {
-        return await fetchClient(`/posts/${postId}/reaction-config`, {
+    updateReactionConfig(postId, configData)
+    {
+        return fetchClient(`/posts/${postId}/reaction-config`, {
             method: 'PUT',
-            body: configData
+            body:   configData
         });
     }
 
-    // НОВИЙ МЕТОД ДЛЯ ГРАФІКІВ
-    async getPollStats(postId) {
-        return await fetchClient(`/posts/${postId}/poll/stats`);
+    getPollStats(postId)
+    {
+        return fetchClient(`/posts/${postId}/poll/stats`);
     }
 }
 

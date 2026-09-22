@@ -14,10 +14,10 @@ export default function WallHeader({ postsCount, showScheduled, onToggleSchedule
                         type="button"
                         onClick={onToggleScheduled}
                         className={`bg-transparent border-none cursor-pointer flex items-center gap-[6px] text-[12px] transition-colors outline-none ${showScheduled ? 'text-theme-link font-bold' : 'text-text-muted hover:text-theme-link'}`}
-                        title={showScheduled ? t('wall.tab_all') : t('wall.tab_scheduled')}
+                        title={showScheduled ? t('wall.all') : t('wall.scheduled')}
                     >
                         <ClockIcon width={14} height={14} />
-                        {showScheduled ? t('wall.tab_all') : t('wall.tab_scheduled')}
+                        {showScheduled ? t('wall.all') : t('wall.scheduled')}
                     </button>
                 )}
 
