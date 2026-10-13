@@ -7,14 +7,11 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
 import { Extension, Mark, mergeAttributes } from '@tiptap/core';
 import truncate from 'truncate-html';
-
 import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-dark.css';
-
 import { CustomStickerNode } from '../editor/extensions/CustomStickerNode.js';
 import StickerTooltip from '../editor/StickerTooltip';
 import { PullquoteNode, DetailsNode, SummaryNode } from '../editor/extensions/extensions.js';
-
 import { Underline } from '@tiptap/extension-underline';
 import { Link } from '@tiptap/extension-link';
 import { TaskList } from '@tiptap/extension-task-list';
@@ -26,8 +23,6 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { Subscript } from '@tiptap/extension-subscript';
 import { Superscript } from '@tiptap/extension-superscript';
 import { Highlight } from '@tiptap/extension-highlight';
-
-// НОВІ ІМПОРТИ
 import TextAlign from '@tiptap/extension-text-align';
 import { UniqueId } from '../editor/extensions/UniqueId.js';
 

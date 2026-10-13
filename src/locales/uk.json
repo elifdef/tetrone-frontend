@@ -696,64 +696,85 @@
 
     "tool_select": "Вибрати",
     "tool_transform": "Трансформація",
-    "tool_crop": "Обрізати",
+    "tool_crop": "Кроп",
     "tool_draw": "Малювати",
     "tool_shapes": "Фігури",
     "tool_text": "Текст",
     "tool_sticker": "Стікер",
-    "tool_blur": "Фільтри",
+    "tool_filter": "Фільтри",
+    "tool_meme": "Меми",
+
+    "select_tool_hint": "Виберіть об'єкт на полотні для редагування",
+    "drawing_tool": "Інструмент малювання",
+    "tool_pencil": "Олівець",
+    "tool_line": "Лінія",
+    "tool_arrow": "Стрілка",
 
     "color": "Колір",
     "size": "Розмір",
+    "stroke_width": "Товщина",
+    "opacity": "Прозорість",
+    "intensity": "Інтенсивність розмиття",
+    "angle": "Кут",
+    "width": "Ширина",
+    "height": "Висота",
+    "fill": "Заливка",
+    "stroke": "Контур",
 
-    "add_rect": "Прямокутник",
-    "add_round_rect": "Закруглений прямокутник",
-    "add_circle": "Коло",
-    "add_triangle": "Трикутник",
-    "add_star": "Зірка",
-    "add_arrow": "Стрілка",
-    "add_highlight": "Підсвітка",
-    "add_censor": "Цензура",
-    "add_text": "Додати текст",
+    "shape_figure": "Фігура",
+    "shape_pencil": "Малюнок",
+    "shape_line": "Лінія",
+    "shape_arrow": "Стрілка",
+    "shape_highlight": "Виділення",
+    "shape_rect": "Квадрат",
+    "shape_circle": "Коло",
+    "shape_triangle": "Трикутник",
+    "shape_ellipse": "Овал",
+    "shape_diamond": "Ромб",
+    "shape_hexagon": "Шестикутник",
+    "shape_star": "Зірка",
+    "shape_censor": "Цензура",
+    "shapes_hint": "Натисни і тягни мишкою на полотні. Утримуй Shift для рівних пропорцій.",
 
-    "rotate": "Повернути",
+    "layer_shape": "Фігура",
+    "layer_text": "Текст",
+    "layer_image": "Зображення",
+    "layer_sticker": "Стікер",
+    "layer_drawing": "Малюнок",
+    "layer_group": "Папка",
+    "create_folder": "Створити папку",
+    "add_image_layer": "Фото",
+
+    "richtext_layer": "Текст (RichText)",
+    "text_editing": "Редагування тексту",
+    "text_placeholder": "Введіть текст...",
+    "text_resize_hint": "Щоб змінити розмір або повернути текст, потягніть за рамку на полотні.",
+    "text_creation": "Створення тексту",
+    "text_create_hint": "Клікни у будь-якому місці на зображенні, щоб додати блок з текстом.",
+
+    "rotate": "Поворот",
     "rotate_left": "Повернути вліво",
     "rotate_right": "Повернути вправо",
-
     "flip_h": "По горизонталі",
     "flip_v": "По вертикалі",
-
     "duplicate": "Дублювати",
 
     "center_h": "По центру горизонтально",
     "center_v": "По центру вертикально",
 
     "layer_forward": "На один рівень вперед",
-    "layer_front": "На передній план",
+    "layer_front": "Шари",
     "layer_backward": "На один рівень назад",
     "layer_back": "На задній план",
-
-    "opacity": "Прозорість",
-    "angle": "Кут",
-    "width": "Ширина",
-    "height": "Висота",
-
-    "fill": "Заливка",
-    "stroke": "Контур",
 
     "bold": "Жирний",
     "italic": "Курсив",
     "underline": "Підкреслення",
-
     "align_left": "Ліворуч",
     "align_center": "По центру",
     "align_right": "Праворуч",
-
     "text_background": "Фон тексту",
     "shadow": "Тінь",
-
-    "draw_pencil": "Олівець",
-    "draw_line": "Лінія",
 
     "crop_ratio": "Пропорція",
     "ratio_free": "Вільна",
@@ -765,8 +786,6 @@
     "filter_original": "Основне зображення",
     "filter_no_image": "Зображення недоступне",
 
-    "intensity": "Інтенсивність",
-
     "filter_none": "Без фільтра",
     "filter_grayscale": "Чорно-білий",
     "filter_invert": "Інверсія",
@@ -777,6 +796,15 @@
     "filter_noise": "Шум",
     "filter_sharpen": "Різкість",
 
+    "meme_generator": "Генератор мемів",
+    "meme_hint": "В один клік застосовує макрос. Після генерації ти зможеш відредагувати текст.",
+    "btn_demotivator": "Створити Демотиватор",
+    "btn_classic_meme": "Текст (Верх / Низ)",
+    "meme_top_text": "ВЕРХНІЙ ТЕКСТ",
+    "meme_bottom_text": "НИЖНІЙ ТЕКСТ",
+    "demotivator_title": "ЗАГОЛОВОК",
+    "demotivator_subtitle": "Додатковий текст для демотиватора",
+
     "zoom_in": "Збільшити",
     "zoom_out": "Зменшити",
     "zoom_reset": "Скинути масштаб",
@@ -784,18 +812,14 @@
     "undo": "Скасувати останню дію",
     "redo": "Повторити дію",
     "deselect": "Зняти виділення",
-
     "delete_selected": "Видалити",
 
     "default_text": "Текст",
-
     "loading": "Завантаження...",
-
     "reset_all": "Скинути все",
-
     "compare": "Порівняти",
     "compare_hint": "Утримуйте для перегляду оригіналу"
-},
+  },
   "editor": {
     "schedule_title": "Відкладені пости",
     "schedule_confirm": "Опублікувати пізніше",
