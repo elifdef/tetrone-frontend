@@ -47,6 +47,7 @@
     "glob": "^13.0.6",
     "highlight.js": "^11.11.1",
     "hls.js": "^1.6.16",
+    "html-to-image": "^1.11.13",
     "i18n-iso-countries": "^7.14.0",
     "i18next": "^26.3.6",
     "lowlight": "^3.3.0",

@@ -1,7 +1,7 @@
 import { useEditorCore } from './hooks/useEditorCore';
 import { useShapes } from './hooks/useShapes';
 
-// import { useRichText } from './hooks/useRichText';
+import { useRichText } from './hooks/useRichText';
 // import { useMemeGenerator } from './hooks/useMemeGenerator';
 // import { useFilters } from './hooks/useFilters';
 // import { useTransform } from './hooks/useTransform';
@@ -12,9 +12,10 @@ export const useMediaEditor = (props) => {
 
     // Ініціалізуємо тільки фігури
     const shapesModule = useShapes(core, props.t);
+    const richTextModule = useRichText(core, props.t, props.stickerPacks);
 
-    // const modules = [shapesModule, richTextModule, memeModule, filtersModule, transformModule, collageModule];
-    const modules = [shapesModule];
+    // const modules = [memeModule, filtersModule, transformModule, collageModule];
+    const modules = [shapesModule, richTextModule];
 
     const handleSave = () => core.actions.handleSave(props.file, props.onSave);
 

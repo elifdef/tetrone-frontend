@@ -6,12 +6,6 @@ export const OBJECT_PROPS = [
     "id", "name", "isBackground", "editorType",
     "editorFilterType", "editorFilterAmount"
 ];
-
-export const COLORS = [
-    "#ffffff", "#000000", "#ff3347", "#ff9900",
-    "#5B9BD5", "#00cc66", "#9c27b0", "#00bcd4", "#ffeb3b",
-];
-
 export const FONT_FAMILIES = [
     "Tahoma", "Arial", "Arial Black", "Verdana",
     "Georgia", "Times New Roman", "Courier New", "Impact",

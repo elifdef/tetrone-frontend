@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 
-const REQUIRED_PROPS = ['id', 'editorType', 'name', 'folderId', 'lockRotation', 'isBackground', 'previewRect', 'blurIntensity'];
+const REQUIRED_PROPS = ['id', 'editorType', 'name', 'folderId', 'lockRotation', 'isBackground', 'previewRect', 'blurIntensity', 'richTextContent'];
 
 export const useHistory = () => {
     const historyRef = useRef({ stack: [], index: -1, lastSignature: "" });
