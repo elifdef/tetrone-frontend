@@ -20,11 +20,14 @@ export const SocketProvider = ({ children }) =>
         {
             return;
         }
+	
+	const cleanWsUrl = WS_URL ? WS_URL.replace(/\/+$/, '') : '';
 
-        const newSocket = io(WS_URL, {
-            withCredentials: true,
-            transports: ['websocket'],
-        });
+	const newSocket = io(cleanWsUrl, {
+    		withCredentials: true,
+    		transports: ['websocket'],
+    		path: '/socket.io/',
+});
 
         newSocket.on('connect', () =>
         {
