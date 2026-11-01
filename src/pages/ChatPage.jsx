@@ -7,13 +7,13 @@ import ChatInfoModal from '../components/chat/ChatInfoModal';
 
 export default function ChatPage() {
     const { t } = useTranslation();
-    usePageTitle(t('common.messages'));
+    usePageTitle(t('chat.title'));
 
     const { layoutProps } = useChatPage();
     const [isInfoOpen, setIsInfoOpen] = useState(false);
 
-    const handleScrollToMessage = useCallback((id) => {
-        const el = document.getElementById(`msg2-${id}`);
+    const handleScrollToMessage = useCallback((uuid) => {
+        const el = document.getElementById(`msg2-${uuid}`);
         if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             el.classList.add('bg-[rgba(91,155,213,0.3)]', 'transition-colors', 'duration-[2000ms]');
@@ -43,11 +43,11 @@ export default function ChatPage() {
                     onUpdateMemberRole={layoutProps.handleUpdateGroupMemberRole}
                     onKickMember={layoutProps.handleKickGroupMember}
                     onDeleteChat={() => {
-                        layoutProps.handleDeleteChat(layoutProps.activeChat.id, true);
+                        layoutProps.handleDeleteChat(layoutProps.activeChat.slug, true);
                         setIsInfoOpen(false);
                     }}
                     onBlockUser={() => {
-                        layoutProps.handleBlockUser(layoutProps.activeChat.target_user?.id);
+                        layoutProps.handleBlockUser(layoutProps.activeChat.target_user?.username);
                         setIsInfoOpen(false);
                     }}
                 />

@@ -4,7 +4,9 @@ import { Link } from 'react-router';
 import Avatar from '../ui/Avatar';
 import ImagePreviewModal from '../ui/ImagePreviewModal';
 import RichText from '../common/RichText.jsx';
-import { parseRichText, hasRichContent } from './utils/messageParser.js';
+import PostItem from '../post/PostItem.jsx';
+import { parseRichText, hasRichContent, getPlainText } from './utils/messageParser.js';
+import { GroupIcon } from '../ui/Icons.jsx';
 
 const CheckSvg = () => (
     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -70,6 +72,7 @@ const FileDocSvg = () => (
 export default function MessageItem({
     msg,
     myself,
+    activeChat,
     isSelected,
     onToggleSelect,
     onToggleImportant,
@@ -83,9 +86,18 @@ export default function MessageItem({
     const { t } = useTranslation();
     const [previewImageUrl, setPreviewImageUrl] = useState(null);
 
-    const sender = msg.isMine ? myself : (msg.author || {});
-    const senderName = `${sender?.first_name || ''} ${sender?.last_name || ''}`.trim();
-    const senderLink = sender?.username ? `/${sender.username}` : '#';
+    const isGroupSender = msg.author_type === 'group';
+    const sender = isGroupSender
+        ? {
+              username: activeChat?.slug,
+              first_name: getPlainText(activeChat?.title),
+              last_name: '',
+              avatar: activeChat?.avatar
+          }
+        : (msg.isMine ? myself : (msg.author || {}));
+
+    const senderName = `${sender?.first_name || ''} ${sender?.last_name || ''}`.trim() || sender?.username;
+    const senderLink = !isGroupSender && sender?.username ? `/${sender.username}` : '#';
 
     const timeString = new Date(msg.created_at).toLocaleTimeString([], {
         hour: '2-digit',
@@ -103,8 +115,8 @@ export default function MessageItem({
     return (
         <>
             <div
-                id={`msg2-${msg.id}`}
-                data-msg-id={msg.id}
+                id={`msg2-${msg.uuid}`}
+                data-msg-id={msg.uuid}
                 className={`group flex items-start gap-[8px] px-[6px] py-[5px] transition-colors ${
                     msg.isSameAuthor ? 'same-author pt-[2px]' : 'mt-[4px]'
                 } ${
@@ -130,26 +142,54 @@ export default function MessageItem({
                     </div>
                 </div>
 
+                {/* Аватар користувача або самої бесіди */}
                 <div className="w-[34px] shrink-0">
                     {!msg.isSameAuthor && (
-                        <Link to={senderLink}>
-                            <Avatar
-                                user={sender}
-                                className="w-[34px] h-[34px] object-cover border border-border block"
-                            />
-                        </Link>
+                        isGroupSender ? (
+                            activeChat?.avatar ? (
+                                <img
+                                    src={activeChat.avatar}
+                                    alt=""
+                                    className="w-[34px] h-[34px] object-cover border border-border block"
+                                />
+                            ) : (
+                                <div className="w-[34px] h-[34px] bg-bg-page border border-border flex items-center justify-center text-text-muted">
+                                    <GroupIcon size={18} />
+                                </div>
+                            )
+                        ) : (
+                            <Link to={senderLink}>
+                                <Avatar
+                                    user={sender}
+                                    className="w-[34px] h-[34px] object-cover border border-border block"
+                                />
+                            </Link>
+                        )
                     )}
                 </div>
 
                 <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-[8px]">
                         {!msg.isSameAuthor ? (
-                            <Link
-                                to={senderLink}
-                                className="text-[11px] font-bold text-theme-link hover:underline"
-                            >
-                                <strong>{senderName}</strong>
-                            </Link>
+                            isGroupSender ? (
+                                <span className="text-[11px] font-bold text-theme-link flex items-center gap-[4px]">
+                                    <RichText
+                                        text={parseRichText(activeChat?.title || senderName)}
+                                        className="post-text [&_p]:inline [&_p]:m-0"
+                                        limit={100000}
+                                    />
+                                    <span className="text-[9px] font-normal px-[4px] py-[0.5px] bg-bg-page border border-border text-text-muted">
+                                        {t('chat.badges.group_author')}
+                                    </span>
+                                </span>
+                            ) : (
+                                <Link
+                                    to={senderLink}
+                                    className="text-[11px] font-bold text-theme-link hover:underline"
+                                >
+                                    <strong>{senderName}</strong>
+                                </Link>
+                            )
                         ) : (
                             <span />
                         )}
@@ -194,7 +234,7 @@ export default function MessageItem({
                                 )}
                                 <button
                                     type="button"
-                                    onClick={() => togglePin(msg.id)}
+                                    onClick={() => togglePin(msg.uuid)}
                                     title={t('chat.viewer.pin')}
                                     className={`bg-transparent border-none p-0 cursor-pointer flex items-center ${
                                         msg.is_pinned ? 'text-theme-link' : 'text-text-muted hover:text-theme-link'
@@ -214,7 +254,7 @@ export default function MessageItem({
                                 )}
                                 <button
                                     type="button"
-                                    onClick={() => handleDelete(msg.id)}
+                                    onClick={() => handleDelete(msg.uuid)}
                                     title={t('chat.viewer.delete')}
                                     className="bg-transparent border-none p-0 text-text-muted hover:text-theme-error cursor-pointer flex items-center"
                                 >
@@ -280,6 +320,21 @@ export default function MessageItem({
                                     </span>
                                 )}
                             </span>
+                        </div>
+                    )}
+
+                    {/* ПЕРЕСЛАНА ПУБЛІКАЦІЯ (з таблицями, опитуванням, спойлерами) */}
+                    {msg.shared_post && (
+                        <div className="mt-[6px] p-[8px] bg-bg-page border border-border max-w-[540px]">
+                            <div className="text-[10px] font-bold text-theme-link uppercase tracking-wider mb-[4px]">
+                                {t('chat.badges.forwarded_post')}
+                            </div>
+                            <PostItem
+                                post={msg.shared_post}
+                                isInner={true}
+                                readonly={true}
+                                currentUsername={myself?.username}
+                            />
                         </div>
                     )}
 

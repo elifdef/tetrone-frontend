@@ -10,6 +10,7 @@ import SmartEditor from '../editor/SmartEditor';
 import RichText from '../common/RichText.jsx';
 import ImagePreviewModal from '../ui/ImagePreviewModal';
 import { parseRichText } from './utils/messageParser.js';
+import {SavedMessagesIcon} from "../ui/Icons.jsx";
 
 const LinkIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -118,6 +119,22 @@ export default function ChatInfoModal({
     };
 
     const renderInfoTab = () => {
+            if (chat.is_saved) {
+                return (
+                    <div className="flex flex-col items-center p-[20px] bg-bg-page border border-border text-center">
+                        <div className="w-[60px] h-[60px] rounded-full bg-theme-link/15 border border-theme-link/40 mb-[10px] flex items-center justify-center text-theme-link">
+                            <SavedMessagesIcon size={28} />
+                        </div>
+                        <div className="font-bold text-[14px] text-theme-link mb-[6px]">
+                            {t('chat.saved_messages')}
+                        </div>
+                        <div className="text-[11px] text-text-main max-w-[360px] leading-[1.45]">
+                            {t('chat.saved_description')}
+                        </div>
+                    </div>
+                );
+            }
+
         if (chat.is_group) {
             return (
                 <div className="flex flex-col gap-[15px]">

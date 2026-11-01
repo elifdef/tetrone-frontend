@@ -6,7 +6,8 @@ import ImagePreviewModal from '../ui/ImagePreviewModal';
 import Modal from '../modals/Modal.jsx';
 import SmartEditor from '../editor/SmartEditor';
 import RichText from '../common/RichText.jsx';
-import { parseRichText } from './utils/messageParser.js';
+import { parseRichText, getPlainText } from './utils/messageParser.js';
+import { GroupIcon } from '../ui/Icons.jsx';
 
 const PhotoSvg = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
@@ -54,9 +55,13 @@ const CloseSmallSvg = () => (
 
 export default function ChatComposer({
     myself,
+    activeChat,
+    canSendAsGroup = false,
+    sendAsGroup = false,
+    setSendAsGroup,
     targetUser,
     targetAvatar,
-    activeChatId,
+    activeChatSlug,
     editorResetKey = 0,
     text,
     setText,
@@ -215,15 +220,53 @@ export default function ChatComposer({
             )}
 
             <div className="flex items-start gap-[10px]">
-                <Avatar
-                    user={myself}
-                    className="w-[36px] h-[36px] object-cover border border-border shrink-0 hidden sm:block"
-                />
+                {/* Лівий аватар: якщо canSendAsGroup — клік перемикає між собою і бесідою */}
+                <div
+                    onClick={() => canSendAsGroup && setSendAsGroup?.(prev => !prev)}
+                    title={canSendAsGroup ? t('chat.composer.toggle_identity_hint') : ''}
+                    className={`relative shrink-0 hidden sm:block ${canSendAsGroup ? 'cursor-pointer group' : ''}`}
+                >
+                    {sendAsGroup && activeChat?.is_group ? (
+                        activeChat.avatar ? (
+                            <img
+                                src={activeChat.avatar}
+                                alt=""
+                                className="w-[36px] h-[36px] object-cover border-[2px] border-theme-link block"
+                            />
+                        ) : (
+                            <div className="w-[36px] h-[36px] bg-bg-page border-[2px] border-theme-link flex items-center justify-center text-theme-link">
+                                <GroupIcon size={18} />
+                            </div>
+                        )
+                    ) : (
+                        <Avatar
+                            user={myself}
+                            className="w-[36px] h-[36px] object-cover border border-border block"
+                        />
+                    )}
+                </div>
 
                 <div className="flex-1 flex flex-col min-w-0">
+                    {canSendAsGroup && (
+                        <div className="flex items-center justify-between mb-[4px] text-[10px] text-text-muted">
+                            <span>
+                                {sendAsGroup
+                                    ? `${t('chat.composer.writing_as_group')}: ${getPlainText(activeChat?.title)}`
+                                    : `${t('chat.composer.writing_as_user')}: ${myself?.first_name} (@${myself?.username})`}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setSendAsGroup?.(prev => !prev)}
+                                className="bg-transparent border-none p-0 text-[10px] text-theme-link hover:underline cursor-pointer"
+                            >
+                                {t('chat.composer.switch_identity')}
+                            </button>
+                        </div>
+                    )}
+
                     <div className="w-full bg-bg-box text-text-main border border-border focus-within:border-theme-link">
                         <SmartEditor
-                            key={`editor_${activeChatId}_${editingMessage?.id || 'draft'}_${editorResetKey}`}
+                            key={`editor_${activeChatSlug}_${editingMessage?.uuid || 'draft'}_${editorResetKey}`}
                             value={text}
                             onChange={(val) => {
                                 setText(val);

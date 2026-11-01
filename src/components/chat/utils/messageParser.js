@@ -53,7 +53,7 @@ export const hasRichContent = (content) => {
                 found = true;
                 return;
             }
-            if (node.type === 'customSticker' || node.type === 'image') {
+            if (['customSticker', 'image', 'table', 'codeBlock', 'horizontalRule', 'details'].includes(node.type)) {
                 found = true;
                 return;
             }
@@ -67,6 +67,24 @@ export const hasRichContent = (content) => {
     return found;
 };
 
+export const detectTipTapFeatures = (content) => {
+    const doc = toTipTapDoc(content);
+    const features = { hasTable: false, hasCode: false, hasTask: false, hasDetails: false };
+    if (!doc || !Array.isArray(doc.content)) return features;
+
+    const walk = (nodes) => {
+        nodes.forEach((node) => {
+            if (node.type === 'table') features.hasTable = true;
+            if (node.type === 'codeBlock') features.hasCode = true;
+            if (node.type === 'taskList') features.hasTask = true;
+            if (node.type === 'details') features.hasDetails = true;
+            if (Array.isArray(node.content)) walk(node.content);
+        });
+    };
+    walk(doc.content);
+    return features;
+};
+
 export const getPlainText = (content) => {
     if (!content) return '';
     try {
@@ -78,7 +96,7 @@ export const getPlainText = (content) => {
             nodes.forEach(node => {
                 if (node.type === 'text') text += node.text;
                 else if (node.type === 'customSticker') text += ` :${node.attrs?.shortcode || 'sticker'}: `;
-                else if (node.type === 'paragraph') text += ' ';
+                else if (node.type === 'paragraph' || node.type === 'heading') text += ' ';
                 if (node.content) extract(node.content);
             });
         };
