@@ -6,36 +6,6 @@ import publicService from "../services/public.service.js";
 import { APP_NAME } from "../config.js";
 import InfoBox from '../components/ui/InfoBox';
 
-const groupDependencies = (deps, isBackend = false, t) => {
-    const groups = {};
-    Object.entries(deps || {}).forEach(([name, ver]) => {
-        const cleanVer = String(ver).replace(/[\^~]/g, '');
-        let category = t('about.cat_other');
-
-        if (!isBackend) {
-            if (name.includes('react') && !name.includes('query') && !name.includes('hook-form') && !name.includes('colorful') && !name.includes('toast') && !name.includes('datepicker') && !name.includes('skeleton')) category = t('about.cat_react');
-            else if (name.includes('tiptap') || name.includes('prosemirror') || name.includes('highlight') || name.includes('lowlight')) category = t('about.cat_editor');
-            else if (name.includes('tailwind') || name.includes('postcss') || name.includes('toast') || name.includes('colorful') || name.includes('tippy') || name.includes('skeleton') || name.includes('flag-icons')) category = t('about.cat_ui');
-            else if (name.includes('query') || name.includes('socket') || name.includes('axios')) category = t('about.cat_network');
-            else if (name.includes('hook-form') || name.includes('resolvers') || name === 'zod') category = t('about.cat_forms');
-            else if (name.includes('date-fns') || name.includes('recharts')) category = t('about.cat_data');
-            else if (name.includes('plyr') || name.includes('hls.js') || name.includes('truncate')) category = t('about.cat_media');
-            else if (name.includes('i18n') || name.includes('countries-list')) category = t('about.cat_localization');
-        } else {
-            if (name.startsWith('laravel/')) category = t('about.cat_laravel');
-            else if (name.startsWith('spatie/')) category = t('about.cat_spatie');
-            else if (name.includes('doctrine')) category = t('about.cat_db');
-            else if (name.includes('elastic-scout')) category = t('about.cat_search');
-            else if (name.includes('intervention') || name.includes('getid3')) category = t('about.cat_files');
-            else if (name.includes('purifier') || name.includes('agent') || name.includes('location')) category = t('about.cat_security');
-        }
-
-        if (!groups[category]) groups[category] = [];
-        groups[category].push(`${name} (${cleanVer})`);
-    });
-    return groups;
-};
-
 const formatVersionType = (version, t) => {
     if (!version || version === 'N/A') return 'N/A';
     const lower = version.toLowerCase();
@@ -90,7 +60,6 @@ export default function AboutPage() {
         laravel: t('common.loading'),
         php: t('common.loading'),
         services: {},
-        packages: {}
     });
 
     useEffect(() => {
@@ -105,7 +74,6 @@ export default function AboutPage() {
                     laravel: info.laravel_version,
                     php: info.php_version,
                     services: info.services || {},
-                    packages: info.packages || {}
                 });
             } catch (error) {
                 // Fail silently
@@ -114,38 +82,11 @@ export default function AboutPage() {
         fetchBackendInfo();
     }, []);
 
-    const groupedFrontend = groupDependencies(pkg.dependencies, false, t);
-    const groupedBackend = groupDependencies(backendInfo.packages, true, t);
-
     // Беремо value та enabled з об'єкта сервісу
     const dbSvc = backendInfo.services.database || { value: t('common.loading') };
     const redisSvc = backendInfo.services.redis || { value: t('common.loading') };
     const elasticSvc = backendInfo.services.elasticsearch || { value: t('common.loading') };
     const microSvc = backendInfo.services.microservice || { value: t('common.loading') };
-
-    const renderPackageGroup = (groupedData) => (
-        <div className="flex flex-col mt-[15px]">
-            {Object.keys(groupedData).length > 0 ? (
-                Object.entries(groupedData).sort().map(([groupName, items]) => (
-                    <div key={groupName} className="mb-[10px] last:mb-0">
-                        <div className="text-[10px] font-bold text-text-muted mb-[4px]">{groupName}</div>
-                        <div className="flex flex-wrap gap-[6px]">
-                            {items.sort().map((lib, idx) => (
-                                <span
-                                    key={idx}
-                                    className="bg-bg-box border border-border px-[6px] py-[3px] text-[10px] text-theme-link font-mono select-all hover:bg-[rgba(91,155,213,0.05)] transition-colors"
-                                >
-                                    {lib}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                ))
-            ) : (
-                <div className="text-[10px] text-text-muted italic">{t('common.loading')}</div>
-            )}
-        </div>
-    );
 
     return (
         <div className="w-full max-w-[800px] mx-auto box-border p-[20px] bg-bg-page border border-border font-tahoma text-[11px] text-text-main max-md:p-[10px]">
@@ -194,7 +135,6 @@ export default function AboutPage() {
                     <InfoRow label={t('about.version')}>{formatVersionType(pkg.version, t)}</InfoRow>
                     </tbody>
                 </table>
-                {renderPackageGroup(groupedFrontend)}
             </div>
 
             {/* --- БЕКЕНД БЛОК --- */}
@@ -253,7 +193,6 @@ export default function AboutPage() {
                     </InfoRow>
                     </tbody>
                 </table>
-                {renderPackageGroup(groupedBackend)}
             </div>
         </div>
     );
