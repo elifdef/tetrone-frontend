@@ -46,7 +46,11 @@ const ImageDropzone = ({ onFileSelect, fileName }) => {
 
     return (
         <div
-            className={`w-full p-[20px] border border-dashed text-center cursor-pointer transition-colors flex flex-col items-center justify-center text-[11px] outline-none ${isDragging ? 'border-theme-link bg-[rgba(128,128,128,0.05)]' : 'border-border bg-bg-box hover:bg-bg-page'}`}
+            className={`w-full p-[20px] border-2 border-dashed rounded-none text-center cursor-pointer transition-colors flex flex-col items-center justify-center text-[11px] outline-none ${
+                isDragging
+                    ? 'border-theme-link bg-header-bg'
+                    : 'border-border hover:border-theme-link bg-bg-box hover:bg-bg-page'
+            }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -62,7 +66,8 @@ const ImageDropzone = ({ onFileSelect, fileName }) => {
 
             <div className="text-text-main">
                 <div>
-                    <strong className="text-theme-link hover:underline">{t('action.drag_and_drop')}</strong> {t('action.or_paste')} (Ctrl+V)
+                    <strong className="text-theme-link hover:underline">{t('action.drag_and_drop')}</strong>{' '}
+                    {t('action.or_paste')}
                 </div>
             </div>
 

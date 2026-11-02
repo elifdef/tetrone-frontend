@@ -24,19 +24,16 @@ export default function ProfileSettings({ isSetupMode = false }) {
     } = useProfileSettings(isSetupMode);
 
     return (
-        <div className="flex flex-col gap-[15px] w-full font-tahoma text-[11px] text-text-main">
-            {/* Попередній перегляд картки */}
+        <div className="flex flex-col gap-[15px] w-full font-tahoma text-[11px] text-text-main rounded-none">
             <div className="w-full">
                 <UserProfileCard currentUser={previewUser} isPreview={true} />
             </div>
 
-            {/* Форма налаштувань */}
-            <div className="w-full bg-bg-box border border-border shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05)] rounded-[3px]">
+            <div className="w-full bg-bg-box border border-border shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05)] rounded-none">
                 <form onSubmit={handleSubmit} className="flex flex-col">
 
                     <div className="p-[15px] border-b border-border last:border-b-0 flex flex-col gap-[15px]">
 
-                        {/* Аватар */}
                         <div className="w-full">
                             <label className="block mb-[6px] font-bold text-text-main text-[11px]">
                                 {t('common.avatar')}
@@ -47,7 +44,6 @@ export default function ProfileSettings({ isSetupMode = false }) {
                             />
                         </div>
 
-                        {/* Ім'я та Прізвище */}
                         <div className="flex gap-[15px] w-full max-md:flex-col">
                             <div className="flex-1">
                                 <Input
@@ -69,23 +65,20 @@ export default function ProfileSettings({ isSetupMode = false }) {
                                 />
                             </div>
                         </div>
-                        {/* Дата народження, Країна, Стать */}
+
                         <div className="flex gap-[15px] w-full max-md:flex-col">
                             <div className="flex-1">
                                 <DateInput
                                     label={`${t('common.birthday')} *`}
-                                    name="birth_date" // Тут name був, але краще підстрахувати onChange
+                                    name="birth_date"
                                     value={formData.birth_date}
-                                    onChange={(eOrVal) => {
-                                        const value = eOrVal?.target ? eOrVal.target.value : eOrVal;
-                                        handleChange({ target: { name: 'birth_date', value } });
-                                    }}
+                                    onChange={handleChange}
                                     required={isSetupMode}
                                 />
                             </div>
                             <div className="flex-1">
                                 <CountrySelect
-                                    name="country" // ДОДАНО
+                                    name="country"
                                     value={formData.country}
                                     onChange={(eOrVal) => {
                                         const value = eOrVal?.target ? eOrVal.target.value : eOrVal;
@@ -95,7 +88,7 @@ export default function ProfileSettings({ isSetupMode = false }) {
                             </div>
                             <div className="flex-1">
                                 <GenderSelect
-                                    name="gender" // ДОДАНО
+                                    name="gender"
                                     label={`${t('common.gender')} *`}
                                     value={formData.gender}
                                     onChange={(eOrVal) => {
@@ -107,7 +100,6 @@ export default function ProfileSettings({ isSetupMode = false }) {
                             </div>
                         </div>
 
-                        {/* Про себе (Біо) */}
                         <div className="w-full">
                             <label className="block mb-[6px] font-bold text-text-main text-[11px]">
                                 {t('settings.about_me')}
@@ -117,20 +109,19 @@ export default function ProfileSettings({ isSetupMode = false }) {
                                     value={formData.bio}
                                     onChange={(jsonContent) => handleChange({ target: { name: 'bio', value: jsonContent } })}
                                     preset="bio"
-                                    placeholder={t('settings.about_me_placeholder', 'Розкажіть про себе...')}
+                                    placeholder={t('settings.about_me_placeholder')}
                                     className="w-full"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {/* Футер з кнопкою */}
-                    <div className="p-[10px_15px] bg-bg-page flex justify-end border-t border-border w-full rounded-b-[3px]">
+                    <div className="p-[10px_15px] bg-bg-page flex justify-end border-t border-border w-full rounded-none">
                         <Button
                             type="submit"
                             variant="primary"
                             disabled={!canSubmit}
-                            className={isSetupMode ? 'w-full py-[8px] text-[12px]' : ''}
+                            className={isSetupMode ? 'w-full py-[8px] text-[12px] rounded-none' : 'rounded-none'}
                         >
                             {t(isSetupMode ? 'first_setup.save_and_finish' : 'action.save')}
                         </Button>

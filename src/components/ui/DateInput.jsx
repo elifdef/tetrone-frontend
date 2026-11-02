@@ -1,33 +1,133 @@
-import { forwardRef } from 'react';
-import DatePicker, { registerLocale } from 'react-datepicker';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { uk, enUS } from 'date-fns/locale';
-import "react-datepicker/dist/react-datepicker.css";
 
-registerLocale('uk', uk);
-registerLocale('en', enUS);
+const cleanIsoDate = (val) => {
+    if (!val || typeof val !== 'string') return '';
+    return val.split('T')[0].split(' ')[0].trim();
+};
 
-const DateInput = forwardRef(({ label, error, className = "", value, onChange, ...props }, ref) => {
+const formatDisplayDate = (isoStr, locale) => {
+    const cleanStr = cleanIsoDate(isoStr);
+    if (!cleanStr) return '';
+
+    const parts = cleanStr.split('-');
+    if (parts.length !== 3) return '';
+    const [y, m, d] = parts;
+    return locale === 'uk' ? `${d}.${m}.${y}` : `${m}/${d}/${y}`;
+};
+
+const parseInputToIso = (text, locale) => {
+    if (!text) return '';
+    const cleaned = text.trim();
+    const delimiter = cleaned.includes('.') ? '.' : cleaned.includes('/') ? '/' : '-';
+    const parts = cleaned.split(delimiter);
+
+    if (parts.length !== 3) return null;
+
+    let y, m, d;
+    if (delimiter === '-') {
+        [y, m, d] = parts;
+    } else if (locale === 'uk') {
+        [d, m, y] = parts;
+    } else {
+        [m, d, y] = parts;
+    }
+
+    const yearNum = Number(y);
+    const monthNum = Number(m);
+    const dayNum = Number(d);
+
+    if (!yearNum || !monthNum || !dayNum) return null;
+    if (monthNum < 1 || monthNum > 12) return null;
+    if (dayNum < 1 || dayNum > 31) return null;
+
+    const date = new Date(yearNum, monthNum - 1, dayNum);
+    if (
+        date.getFullYear() !== yearNum ||
+        date.getMonth() !== monthNum - 1 ||
+        date.getDate() !== dayNum
+    ) {
+        return null;
+    }
+
+    const mm = String(monthNum).padStart(2, '0');
+    const dd = String(dayNum).padStart(2, '0');
+    return `${yearNum}-${mm}-${dd}`;
+};
+
+const DateInput = forwardRef(({ label, error, className = "", value = "", onChange, name, id, disabled, required, ...props }, ref) => {
     const { t, i18n } = useTranslation();
+    const containerRef = useRef(null);
 
     const currentLocale = i18n.language === 'uk' ? 'uk' : 'en';
-    const displayFormat = currentLocale === 'uk' ? 'dd.MM.yyyy' : 'MM/dd/yyyy';
 
-    const parsedDate = value ? new Date(value) : null;
+    const [isOpen, setIsOpen] = useState(false);
+    const [textValue, setTextValue] = useState(() => formatDisplayDate(value, currentLocale));
 
-    const handleChange = (date) => {
-        if (!date) {
-            onChange({ target: { name: props.name, value: '' } });
+    const initialDate = value ? new Date(value) : new Date();
+    const [viewDate, setViewDate] = useState(() => (!isNaN(initialDate.getTime()) ? initialDate : new Date()));
+
+    useEffect(() => {
+        setTextValue(formatDisplayDate(value, currentLocale));
+        if (value) {
+            const d = new Date(value);
+            if (!isNaN(d.getTime())) {
+                setViewDate(d);
+            }
+        }
+    }, [value, currentLocale]);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setIsOpen(false);
+                setTextValue(formatDisplayDate(value, currentLocale));
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, value, currentLocale]);
+
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        setTextValue(val);
+
+        if (!val.trim()) {
+            onChange?.({ target: { name, value: '' } });
             return;
         }
-        const yyyy = date.getFullYear();
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const dd = String(date.getDate()).padStart(2, '0');
 
-        onChange({ target: { name: props.name, value: `${yyyy}-${mm}-${dd}` } });
+        const parsedIso = parseInputToIso(val, currentLocale);
+        if (parsedIso) {
+            onChange?.({ target: { name, value: parsedIso } });
+            const d = new Date(parsedIso);
+            if (!isNaN(d.getTime())) {
+                setViewDate(d);
+            }
+        }
     };
 
-    const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
+    const handleSelectDate = (year, month, day) => {
+        const mm = String(month + 1).padStart(2, '0');
+        const dd = String(day).padStart(2, '0');
+        const iso = `${year}-${mm}-${dd}`;
+
+        onChange?.({ target: { name, value: iso } });
+        setTextValue(formatDisplayDate(iso, currentLocale));
+        setIsOpen(false);
+    };
+
+    const changeMonth = (offset) => {
+        setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1));
+    };
+
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
 
     const monthNames = [
         t('date.months.jan'), t('date.months.feb'), t('date.months.mar'),
@@ -36,75 +136,184 @@ const DateInput = forwardRef(({ label, error, className = "", value, onChange, .
         t('date.months.oct'), t('date.months.nov'), t('date.months.dec')
     ];
 
-    // Додано ! (important) для гарантованого перебивання дефолтного білого CSS бібліотеки
-    // та !rounded-none для суворої квадратності
-    const wrapperClasses = `
-        relative flex flex-col w-full font-tahoma
-        [&_.react-datepicker]:!rounded-none
-        [&_.react-datepicker]:!border
-        [&_.react-datepicker]:!border-border
-        [&_.react-datepicker]:!bg-bg-box
-        [&_.react-datepicker]:!font-tahoma
-        [&_.react-datepicker]:!shadow-[0_2px_4px_rgba(0,0,0,0.1)]
-        [&_.react-datepicker__header]:!bg-header-bg
-        [&_.react-datepicker__header]:!border-b
-        [&_.react-datepicker__header]:!border-border
-        [&_.react-datepicker__header]:!rounded-none
-        [&_.react-datepicker__header]:!pt-[5px]
-        [&_.react-datepicker__day-name]:!text-text-muted
-        [&_.react-datepicker__day-name]:!font-bold
-        [&_.react-datepicker__day-name]:!text-[10px]
-        [&_.react-datepicker__day]:!text-text-main
-        [&_.react-datepicker__day]:!rounded-none
-        [&_.react-datepicker__day]:!text-[11px]
-        [&_.react-datepicker__day:hover]:!bg-header-bg
-        [&_.react-datepicker__day:hover]:!text-theme-link
-        [&_.react-datepicker__day--selected]:!bg-theme-link
-        [&_.react-datepicker__day--selected]:!text-white
-        [&_.react-datepicker__day--selected]:!font-bold
-        [&_.react-datepicker__day--keyboard-selected:not(.react-datepicker__day--selected)]:!bg-transparent
-        [&_.react-datepicker__triangle]:!hidden
-    `.replace(/\s+/g, ' ').trim();
+    const weekDays = [
+        t('date.days.mon'), t('date.days.tue'), t('date.days.wed'),
+        t('date.days.thu'), t('date.days.fri'), t('date.days.sat'),
+        t('date.days.sun')
+    ];
+
+    const viewYear = viewDate.getFullYear();
+    const viewMonth = viewDate.getMonth();
+
+    const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
+    let startDayIndex = firstDayOfMonth.getDay() - 1;
+    if (startDayIndex === -1) startDayIndex = 6;
+
+    const daysInCurrentMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
+
+    const calendarCells = [];
+
+    for (let i = startDayIndex - 1; i >= 0; i--) {
+        calendarCells.push({
+            year: viewMonth === 0 ? viewYear - 1 : viewYear,
+            month: viewMonth === 0 ? 11 : viewMonth - 1,
+            day: daysInPrevMonth - i,
+            isCurrentMonth: false,
+        });
+    }
+
+    for (let i = 1; i <= daysInCurrentMonth; i++) {
+        calendarCells.push({
+            year: viewYear,
+            month: viewMonth,
+            day: i,
+            isCurrentMonth: true,
+        });
+    }
+
+    const remainingCells = 42 - calendarCells.length;
+    for (let i = 1; i <= remainingCells; i++) {
+        calendarCells.push({
+            year: viewMonth === 11 ? viewYear + 1 : viewYear,
+            month: viewMonth === 11 ? 0 : viewMonth + 1,
+            day: i,
+            isCurrentMonth: false,
+        });
+    }
+
+    const today = new Date();
+    const isToday = (y, m, d) => (
+        today.getFullYear() === y &&
+        today.getMonth() === m &&
+        today.getDate() === d
+    );
+
+    const isSelected = (y, m, d) => {
+        if (!value) return false;
+        const selectedParts = value.split('-');
+        if (selectedParts.length !== 3) return false;
+        return (
+            Number(selectedParts[0]) === y &&
+            Number(selectedParts[1]) === m + 1 &&
+            Number(selectedParts[2]) === d
+        );
+    };
 
     return (
-        <div className={wrapperClasses}>
+        <div ref={containerRef} className="relative flex flex-col w-full font-tahoma text-[11px] select-none">
             {label && (
-                <label className="block mb-[4px] font-normal text-[11px] text-text-muted" htmlFor={props.id}>
+                <label className="block mb-[4px] font-normal text-[11px] text-text-muted" htmlFor={id}>
                     {label}
                 </label>
             )}
 
-            <DatePicker
-                ref={ref}
-                selected={parsedDate}
-                onChange={handleChange}
-                locale={currentLocale}
-                dateFormat={displayFormat}
-                className={`bg-input-bg border border-input-border text-text-main p-[4px_6px] text-[11px] w-full rounded-none outline-none focus:border-theme-link transition-colors shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05)] ${error ? 'border-theme-error' : ''} ${className}`}
-                maxDate={new Date()}
-                isClearable={true}
-                placeholderText={t('common.date')}
-                renderCustomHeader={({ date, changeYear, changeMonth, decreaseMonth, increaseMonth, prevMonthButtonDisabled, nextMonthButtonDisabled }) => (
-                    <div className="flex justify-between items-center px-[4px] pb-[4px] gap-[4px] bg-header-bg border-b border-border pt-[5px] rounded-none">
-                        <button type="button" onClick={decreaseMonth} disabled={prevMonthButtonDisabled} className="bg-transparent border-none cursor-pointer text-theme-link font-bold text-[12px] hover:underline px-[4px] outline-none disabled:opacity-30 rounded-none">
-                            {"<"}
+            <div className="relative flex items-center w-full">
+                <input
+                    ref={ref}
+                    id={id}
+                    name={name}
+                    type="text"
+                    disabled={disabled}
+                    required={required}
+                    value={textValue}
+                    onChange={handleInputChange}
+                    onFocus={() => setIsOpen(true)}
+                    placeholder={currentLocale === 'uk' ? 'ДД.ММ.РРРР' : 'MM/DD/YYYY'}
+                    autoComplete="off"
+                    className={`bg-input-bg border border-input-border text-text-main p-[4px_6px] pr-[22px] text-[11px] w-full rounded-none outline-none focus:border-theme-link shadow-[inset_1px_1px_1px_rgba(0,0,0,0.08)] ${error ? 'border-theme-error' : ''} ${className}`}
+                    {...props}
+                />
+
+                {value && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onChange?.({ target: { name, value: '' } });
+                            setTextValue('');
+                        }}
+                        className="absolute right-[4px] text-text-muted hover:text-text-main text-[13px] bg-transparent border-none cursor-pointer leading-none p-[2px] rounded-none"
+                    >
+                        ×
+                    </button>
+                )}
+            </div>
+
+            {isOpen && (
+                <div className="absolute top-[calc(100%+2px)] left-0 z-[9999] bg-bg-box border border-border rounded-none shadow-[0_2px_4px_rgba(0,0,0,0.25)] p-[4px] w-[215px]">
+                    <div className="flex items-center justify-between gap-[3px] bg-header-bg p-[3px] border-b border-border rounded-none">
+                        <button
+                            type="button"
+                            onClick={() => changeMonth(-1)}
+                            className="bg-transparent border border-transparent hover:border-border text-theme-link font-bold text-[11px] px-[4px] py-[1px] cursor-pointer rounded-none leading-none select-none"
+                        >
+                            «
                         </button>
 
-                        <select value={date.getFullYear()} onChange={({ target: { value } }) => changeYear(Number(value))} className="bg-input-bg border border-input-border text-text-main text-[11px] p-[2px] outline-none cursor-pointer focus:border-theme-link rounded-none">
-                            {years.map(option => <option key={option} value={option}>{option}</option>)}
-                        </select>
+                        <div className="flex gap-[3px] flex-1">
+                            <select
+                                value={viewMonth}
+                                onChange={(e) => setViewDate(new Date(viewYear, Number(e.target.value), 1))}
+                                className="flex-1 bg-input-bg border border-input-border text-text-main text-[11px] py-[1px] px-[2px] outline-none cursor-pointer focus:border-theme-link rounded-none"
+                            >
+                                {monthNames.map((mName, idx) => (
+                                    <option key={idx} value={idx}>{mName}</option>
+                                ))}
+                            </select>
 
-                        <select value={date.getMonth()} onChange={({ target: { value } }) => changeMonth(Number(value))} className="flex-1 bg-input-bg border border-input-border text-text-main text-[11px] p-[2px] outline-none cursor-pointer focus:border-theme-link rounded-none">
-                            {monthNames.map((name, i) => <option key={i} value={i}>{name}</option>)}
-                        </select>
+                            <select
+                                value={viewYear}
+                                onChange={(e) => setViewDate(new Date(Number(e.target.value), viewMonth, 1))}
+                                className="w-[62px] bg-input-bg border border-input-border text-text-main text-[11px] py-[1px] px-[2px] outline-none cursor-pointer focus:border-theme-link rounded-none"
+                            >
+                                {years.map((y) => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                        <button type="button" onClick={increaseMonth} disabled={nextMonthButtonDisabled} className="bg-transparent border-none cursor-pointer text-theme-link font-bold text-[12px] hover:underline px-[4px] outline-none disabled:opacity-30 rounded-none">
-                            {">"}
+                        <button
+                            type="button"
+                            onClick={() => changeMonth(1)}
+                            className="bg-transparent border border-transparent hover:border-border text-theme-link font-bold text-[11px] px-[4px] py-[1px] cursor-pointer rounded-none leading-none select-none"
+                        >
+                            »
                         </button>
                     </div>
-                )}
-                {...props}
-            />
+
+                    <div className="grid grid-cols-7 text-center font-bold text-text-muted text-[10px] py-[3px] border-b border-border bg-header-bg rounded-none">
+                        {weekDays.map((dName, idx) => (
+                            <div key={idx} className="w-[28px] leading-[18px]">
+                                {dName}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-7 text-center mt-[2px] gap-y-[1px]">
+                        {calendarCells.map((cell, idx) => {
+                            const selected = isSelected(cell.year, cell.month, cell.day);
+                            const currentDay = isToday(cell.year, cell.month, cell.day);
+
+                            return (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => handleSelectDate(cell.year, cell.month, cell.day)}
+                                    className={`
+                                        w-[28px] h-[20px] leading-[20px] text-[11px] rounded-none border border-transparent cursor-pointer p-0 select-none
+                                        ${selected ? '!bg-theme-link !text-white !font-bold !border-theme-link' : ''}
+                                        ${!selected && currentDay ? '!border-border font-bold' : ''}
+                                        ${!selected && cell.isCurrentMonth ? 'text-text-main hover:bg-header-bg hover:text-theme-link' : ''}
+                                        ${!selected && !cell.isCurrentMonth ? 'text-text-muted opacity-30 hover:bg-header-bg' : ''}
+                                    `}
+                                >
+                                    {cell.day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
         </div>
     );
 });
