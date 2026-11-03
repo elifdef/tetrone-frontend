@@ -121,9 +121,7 @@ export function useChatPage() {
                         return {
                             ...c,
                             last_message: data.message.text,
-                            last_message_files: data.message.files || [],
-                            last_message_sender_username: data.message.author?.username,
-                            last_message_author: data.message.author,
+                                last_message_sender_username: data.message.author?.username,
                             updated_at: data.message.created_at,
                             unread_count: activeChatSlug === slug ? 0 : (c.unread_count || 0) + 1,
                             is_last_unread: activeChatSlug !== slug
@@ -328,6 +326,8 @@ export function useChatPage() {
     const handleTogglePinChat = useCallback((chatSlug) => {
         const target = chats.find(c => c.slug === chatSlug);
         if (!target) return;
+
+        const nextPinnedState = !target.is_pinned; // <-- виправлення: оголошення змінної
 
         if (nextPinnedState) {
             const currentPinnedCount = chats.filter(c => c.is_pinned && !c.is_saved).length;
