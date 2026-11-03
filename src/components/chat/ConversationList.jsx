@@ -134,9 +134,8 @@ export default function ConversationList({
                         <div
                             key={chat.slug}
                             onClick={() => onSelectChat(chat.slug)}
-                            className={`relative flex items-center gap-[10px] p-[8px_10px] cursor-pointer transition-colors hover:bg-bg-hover ${
-                                chat.is_pinned ? 'bg-[rgba(91,155,213,0.05)]' : ''
-                            }`}
+                            className={`relative flex items-center gap-[10px] p-[8px_10px] cursor-pointer transition-colors hover:bg-bg-hover ${chat.is_pinned ? 'bg-[rgba(91,155,213,0.05)]' : ''
+                                }`}
                         >
                             {/* Ліва частина: Аватар чату + Назва + Дата */}
                             <div className="flex items-center gap-[8px] w-[185px] sm:w-[215px] shrink-0">
@@ -188,11 +187,10 @@ export default function ConversationList({
 
                             {/* Середня частина: Міні-аватар автора + Текст/Бейджі/Друкує */}
                             <div
-                                className={`flex items-center gap-[8px] flex-1 min-w-0 p-[5px_8px] transition-colors ${
-                                    isUnreadHighlight
+                                className={`flex items-center gap-[8px] flex-1 min-w-0 p-[5px_8px] transition-colors ${isUnreadHighlight
                                         ? 'bg-[rgba(91,155,213,0.14)] dark:bg-[rgba(91,155,213,0.2)]'
                                         : ''
-                                }`}
+                                    }`}
                             >
 
                                 <div className="text-[11px] text-text-main truncate flex-1 flex items-center gap-[5px]">
@@ -259,13 +257,11 @@ export default function ConversationList({
 
                             {/* Права частина: Лічильник + Контекстне меню */}
                             <div className="flex items-center gap-[8px] shrink-0">
-                                <div
-                                    className={`text-[11px] font-bold ${
-                                        chat.unread_count > 0 ? 'text-theme-link' : 'text-text-muted'
-                                    }`}
-                                >
-                                    {t('chat.plus_count', { count: chat.unread_count || 0 })}
-                                </div>
+                                {chat.unread_count > 0 && (
+                                    <div className="text-[11px] font-bold text-theme-link">
+                                        {t('chat.plus_count', { count: chat.unread_count })}
+                                    </div>
+                                )}
 
                                 <div className="relative" onClick={(e) => e.stopPropagation()}>
                                     <button
@@ -381,10 +377,9 @@ export default function ConversationList({
                     </div>
                 )}
             </div>
-
             <div className="flex justify-between items-center p-[8px_12px] bg-header-bg border-t border-border text-[11px] text-text-muted">
                 <div>
-                    {t('chat.bottom.conversations_count', { count: chats.length })}
+                    {t('chat.bottom.conversations_count', { count: chats.filter(c => !c.is_saved).length })}
                 </div>
             </div>
         </div>

@@ -7,75 +7,69 @@ const SocketContext = createContext(null);
 
 export const useSocket = () => useContext(SocketContext);
 
-export const SocketProvider = ({ children }) =>
-{
+export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const { isAuthenticated } = useContext(AuthContext);
 
-    useEffect(() =>
-    {
-        // Якщо юзер не авторизований, сокет не підключаємо
-        if (!isAuthenticated)
-        {
+    useEffect(() => {
+        if (!isAuthenticated) {
             return;
         }
-	
-	const cleanWsUrl = WS_URL ? WS_URL.replace(/\/+$/, '') : '';
 
-	const newSocket = io(cleanWsUrl, {
-    		withCredentials: true,
-    		transports: ['websocket'],
-    		path: '/socket.io/',
-});
+        const cleanWsUrl = WS_URL ? WS_URL.replace(/\/+$/, '') : '';
 
-        newSocket.on('connect', () =>
-        {
+        const newSocket = io(cleanWsUrl, {
+            withCredentials: true,
+            transports: ['websocket'],
+            path: '/socket.io/',
+        });
+
+        newSocket.on('connect', () => {
             console.log('socket connected');
         });
 
-        newSocket.on('online_users_list', (users) =>
-        {
+        newSocket.on('online_users_list', (users) => {
             setOnlineUsers(users);
         });
 
-        newSocket.on('user_online', (data) =>
-        {
+        newSocket.on('user_online', (data) => {
             setOnlineUsers(prev => [...new Set([...prev, data.username])]);
         });
 
-        newSocket.on('user_offline', (data) =>
-        {
+        newSocket.on('user_offline', (data) => {
             setOnlineUsers(prev => prev.filter(username => username !== data.username));
         });
 
-        newSocket.on('connect_error', (err) =>
-        {
-            console.error('error connection socket:', err.message);
+        newSocket.on('force_disconnect', (data) => {
+            if (data?.reason === 'TOO_MANY_TABS') {
+                console.warn('Disconnected by server: Too many active tabs open.');
+            }
+        });
+
+        newSocket.on('connect_error', (err) => {
+            console.error('Socket connection error:', err.message);
         });
 
         setSocket(newSocket);
 
-        const handleVisibilityChange = () =>
-        {
-            if (document.visibilityState === 'visible')
-            {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && !newSocket.connected) {
                 newSocket.connect();
             }
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        return () =>
-        {
+        return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             newSocket.disconnect();
         };
-    }, [isAuthenticated]); // Перепідключаємо, якщо статус авторизації змінився
+    }, [isAuthenticated]);
 
     return (
-        <SocketContext.Provider value={ { socket, onlineUsers } }>
-            { children }
+        <SocketContext.Provider value={{ socket, onlineUsers }}>
+            {children}
         </SocketContext.Provider>
     );
 };

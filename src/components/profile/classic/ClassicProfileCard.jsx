@@ -6,7 +6,7 @@ import ProfileInfo from "./ProfileInfo";
 import StaffBanner from "./StaffBanner";
 
 export default function ClassicProfileCard(props) {
-    const { isPreview, isStaff, isBanned, isBlockedByTarget, isPrivateProfile, authUser, sameUser } = props;
+    const { isPreview, isStaff, isBanned, isBlockedByTarget, isPrivateProfile, authUser, sameUser, onOpenChat } = props;
 
     return (
         <div className="w-full max-w-[800px] mx-auto p-[20px] bg-bg-page border border-border text-[11px] text-text-main box-border overflow-visible">
@@ -22,11 +22,10 @@ export default function ClassicProfileCard(props) {
                     <ProfileAvatar {...props} />
 
                     {!isPreview && authUser && (!isPreview || sameUser) && (
-                        <ProfileActions {...props} />
+                        <ProfileActions {...props} onOpenChat={onOpenChat} />
                     )}
                 </div>
 
-                {/* tetrone-right-col */}
                 <div className="grow min-w-0 pr-[5px] relative z-10 max-md:w-full max-md:pr-0">
                     <ProfileHeader {...props} />
                     <ProfileStatus bio={props.effectiveBio} />

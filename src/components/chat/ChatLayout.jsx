@@ -5,6 +5,7 @@ import RichText from '../common/RichText.jsx';
 import ConversationList from './ConversationList';
 import ChatWindow from './ChatWindow';
 import ChatModals from './ChatModals';
+import ChatTabs from './ChatTabs';
 import { getPlainText, parseRichText, hasRichContent } from './utils/messageParser.js';
 import { CloseSvg } from '../ui/Icons.jsx';
 
@@ -146,74 +147,16 @@ export default function ChatLayout(props) {
                         </div>
                     )}
 
-                    <div className="flex justify-between items-end px-[12px] pt-[8px] border-b border-border bg-header-bg gap-[10px] flex-wrap">
-                        <div className="flex items-center gap-[4px] flex-wrap">
-                            <button
-                                type="button"
-                                onClick={handleBackToInbox}
-                                className={`px-[12px] py-[6px] text-[11px] font-bold cursor-pointer border-b-[2px] transition-colors ${
-                                    !activeChat
-                                        ? 'text-theme-link border-theme-link bg-bg-box'
-                                        : 'text-text-muted border-transparent hover:text-theme-link hover:bg-bg-hover'
-                                }`}
-                            >
-                                {t('chat.tabs.conversations')}
-                            </button>
-
-                            {openedChats.map((chatTab) => {
-                                const isSelected = activeChat?.slug === chatTab.slug;
-                                const hasDraft = hasRichContent(draftsMap[chatTab.slug]) || (draftFilesMap[chatTab.slug]?.length > 0);
-
-                                return (
-                                    <div
-                                        key={chatTab.slug}
-                                        onClick={() => handleSelectChat(chatTab.slug)}
-                                        className={`flex items-center gap-[6px] px-[10px] py-[5px] text-[11px] font-bold cursor-pointer border-b-[2px] transition-colors ${
-                                            isSelected
-                                                ? 'bg-theme-link text-white border-theme-link'
-                                                : 'bg-bg-box text-theme-link border-border hover:bg-bg-hover'
-                                        }`}
-                                    >
-                                        <span className="max-w-[130px] truncate">
-                                            {getChatPlainShortTitle(chatTab)}
-                                        </span>
-                                        {hasDraft && (
-                                            <span className={`text-[9px] italic ${isSelected ? 'text-white/90' : 'text-theme-error'}`}>
-                                                ({t('chat.draft_badge')})
-                                            </span>
-                                        )}
-                                        {chatTab.unread_count > 0 && (
-                                            <span className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-text-muted'}`}>
-                                                {t('chat.plus_count', { count: chatTab.unread_count })}
-                                            </span>
-                                        )}
-                                        <button
-                                            type="button"
-                                            title={t('chat.tabs.close_tab')}
-                                            onClick={(e) => handleCloseChatTab(e, chatTab.slug)}
-                                            className={`ml-[2px] flex items-center justify-center cursor-pointer bg-transparent border-none p-0 ${
-                                                isSelected ? 'text-white hover:opacity-75' : 'text-text-muted hover:text-theme-error'
-                                            }`}
-                                        >
-                                            <CloseSvg size={11} />
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {activeChat && (
-                            <div className="flex items-center pb-[6px] text-[11px] shrink-0">
-                                <button
-                                    type="button"
-                                    onClick={onOpenInfo}
-                                    className="bg-transparent border-none p-0 text-[11px] text-theme-link hover:underline cursor-pointer"
-                                >
-                                    {t('chat.tabs.info')}
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    <ChatTabs
+                        openedChats={openedChats}
+                        activeChat={activeChat}
+                        draftsMap={draftsMap}
+                        draftFilesMap={draftFilesMap}
+                        onSelectChat={handleSelectChat}
+                        onCloseChatTab={handleCloseChatTab}
+                        onBackToInbox={handleBackToInbox}
+                        onOpenInfo={onOpenInfo}
+                    />
                 </div>
             </div>
 

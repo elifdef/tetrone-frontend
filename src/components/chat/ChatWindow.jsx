@@ -6,6 +6,7 @@ import RichText from '../common/RichText.jsx';
 import ChatScrollContainer from '../common/ChatScrollContainer.jsx';
 import MessageItem from './MessageItem';
 import ChatComposer from './ChatComposer';
+import { useLocalMessageSearch } from './hooks/useLocalMessageSearch.js';
 import { parseRichText, getPlainText } from './utils/messageParser.js';
 import {PinSvg, CloseSvg, PencilTypingIcon, SavedMessagesIcon} from '../ui/Icons.jsx';
 
@@ -39,6 +40,14 @@ export default function ChatWindow(props) {
         onOpenReportModal
     } = props;
 
+    const {
+        isSearchOpen,
+        toggleSearch,
+        messageSearchQuery,
+        setMessageSearchQuery,
+        filteredMessages
+    } = useLocalMessageSearch(messages);
+
     const { t, i18n } = useTranslation();
 
     const pinnedMessage = useMemo(() => messages.find(m => m.is_pinned), [messages]);
@@ -46,7 +55,7 @@ export default function ChatWindow(props) {
 
     const groupedMessageDays = useMemo(() => {
         const groups = [];
-        messages.forEach((msg) => {
+        filteredMessages.forEach((msg) => {
             const d = new Date(msg.created_at);
             const dateKey = d.toISOString().slice(0, 10);
             const label = d.toLocaleDateString(i18n.language || 'uk-UA', {
@@ -79,7 +88,7 @@ export default function ChatWindow(props) {
             currentGroup.items.push({ ...msg, isSameAuthor });
         });
         return groups;
-    }, [messages, currentUser, activeChat, i18n.language]);
+    }, [filteredMessages, currentUser, activeChat, i18n.language]);
 
     const floatingDateLabel = groupedMessageDays.length > 0
         ? groupedMessageDays[groupedMessageDays.length - 1].label
@@ -122,48 +131,76 @@ export default function ChatWindow(props) {
                     {!activeChat.is_saved && (
                         typingLabel ? (
                             <span className="inline-flex items-center gap-[4px] text-[10px] text-theme-link font-bold">
-                <PencilTypingIcon />
-                <span>{typingLabel}</span>
-            </span>
+                                <PencilTypingIcon />
+                                <span>{typingLabel}</span>
+                            </span>
                         ) : activeChat.is_group ? (
                             <span className="text-[10px] text-text-muted">
-                ({t('chat.participants_count', { count: activeChat.participants_count })})
-            </span>
+                                ({t('chat.participants_count', { count: activeChat.participants_count })})
+                            </span>
                         ) : (
                             <span className="text-[10px] text-text-muted flex items-center gap-[4px]">
-                <span className="inline-block w-[6px] h-[6px] bg-theme-success" />
-                <span>{t('chat.online')}</span>
-            </span>
+                                <span className="inline-block w-[6px] h-[6px] bg-theme-success" />
+                                <span>{t('chat.online')}</span>
+                            </span>
                         )
                     )}
                 </div>
 
-                {selectedMessageUuids.length > 0 && (
-                    <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-[6px] text-[11px] flex-wrap"
-                    >
-                        <span className="font-bold text-theme-link mr-[4px]">
-                            {t('chat.viewer.selected_count', { count: selectedMessageUuids.length })}
-                        </span>
-                        <Button
-                            variant="primary"
-                            onClick={() => onOpenForwardModal(selectedMessageUuids)}
+                {/* Права частина шапки: або масові дії над виділеними, або кнопка пошуку */}
+                <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-[6px] text-[11px]"
+                >
+                    {selectedMessageUuids.length > 0 ? (
+                        <div className="flex items-center gap-[6px] flex-wrap">
+                            <span className="font-bold text-theme-link mr-[4px]">
+                                {t('chat.viewer.selected_count', { count: selectedMessageUuids.length })}
+                            </span>
+                            <Button
+                                variant="primary"
+                                onClick={() => onOpenForwardModal(selectedMessageUuids)}
+                            >
+                                {t('chat.viewer.forward_selected')}
+                            </Button>
+                            <Button variant="secondary" onClick={handleBulkImportant}>
+                                {t('chat.viewer.star_selected')}
+                            </Button>
+                            <Button variant="danger" onClick={() => handleBulkDelete(true)}>
+                                {t('chat.viewer.delete_selected')}
+                            </Button>
+                            <Button variant="secondary" onClick={clearSelectedMessages}>
+                                {t('chat.viewer.clear_selection')}
+                            </Button>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={toggleSearch}
+                            className="text-[11px] text-theme-link hover:underline bg-transparent border-none cursor-pointer"
                         >
-                            {t('chat.viewer.forward_selected')}
-                        </Button>
-                        <Button variant="secondary" onClick={handleBulkImportant}>
-                            {t('chat.viewer.star_selected')}
-                        </Button>
-                        <Button variant="danger" onClick={() => handleBulkDelete(true)}>
-                            {t('chat.viewer.delete_selected')}
-                        </Button>
-                        <Button variant="secondary" onClick={clearSelectedMessages}>
-                            {t('chat.viewer.clear_selection')}
-                        </Button>
-                    </div>
-                )}
+                            {t('chat.actions.search_placeholder')}
+                        </button>
+                    )}
+                </div>
             </div>
+
+            {/* Випадаюче поле локального пошуку повідомлень */}
+            {isSearchOpen && (
+                <div className="flex items-center gap-[6px] px-[12px] py-[6px] bg-header-bg border-b border-border">
+                    <input
+                        type="text"
+                        autoFocus
+                        value={messageSearchQuery}
+                        onChange={(e) => setMessageSearchQuery(e.target.value)}
+                        placeholder={t('chat.actions.search_placeholder')}
+                        className="flex-1 px-[8px] py-[4px] text-[11px] bg-bg-box text-text-main border border-border outline-none focus:border-theme-link"
+                    />
+                    <Button variant="secondary" onClick={toggleSearch}>
+                        <CloseSvg size={11} />
+                    </Button>
+                </div>
+            )}
 
             {/* Закріплене повідомлення */}
             {pinnedMessage && (
@@ -225,9 +262,13 @@ export default function ChatWindow(props) {
 
                 {groupedMessageDays.length === 0 ? (
                     <div className="p-[24px] text-center text-[11px] text-text-muted italic">
-                        {activeChat?.is_saved
-                            ? t('chat.saved_meme')
-                            : t('chat.empty.messages')}
+                        {isSearchOpen && messageSearchQuery ? (
+                            t('chat.empty.search_no_results', 'Повідомлень не знайдено')
+                        ) : activeChat?.is_saved ? (
+                            t('chat.saved_meme')
+                        ) : (
+                            t('chat.empty.messages')
+                        )}
                     </div>
                 ) : (
                     <div className="flex flex-col gap-[6px]">

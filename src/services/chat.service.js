@@ -1,242 +1,197 @@
 import fetchClient from "../api/client";
 
-const USE_MOCK_STUBS = true;
-
-const createMockResponse = (code, data = {}, endpoint = '', options = {}) => {
-    const responsePayload = {
-        code,
-        data,
-        meta: {
-            endpoint,
-            method: options.method || 'GET',
-            timestamp: new Date().toISOString()
-        }
-    };
-
-    let successCallback = null;
-    let errorCallback = null;
-
-    const promise = new Promise((resolve, reject) => {
-        setTimeout(() => {
-            try {
-                if (successCallback) successCallback(responsePayload);
-                resolve(responsePayload);
-            } catch (err) {
-                if (errorCallback) errorCallback(err);
-                reject(err);
-            }
-        }, 80);
-    });
-
-    promise.onSuccess = (cb) => {
-        successCallback = cb;
-        return promise;
-    };
-
-    promise.onError = (cb) => {
-        errorCallback = cb;
-        return promise;
-    };
-
-    return promise;
-};
-
-const request = (endpoint, options = {}, mockCode = 'SUCCESS', mockData = {}) => {
-    if (USE_MOCK_STUBS) {
-        return createMockResponse(mockCode, mockData, endpoint, options);
-    }
-    return fetchClient(endpoint, options);
-};
-
 const ChatService = {
-    getChats: () => request('/chat', { method: 'GET' }, 'CHATS_LOADED'),
-
-    initChat: (targetUserId) => {
-        return request('/chat/init', {
-            method: 'POST',
-            body: { target_user_id: targetUserId }
-        }, 'CHAT_INITIALIZED', { target_user_id: targetUserId });
+    getChats: () => {
+        return fetchClient('/chat', { method: 'GET' });
     },
 
-    createGroupChat: (title, description = '', participantIds = [], avatarFile = null) => {
+    initChat: (targetUsername) => {
+        return fetchClient('/chat/init', {
+            method: 'POST',
+            body: { target_username: targetUsername }
+        });
+    },
+
+    createGroupChat: (title, description = '', participantUsernames = [], avatarFile = null) => {
         const formData = new FormData();
         formData.append('title', typeof title === 'object' ? JSON.stringify(title) : title);
         if (description) {
             formData.append('description', typeof description === 'object' ? JSON.stringify(description) : description);
         }
-        participantIds.forEach(id => formData.append('participants[]', id));
+        participantUsernames.forEach(username => formData.append('participants[]', username));
         if (avatarFile) formData.append('avatar', avatarFile);
 
-        return request('/chat/group', {
+        return fetchClient('/chat/group', {
             method: 'POST',
             body: formData
-        }, 'GROUP_CHAT_CREATED');
+        });
     },
 
     getMessages: (slug, page = 1, date = null) => {
         const dateParam = date ? `&date=${encodeURIComponent(date)}` : '';
-        return request(`/chat/${slug}/messages?page=${page}${dateParam}&_t=${Date.now()}`, {
+        return fetchClient(`/chat/${slug}/messages?page=${page}${dateParam}&_t=${Date.now()}`, {
             method: 'GET'
-        }, 'MESSAGES_LOADED');
+        });
     },
 
-    sendMessage: (slug, text, files = [], sharedPostId = null, replyToId = null) => {
+    sendMessage: (slug, text, files = [], sharedPostId = null, replyToUuid = null, sendAsGroup = false) => {
         const formData = new FormData();
         if (text) formData.append('text', typeof text === 'object' ? JSON.stringify(text) : text);
         if (sharedPostId) formData.append('shared_post_id', sharedPostId);
-        if (replyToId) formData.append('reply_to_id', replyToId);
-        files.forEach(file => formData.append('media[]', file));
+        if (replyToUuid) formData.append('reply_to_uuid', replyToUuid);
+        if (sendAsGroup) formData.append('send_as_group', 'true');
+        files.forEach(file => formData.append('media[]', file.rawFile || file));
 
-        return request(`/chat/${slug}/message`, {
+        return fetchClient(`/chat/${slug}/message`, {
             method: 'POST',
             body: formData
-        }, 'MESSAGE_SENT');
+        });
     },
 
-    updateMessage: (slug, messageId, text, newFiles = [], deletedMedia = []) => {
+    updateMessage: (slug, messageUuid, text, newFiles = [], deletedMedia = []) => {
         const formData = new FormData();
         formData.append('_method', 'PUT');
 
         if (text) formData.append('text', typeof text === 'object' ? JSON.stringify(text) : text);
-        newFiles.forEach(file => formData.append('media[]', file));
+        newFiles.forEach(file => formData.append('media[]', file.rawFile || file));
         deletedMedia.forEach(fileName => formData.append('deleted_media[]', fileName));
 
-        return request(`/chat/${slug}/message/${messageId}/update`, {
+        return fetchClient(`/chat/${slug}/message/${messageUuid}/update`, {
             method: 'POST',
             body: formData
-        }, 'MESSAGE_UPDATED');
+        });
     },
 
-    deleteMessage: (slug, messageId, forBoth = false) => {
-        return request(`/chat/${slug}/message/${messageId}`, {
+    deleteMessage: (slug, messageUuid, forBoth = false) => {
+        return fetchClient(`/chat/${slug}/message/${messageUuid}`, {
             method: 'DELETE',
             body: { for_both: forBoth }
-        }, 'MESSAGE_DELETED');
+        });
     },
 
-    deleteBulkMessages: (slug, messageIds = [], forBoth = false) => {
-        return request(`/chat/${slug}/messages/bulk-delete`, {
+    deleteBulkMessages: (slug, messageUuids = [], forBoth = false) => {
+        return fetchClient(`/chat/${slug}/messages/bulk-delete`, {
             method: 'POST',
-            body: { message_ids: messageIds, for_both: forBoth }
-        }, 'MESSAGES_BULK_DELETED');
+            body: { message_uuids: messageUuids, for_both: forBoth }
+        });
     },
 
-    forwardMessages: (sourceSlug, targetSlug, messageIds = [], comment = '') => {
-        return request(`/chat/${targetSlug}/forward`, {
+    forwardMessages: (sourceSlug, targetSlug, messageUuids = [], comment = '') => {
+        return fetchClient(`/chat/${targetSlug}/forward`, {
             method: 'POST',
             body: {
                 source_slug: sourceSlug,
-                message_ids: messageIds,
+                message_uuids: messageUuids,
                 comment: typeof comment === 'object' ? JSON.stringify(comment) : comment
             }
-        }, 'MESSAGES_FORWARDED');
+        });
     },
 
-    toggleImportantMessage: (slug, messageId) => {
-        return request(`/chat/${slug}/message/${messageId}/important`, {
+    toggleImportantMessage: (slug, messageUuid) => {
+        return fetchClient(`/chat/${slug}/message/${messageUuid}/important`, {
             method: 'POST'
-        }, 'MESSAGE_IMPORTANT_TOGGLED');
+        });
     },
 
-    toggleBulkImportantMessages: (slug, messageIds = []) => {
-        return request(`/chat/${slug}/messages/bulk-important`, {
+    toggleBulkImportantMessages: (slug, messageUuids = []) => {
+        return fetchClient(`/chat/${slug}/messages/bulk-important`, {
             method: 'POST',
-            body: { message_ids: messageIds }
-        }, 'MESSAGES_IMPORTANT_UPDATED');
+            body: { message_uuids: messageUuids }
+        });
     },
 
-    togglePin: (slug, messageId) => {
-        return request(`/chat/${slug}/message/${messageId}/pin`, {
+    togglePin: (slug, messageUuid) => {
+        return fetchClient(`/chat/${slug}/message/${messageUuid}/pin`, {
             method: 'POST'
-        }, 'MESSAGE_PIN_TOGGLED');
+        });
     },
 
-    reportMessage: (slug, messageId, reason) => {
-        return request(`/chat/${slug}/message/${messageId}/report`, {
+    reportMessage: (slug, messageUuid, reason) => {
+        return fetchClient(`/chat/${slug}/message/${messageUuid}/report`, {
             method: 'POST',
             body: { reason }
-        }, 'MESSAGE_REPORTED');
+        });
     },
 
     markAsRead: (slug) => {
-        return request(`/chat/${slug}/read`, {
+        return fetchClient(`/chat/${slug}/read`, {
             method: 'POST'
-        }, 'CHAT_READ');
+        });
     },
 
     markAsUnread: (slug) => {
-        return request(`/chat/${slug}/unread`, {
+        return fetchClient(`/chat/${slug}/unread`, {
             method: 'POST'
-        }, 'CHAT_MARKED_UNREAD');
+        });
     },
 
     markAllAsRead: () => {
-        return request('/chat/read-all', {
+        return fetchClient('/chat/read-all', {
             method: 'POST'
-        }, 'ALL_CHATS_READ');
+        });
     },
 
     togglePinChat: (slug, isPinned = true) => {
-        return request(`/chat/${slug}/pin-chat`, {
-            method: 'POST'
-        }, isPinned ? 'CHAT_PINNED' : 'CHAT_UNPINNED');
+        return fetchClient(`/chat/${slug}/pin-chat`, {
+            method: 'POST',
+            body: { is_pinned: isPinned }
+        });
     },
 
     muteChat: (slug, duration = 'forever') => {
-        const code = duration === null ? 'CHAT_UNMUTED' : 'CHAT_MUTED';
-        return request(`/chat/${slug}/mute`, {
+        return fetchClient(`/chat/${slug}/mute`, {
             method: 'POST',
             body: { duration }
-        }, code, { duration });
+        });
     },
 
     clearChatHistory: (slug) => {
-        return request(`/chat/${slug}/history`, {
+        return fetchClient(`/chat/${slug}/history`, {
             method: 'DELETE'
-        }, 'CHAT_HISTORY_CLEARED');
+        });
     },
 
     deleteChat: (slug, forBoth = false) => {
-        return request(`/chat/${slug}`, {
+        return fetchClient(`/chat/${slug}`, {
             method: 'DELETE',
             body: { for_both: forBoth }
-        }, 'CHAT_DELETED');
+        });
     },
 
     updateGroupInfo: (slug, title, description) => {
-        return request(`/chat/${slug}/group`, {
+        return fetchClient(`/chat/${slug}/group`, {
             method: 'PUT',
             body: {
                 title: typeof title === 'object' ? JSON.stringify(title) : title,
                 description: typeof description === 'object' ? JSON.stringify(description) : description
             }
-        }, 'GROUP_INFO_UPDATED');
+        });
     },
 
-    inviteGroupMember: (slug, userId) => {
-        return request(`/chat/${slug}/members`, {
+    inviteGroupMember: (slug, username) => {
+        return fetchClient(`/chat/${slug}/members`, {
             method: 'POST',
-            body: { user_id: userId }
-        }, 'GROUP_MEMBER_INVITED');
+            body: { username }
+        });
     },
 
-    updateGroupMemberRole: (slug, userId, role) => {
-        return request(`/chat/${slug}/members/${userId}/role`, {
+    updateGroupMemberRole: (slug, username, role) => {
+        return fetchClient(`/chat/${slug}/members/${username}/role`, {
             method: 'PUT',
             body: { role }
-        }, 'GROUP_ROLE_UPDATED');
+        });
     },
 
-    kickGroupMember: (slug, userId) => {
-        return request(`/chat/${slug}/members/${userId}`, {
+    kickGroupMember: (slug, username) => {
+        return fetchClient(`/chat/${slug}/members/${username}`, {
             method: 'DELETE'
-        }, 'GROUP_MEMBER_KICKED');
+        });
     },
 
-    blockUser: (userId) => {
-        return request(`/users/${userId}/block`, {
+    blockUser: (username) => {
+        return fetchClient(`/users/${username}/block`, {
             method: 'POST'
-        }, 'USER_BLOCKED');
+        });
     }
 };
 

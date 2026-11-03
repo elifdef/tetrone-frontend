@@ -1,14 +1,18 @@
+import { useNavigate } from "react-router";
+import { useTranslation } from 'react-i18next';
 import { useContext } from "react";
 import { Navigate } from "react-router";
-import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../context/AuthContext";
 import UserProfileCard from "../components/profile/UserProfileCard";
 import UserWall from "../components/post/UserWall";
 import { usePageTitle } from "../hooks/usePageTitle";
+import chatService from "../services/chat.service";
+import { notifyError } from "../components/common/Notify";
 
 export default function ProfilePage({ profile }) {
     const { t } = useTranslation();
     const { user: authUser } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     usePageTitle(profile?.username);
 
@@ -19,6 +23,18 @@ export default function ProfilePage({ profile }) {
     if (isOwnProfile && !profile.is_setup_complete) {
         return <Navigate to="/setup-profile" replace />;
     }
+
+    const handleOpenChat = (targetUsername) => {
+        chatService.initChat(targetUsername)
+            .onSuccess((res) => {
+                if (res?.slug) {
+                    navigate(`/messages?id=${res.slug}`);
+                }
+            })
+            .onError((err) => {
+                notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+            });
+    };
 
     if (!profile.is_setup_complete) {
         return (
@@ -35,7 +51,7 @@ export default function ProfilePage({ profile }) {
 
     return (
         <div className="flex flex-col gap-[15px]">
-            <UserProfileCard currentUser={profile} />
+            <UserProfileCard currentUser={profile} onOpenChat={handleOpenChat} />
 
             {(profile.friendship_status !== "blocked_by_target" && !profile.is_banned && !profile.is_deleted) && (
                 <UserWall profileUser={profile} isOwnProfile={isOwnProfile} />

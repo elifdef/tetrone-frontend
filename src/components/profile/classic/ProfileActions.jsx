@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 import Button from "../../ui/Button";
 
 export default function ProfileActions({
-                                           user, sameUser, loading, status, isBlockedByMe, isBlockedByTarget,
-                                           onFriendAction, onBlockAction, onReportAction, isBanned
-                                       }) {
+                                        user, sameUser, loading, status, isBlockedByMe, isBlockedByTarget,
+                                        onFriendAction, onBlockAction, onReportAction, onOpenChat, isBanned
+                                    }) {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
-    // Закриття дропдауну при кліку ззовні (єдиний локальний UI-стейт)
+    // Закриття дропдауну при кліку ззовні
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (menuRef.current && !menuRef.current.contains(e.target)) setIsMenuOpen(false);
@@ -60,8 +60,13 @@ export default function ProfileActions({
     return (
         <div className="flex flex-col gap-2">
             {!isBlockedByMe && user.permissions?.can_message && (
-                <Button variant="primary" className="w-full" disabled={loading}>
-                    {t('messages.send_message')}
+                <Button 
+                    variant="primary" 
+                    className="w-full" 
+                    disabled={loading}
+                    onClick={() => onOpenChat && onOpenChat(user.username)}
+                >
+                    {t('chat.to_chat')}
                 </Button>
             )}
 

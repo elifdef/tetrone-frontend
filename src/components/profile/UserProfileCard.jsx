@@ -6,11 +6,11 @@ import { useDateFormatter } from "../../hooks/useDateFormatter";
 import PostService from "../../services/post.service";
 import { notifyError } from "../common/Notify";
 import ClassicProfileCard from "./classic/ClassicProfileCard";
-import ModernProfileCard from "./modern/ModernProfileCard"; // Поки що заглушка
+import ModernProfileCard from "./modern/ModernProfileCard";
 import ReportModal from "../modals/ReportModal";
 import PhotoModal from "../modals/PhotoModal";
 
-export default function UserProfileCard({ currentUser, isPreview = false, forceTheme = null }) {
+export default function UserProfileCard({ currentUser, onOpenChat,isPreview = false, forceTheme = null }) {
     const { t } = useTranslation();
     const { user: authUser } = useContext(AuthContext);
     const formatDate = useDateFormatter();
@@ -87,6 +87,7 @@ export default function UserProfileCard({ currentUser, isPreview = false, forceT
         status,
         statusText,
         loading,
+        onOpenChat,
         onFriendAction: handleFriendshipAction,
         onBlockAction: handleBlockAction,
         onReportAction: () => setIsReportModalOpen(true),
@@ -106,7 +107,6 @@ export default function UserProfileCard({ currentUser, isPreview = false, forceT
                 <ModernProfileCard {...profileProps} />
             )}
 
-            {/* Модалки живуть тільки в розумному контейнері */}
             <ReportModal
                 isOpen={isReportModalOpen}
                 onClose={() => setIsReportModalOpen(false)}
