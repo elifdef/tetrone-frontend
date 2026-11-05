@@ -2,16 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router";
 import { useTranslation } from 'react-i18next';
 import Button from "../../ui/Button";
+import ShareToChatModal from "../../modals/ShareToChatModal";
 
 export default function ProfileActions({
-                                        user, sameUser, loading, status, isBlockedByMe, isBlockedByTarget,
-                                        onFriendAction, onBlockAction, onReportAction, onOpenChat, isBanned
-                                    }) {
+    user, sameUser, loading, status, isBlockedByMe, isBlockedByTarget,
+    onFriendAction, onBlockAction, onReportAction, onOpenChat, isBanned
+}) {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const menuRef = useRef(null);
 
-    // Закриття дропдауну при кліку ззовні
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (menuRef.current && !menuRef.current.contains(e.target)) setIsMenuOpen(false);
@@ -26,6 +27,16 @@ export default function ProfileActions({
                 <Link to="/settings" className="no-underline">
                     <Button variant="primary" className="w-full">{t('action.edit')}</Button>
                 </Link>
+                <Button variant="secondary" className="w-full" onClick={() => setIsShareModalOpen(true)}>
+                    {t('profile.menu.share_profile')}
+                </Button>
+                <ShareToChatModal
+                    isOpen={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    shareableType="user"
+                    shareableId={user.username}
+                    titlePreview={`@${user.username}`}
+                />
             </div>
         );
     }
@@ -60,9 +71,9 @@ export default function ProfileActions({
     return (
         <div className="flex flex-col gap-2">
             {!isBlockedByMe && user.permissions?.can_message && (
-                <Button 
-                    variant="primary" 
-                    className="w-full" 
+                <Button
+                    variant="primary"
+                    className="w-full"
                     disabled={loading}
                     onClick={() => onOpenChat && onOpenChat(user.username)}
                 >
@@ -83,19 +94,42 @@ export default function ProfileActions({
                 {isMenuOpen && (
                     <div className="absolute top-full left-0 w-full bg-bg-box border border-border shadow-[2px_2px_5px_rgba(0,0,0,0.3)] z-50 flex flex-col p-1 mt-1">
                         {!isBlockedByMe && (
-                            <button className="bg-transparent border-none text-left px-2 py-1 text-[11px] text-text-main cursor-pointer hover:bg-theme-link hover:text-white" onClick={() => handleAction(onFriendAction)}>
+                            <button
+                                className="bg-transparent border-none text-left px-2 py-1 text-[11px] text-text-main cursor-pointer hover:bg-theme-link hover:text-white"
+                                onClick={() => handleAction(onFriendAction)}
+                            >
                                 {getFriendActionLabel()}
                             </button>
                         )}
-                        <button className="bg-transparent border-none text-left px-2 py-1 text-[11px] text-text-main cursor-pointer hover:bg-theme-link hover:text-white" onClick={() => handleAction(onReportAction)}>
+                        <button
+                            className="bg-transparent border-none text-left px-2 py-1 text-[11px] text-text-main cursor-pointer hover:bg-theme-link hover:text-white"
+                            onClick={() => handleAction(() => setIsShareModalOpen(true))}
+                        >
+                            {t('profile.menu.share_profile')}
+                        </button>
+                        <button
+                            className="bg-transparent border-none text-left px-2 py-1 text-[11px] text-text-main cursor-pointer hover:bg-theme-link hover:text-white"
+                            onClick={() => handleAction(onReportAction)}
+                        >
                             {t('reports.title')}
                         </button>
-                        <button className={`bg-transparent border-none text-left px-2 py-1 text-[11px] cursor-pointer hover:bg-theme-error hover:text-white ${!isBlockedByMe ? 'text-theme-error' : 'text-text-main hover:bg-theme-link'}`} onClick={() => handleAction(onBlockAction)}>
+                        <button
+                            className={`bg-transparent border-none text-left px-2 py-1 text-[11px] cursor-pointer hover:bg-theme-error hover:text-white ${!isBlockedByMe ? 'text-theme-error' : 'text-text-main hover:bg-theme-link'}`}
+                            onClick={() => handleAction(onBlockAction)}
+                        >
                             {isBlockedByMe ? t('action.unblock') : t('action.block')}
                         </button>
                     </div>
                 )}
             </div>
+
+            <ShareToChatModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                shareableType="user"
+                shareableId={user.username}
+                titlePreview={`${user.first_name || ''} ${user.last_name || ''} (@${user.username})`.trim()}
+            />
         </div>
     );
 }

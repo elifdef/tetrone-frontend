@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router";
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
-import { EditIcon, DeleteIcon, ReplyIcon, ReportIcon, DotsIcon, LikeIcon } from '../ui/Icons';
+import { EditIcon, DeleteIcon, ReplyIcon, RepostIcon, ReportIcon, DotsIcon, LikeIcon } from '../ui/Icons';
 import RichText from '../common/RichText';
 import SmartEditor from '../editor/SmartEditor';
 import { isEditorEmpty } from '../../utils/editorHelpers';
@@ -15,6 +15,7 @@ import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
 import StickerPicker from '../editor/StickerPicker';
 import ReportModal from '../modals/ReportModal';
+import ShareToChatModal from '../modals/ShareToChatModal';
 
 export default function CommentItem({ comment, currentUser, onDelete, onEdit, onAddComment, depth = 1 }) {
     const { t } = useTranslation();
@@ -36,6 +37,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
     const [isReplying, setIsReplying] = useState(false);
 
     const [showPicker, setShowPicker] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const hideTimeout = useRef(null);
     const menuRef = useRef(null);
 
@@ -43,7 +45,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        if (params.get('comment') === comment.id) {
+        if (params.get('comment') === String(comment.id)) {
             setIsHighlighted(true);
             commentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             const timer = setTimeout(() => setIsHighlighted(false), 3000);
@@ -104,7 +106,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
             if (!res || res.code !== 'COMMENT_LIKE_TOGGLED') throw new Error();
         } catch (err) {
             updateCache(c => ({ ...c, is_liked: originalLiked, likes_count: originalCount }));
-            notifyError(t('api.errors.ERR_NETWORK'));
+            notifyError(t('api.error.ERR_NETWORK'));
         }
     };
 
@@ -154,7 +156,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
             const res = await CommentService.toggleReaction(comment.id, stickerId);
             if (res?.code?.startsWith('ERR_')) {
                 updateCache(c => ({ ...c, reactions: previousReactions }));
-                notifyError(t(`api.errors.${res.code}`));
+                notifyError(t(`api.error.${res.code}`));
                 return;
             }
             if (res?.reactions) updateCache(c => ({ ...c, reactions: res.reactions }));
@@ -182,14 +184,14 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
 
                 <div className="flex-1 min-w-0 flex flex-col">
                     <div className="flex items-center gap-[8px] mb-[4px] min-h-[16px]">
-                        <Link 
-                            to={`/${comment.user.username}`} 
+                        <Link
+                            to={`/${comment.user.username}`}
                             className="text-theme-link font-bold text-[11px] no-underline hover:underline"
                             style={usernameColor ? { color: usernameColor } : undefined}
                         >
                             {comment.user.first_name} {comment.user.last_name}
                         </Link>
-                        
+
                         <span className="text-[10px] text-text-muted">
                             {formatDate(comment.created_at)}
                             {isEdited && (
@@ -279,9 +281,23 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                         </div>
 
                         {!isEditing && currentUser && (
-                            <button type="button" className="bg-transparent border-none text-text-muted text-[11px] flex items-center gap-[4px] p-0 cursor-pointer hover:underline outline-none" onClick={() => setIsReplying(!isReplying)}>
-                                <ReplyIcon width={14} height={14} /> {t('action.comment', 'Відповісти')}
-                            </button>
+                            <>
+                                <button
+                                    type="button"
+                                    className="bg-transparent border-none text-text-muted text-[11px] flex items-center gap-[4px] p-0 cursor-pointer hover:underline outline-none"
+                                    onClick={() => setIsReplying(!isReplying)}
+                                >
+                                    <ReplyIcon width={14} height={14} /> {t('action.comment')}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="bg-transparent border-none text-text-muted text-[11px] flex items-center gap-[4px] p-0 cursor-pointer hover:underline outline-none"
+                                    onClick={() => setIsShareModalOpen(true)}
+                                >
+                                    <RepostIcon width={14} height={14} /> {t('action.share_to_chat')}
+                                </button>
+                            </>
                         )}
 
                         {comment.reactions && comment.reactions.length > 0 && (
@@ -294,7 +310,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                                         onClick={(e) => currentUser && handleToggleReaction(r.id, e)}
                                         disabled={!currentUser}
                                     >
-                                        <img src={r.url} alt="reaction" className="w-[12px] h-[12px] object-contain" />
+                                        <img src={r.url} alt="" className="w-[12px] h-[12px] object-contain" />
                                         <span>{r.count}</span>
                                     </button>
                                 ))}
@@ -308,7 +324,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                                 user={currentUser}
                                 onSubmit={handleInlineReplySubmit}
                                 onCancel={() => setIsReplying(false)}
-                                placeholder={`${t('action.comment', 'Відповісти')} ${comment.user.first_name}...`}
+                                placeholder={`${t('action.comment')} ${comment.user.first_name}...`}
                             />
                         </div>
                     )}
@@ -336,6 +352,14 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                 onClose={() => setIsReportModalOpen(false)}
                 targetType="comment"
                 targetId={comment.id}
+            />
+
+            <ShareToChatModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                shareableType="comment"
+                shareableId={comment.id}
+                titlePreview={`${comment.user.first_name || comment.user.username}`}
             />
         </div>
     );

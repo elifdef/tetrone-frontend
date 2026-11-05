@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePostActions } from "./hooks/usePostActions";
 
@@ -10,6 +10,7 @@ import PostService from '../../services/post.service';
 import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
 import { PinIcon } from '../ui/Icons';
+import ShareToChatModal from "../modals/ShareToChatModal";
 
 const PostItem = ({
     post, onEdit, onDelete, isOwner, currentUsername, onLikeToggle, onRepostSuccess,
@@ -26,6 +27,8 @@ const PostItem = ({
     const isScheduled = postData.is_published === false;
     
     const showPinnedHighlight = postData.is_pinned && !isInner && !isFeed && !isScheduled;
+
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     const handleToggleReaction = async (stickerPayload, event) => {
         if (readonly && !isAdmin) return;
@@ -163,12 +166,20 @@ const PostItem = ({
                     reactions={postData.reactions}
                     onLike={toggleLike}
                     onRepost={createRepost}
+                    onShareToChat={() => setIsShareModalOpen(true)}
                     isReposting={isReposting}
                     readonly={readonly}
                 />
             )}
 
             <ReportModal isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} targetType="post" targetId={postData.id} />
+            <ShareToChatModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                shareableType="post"
+                shareableId={postData.id}
+                titlePreview={`Допис #${postData.id}`}
+            />
         </div>
     );
 };

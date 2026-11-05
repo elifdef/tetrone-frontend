@@ -34,10 +34,13 @@ const ChatService = {
         });
     },
 
-    sendMessage: (slug, text, files = [], sharedPostId = null, replyToUuid = null, sendAsGroup = false) => {
+    sendMessage: (slug, text, files = [], shareable = null, replyToUuid = null, sendAsGroup = false) => {
         const formData = new FormData();
         if (text) formData.append('text', typeof text === 'object' ? JSON.stringify(text) : text);
-        if (sharedPostId) formData.append('shared_post_id', sharedPostId);
+        if (shareable?.type && shareable?.id !== undefined && shareable?.id !== null) {
+            formData.append('shareable_type', shareable.type);
+            formData.append('shareable_id', String(shareable.id));
+        }
         if (replyToUuid) formData.append('reply_to_uuid', replyToUuid);
         if (sendAsGroup) formData.append('send_as_group', 'true');
         files.forEach(file => formData.append('media[]', file.rawFile || file));

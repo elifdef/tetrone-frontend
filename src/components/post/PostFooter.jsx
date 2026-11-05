@@ -1,14 +1,41 @@
 import { Link } from "react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import StickerPicker from "../editor/StickerPicker";
-import { LikeIcon, CommentIcon, RepostIcon } from "../ui/Icons"; // Імпорт нових іконок замість старих SVG
+import { LikeIcon, CommentIcon, RepostIcon } from "../ui/Icons";
 
 export default function PostFooter({
-                                       postId, isLiked, likesCount, commentsCount, repostsCount = 0,
-                                       onToggleReaction, reactions = [], onLike, onRepost, isReposting, className, readonly = false
-                                   }) {
+    postId,
+    isLiked,
+    likesCount,
+    commentsCount,
+    repostsCount = 0,
+    onToggleReaction,
+    reactions = [],
+    onLike,
+    onRepost,
+    onShareToChat,
+    isReposting,
+    className,
+    readonly = false
+}) {
+    const { t } = useTranslation();
     const [showPicker, setShowPicker] = useState(false);
+    const [showRepostMenu, setShowRepostMenu] = useState(false);
     const hideTimeout = useRef(null);
+    const repostMenuRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (repostMenuRef.current && !repostMenuRef.current.contains(e.target)) {
+                setShowRepostMenu(false);
+            }
+        };
+        if (showRepostMenu) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showRepostMenu]);
 
     const handleMouseEnter = () => {
         if (readonly) return;
@@ -21,14 +48,13 @@ export default function PostFooter({
         hideTimeout.current = setTimeout(() => setShowPicker(false), 300);
     };
 
-    // Єдиний клас для ВСІХ кнопок/посилань, щоб вони виглядали 100% ідентично
     const actionBtnClass = `flex items-center gap-[6px] bg-transparent border-none p-0 text-[11px] font-bold no-underline transition-opacity outline-none ${readonly ? 'opacity-70 cursor-default text-theme-link' : 'text-theme-link cursor-pointer hover:underline hover:opacity-85'}`;
+    const dropItemClass = "bg-transparent border-none py-[6px] px-[12px] flex items-center gap-[6px] text-left cursor-pointer transition-colors whitespace-nowrap text-[11px] w-full outline-none text-text-main hover:bg-bg-page hover:text-theme-link";
 
     return (
         <div className={`flex items-center gap-[20px] pb-[10px] px-[15px] pl-[60px] mt-0 max-md:px-[10px] ${className || ''}`}>
             <div className="flex gap-[15px] items-center pt-[15px] flex-wrap relative w-full">
 
-                {/* Лайки + Ховер Меню */}
                 <div className="relative flex items-center" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                     <button
                         type="button"
@@ -36,7 +62,6 @@ export default function PostFooter({
                         onClick={readonly ? undefined : onLike}
                         disabled={readonly}
                     >
-                        {/* Якщо лайкнуто — додаємо fill-current, щоб іконка замалювалась */}
                         <LikeIcon width={16} height={16} className={`block ${isLiked ? 'fill-current' : ''}`} />
                         {likesCount}
                     </button>
@@ -45,7 +70,7 @@ export default function PostFooter({
                         <div className="absolute top-[50%] left-[calc(100%+10px)] -translate-y-1/2 w-[146px] h-[190px] bg-btn-secondary-bg border border-btn-secondary-border shadow-[0_4px_16px_rgba(0,0,0,0.3)] z-[9999] overflow-hidden animate-[tetronePopoverFadeInRight_0.15s_cubic-bezier(0.16,1,0.3,1)_forwards]">
                             <div className="[&_.w-\[280px\]]:!w-full [&_.w-\[280px\]]:!h-full [&_.w-\[280px\]]:!border-none [&_.w-\[280px\]]:!shadow-none [&_.w-\[280px\]]:!bg-transparent">
                                 <StickerPicker
-                                    packs={[]} // Тут мають бути пропси з хука!
+                                    packs={[]}
                                     favorites={[]}
                                     isLoading={false}
                                     searchQuery=""
@@ -60,7 +85,6 @@ export default function PostFooter({
                     )}
                 </div>
 
-                {/* Коментарі (Це єдиний Link) */}
                 {readonly ? (
                     <button type="button" className={actionBtnClass} disabled>
                         <CommentIcon width={16} height={16} className="block" />
@@ -73,21 +97,56 @@ export default function PostFooter({
                     </Link>
                 )}
 
-                {/* Репости */}
-                {(onRepost || readonly) && (
-                    <button
-                        type="button"
-                        className={actionBtnClass}
-                        onClick={readonly ? undefined : onRepost}
-                        disabled={isReposting || readonly}
-                    >
-                        <RepostIcon width={16} height={16} className="block" />
-                        {repostsCount}
-                        {isReposting && '...'}
-                    </button>
+                {(onRepost || onShareToChat || readonly) && (
+                    <div className="relative flex items-center" ref={repostMenuRef}>
+                        <button
+                            type="button"
+                            className={actionBtnClass}
+                            onClick={() => {
+                                if (readonly) return;
+                                if (onShareToChat) {
+                                    setShowRepostMenu((prev) => !prev);
+                                } else if (onRepost) {
+                                    onRepost();
+                                }
+                            }}
+                            disabled={isReposting || readonly}
+                        >
+                            <RepostIcon width={16} height={16} className="block" />
+                            {repostsCount}
+                        </button>
+
+                        {showRepostMenu && !readonly && (
+                            <div className="absolute bottom-full left-0 mb-[6px] bg-bg-box border border-border shadow-[0_4px_15px_rgba(0,0,0,0.2)] flex flex-col min-w-[160px] py-[4px] z-[100]">
+                                {onRepost && (
+                                    <button
+                                        type="button"
+                                        className={dropItemClass}
+                                        onClick={() => {
+                                            setShowRepostMenu(false);
+                                            onRepost();
+                                        }}
+                                    >
+                                        {t('post.repost_to_wall')}
+                                    </button>
+                                )}
+                                {onShareToChat && (
+                                    <button
+                                        type="button"
+                                        className={dropItemClass}
+                                        onClick={() => {
+                                            setShowRepostMenu(false);
+                                            onShareToChat();
+                                        }}
+                                    >
+                                        {t('chat.share.to_message')}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 )}
 
-                {/* Реакції-бейджики */}
                 {reactions && reactions.length > 0 && (
                     <div id={`post-reactions-${postId}`} className="flex flex-wrap items-center gap-[4px] m-0 p-0 before:content-[''] before:block before:w-[1px] before:h-[14px] before:bg-border before:mx-[4px]">
                         {reactions.map((r) => (
@@ -98,7 +157,7 @@ export default function PostFooter({
                                 onClick={(e) => !readonly && onToggleReaction(r.id, e)}
                                 disabled={readonly}
                             >
-                                <img src={r.url} alt="reaction" className="w-[14px] h-[14px] object-contain" />
+                                <img src={r.url} alt="" className="w-[14px] h-[14px] object-contain" />
                                 <span className="text-[11px] font-bold">{r.count}</span>
                             </button>
                         ))}

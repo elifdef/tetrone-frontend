@@ -89,11 +89,11 @@ export default function MessageItem({
     const isGroupSender = msg.author_type === 'group';
     const sender = isGroupSender
         ? {
-              username: activeChat?.slug,
-              first_name: getPlainText(activeChat?.title),
-              last_name: '',
-              avatar: activeChat?.avatar
-          }
+            username: activeChat?.slug,
+            first_name: getPlainText(activeChat?.title),
+            last_name: '',
+            avatar: activeChat?.avatar
+        }
         : (msg.isMine ? myself : (msg.author || {}));
 
     const senderName = `${sender?.first_name || ''} ${sender?.last_name || ''}`.trim() || sender?.username;
@@ -117,26 +117,23 @@ export default function MessageItem({
             <div
                 id={`msg2-${msg.uuid}`}
                 data-msg-id={msg.uuid}
-                className={`group flex items-start gap-[8px] px-[6px] py-[5px] transition-colors ${
-                    msg.isSameAuthor ? 'same-author pt-[2px]' : 'mt-[4px]'
-                } ${
-                    isSelected
+                className={`group flex items-start gap-[8px] px-[6px] py-[5px] transition-colors ${msg.isSameAuthor ? 'same-author pt-[2px]' : 'mt-[4px]'
+                    } ${isSelected
                         ? 'bg-[rgba(91,155,213,0.22)]'
                         : msg.status === 'sent' && !msg.isMine
                             ? 'bg-[rgba(91,155,213,0.1)]'
                             : 'hover:bg-bg-hover'
-                }`}
+                    }`}
             >
                 <div
                     onClick={onToggleSelect}
                     className="w-[18px] pt-[4px] flex justify-center shrink-0 cursor-pointer select-none"
                 >
                     <div
-                        className={`w-[13px] h-[13px] border flex items-center justify-center transition-opacity ${
-                            isSelected
+                        className={`w-[13px] h-[13px] border flex items-center justify-center transition-opacity ${isSelected
                                 ? 'bg-theme-link border-theme-link text-white opacity-100'
                                 : 'border-border bg-bg-box opacity-0 group-hover:opacity-100'
-                        }`}
+                            }`}
                     >
                         {isSelected && <CheckSvg />}
                     </div>
@@ -200,9 +197,8 @@ export default function MessageItem({
                                     type="button"
                                     onClick={onToggleImportant}
                                     title={t('chat.viewer.mark_important')}
-                                    className={`bg-transparent border-none p-0 cursor-pointer flex items-center ${
-                                        msg.is_important ? 'text-[#e6a100]' : 'text-text-muted hover:text-theme-link'
-                                    }`}
+                                    className={`bg-transparent border-none p-0 cursor-pointer flex items-center ${msg.is_important ? 'text-[#e6a100]' : 'text-text-muted hover:text-theme-link'
+                                        }`}
                                 >
                                     <StarSvg filled={Boolean(msg.is_important)} />
                                 </button>
@@ -236,9 +232,8 @@ export default function MessageItem({
                                     type="button"
                                     onClick={() => togglePin(msg.uuid)}
                                     title={t('chat.viewer.pin')}
-                                    className={`bg-transparent border-none p-0 cursor-pointer flex items-center ${
-                                        msg.is_pinned ? 'text-theme-link' : 'text-text-muted hover:text-theme-link'
-                                    }`}
+                                    className={`bg-transparent border-none p-0 cursor-pointer flex items-center ${msg.is_pinned ? 'text-theme-link' : 'text-text-muted hover:text-theme-link'
+                                        }`}
                                 >
                                     <PinSvg />
                                 </button>
@@ -323,20 +318,127 @@ export default function MessageItem({
                         </div>
                     )}
 
-                    {/* ПЕРЕСЛАНА ПУБЛІКАЦІЯ (з таблицями, опитуванням, спойлерами) */}
-                    {msg.shared_post && (
+                    {msg.shareable?.type === 'post' && msg.shareable.post && (
                         <div className="mt-[6px] p-[8px] bg-bg-page border border-border max-w-[540px]">
-                            <div className="text-[10px] font-bold text-theme-link uppercase tracking-wider mb-[4px]">
-                                {t('chat.badges.forwarded_post')}
+                            <div className="flex items-center justify-between text-[10px] font-bold text-theme-link uppercase tracking-wider mb-[4px]">
+                                <span>{t('chat.badges.forwarded_post')}</span>
+                                <Link
+                                    to={`/post/${msg.shareable.post.id}`}
+                                    className="text-[10px] font-normal text-theme-link hover:underline normal-case"
+                                >
+                                    {t('chat.badges.open_post')}
+                                </Link>
                             </div>
                             <PostItem
-                                post={msg.shared_post}
+                                post={msg.shareable.post}
                                 isInner={true}
                                 readonly={true}
                                 currentUsername={myself?.username}
                             />
                         </div>
                     )}
+
+                    {msg.shareable?.type === 'comment' && msg.shareable.comment && (
+                        <div className="mt-[6px] p-[8px] bg-bg-page border-l-[3px] border border-border border-l-theme-link max-w-[480px]">
+                            <div className="flex items-center justify-between gap-[8px] mb-[6px]">
+                                <span className="text-[10px] font-bold text-theme-link uppercase tracking-wider">
+                                    {t('chat.badges.forwarded_comment')}
+                                </span>
+                                <Link
+                                    to={`/post/${msg.shareable.comment.post_id}?comment=${msg.shareable.comment.id}`}
+                                    className="text-[10px] text-theme-link hover:underline"
+                                >
+                                    {t('chat.badges.go_to_comment')}
+                                </Link>
+                            </div>
+
+                            {msg.shareable.comment.user && (
+                                <div className="flex items-center gap-[6px] mb-[4px]">
+                                    <Link to={`/${msg.shareable.comment.user.username}`}>
+                                        <Avatar
+                                            user={msg.shareable.comment.user}
+                                            className="w-[22px] h-[22px] object-cover border border-border block"
+                                        />
+                                    </Link>
+                                    <Link
+                                        to={`/${msg.shareable.comment.user.username}`}
+                                        className="text-[11px] font-bold text-theme-link hover:underline"
+                                        style={
+                                            msg.shareable.comment.user.personalization?.username_color
+                                                ? { color: msg.shareable.comment.user.personalization.username_color }
+                                                : undefined
+                                        }
+                                    >
+                                        {msg.shareable.comment.user.first_name} {msg.shareable.comment.user.last_name}
+                                    </Link>
+                                </div>
+                            )}
+
+                            <div className="text-[11px] text-text-main leading-[1.35]">
+                                <RichText
+                                    text={parseRichText(msg.shareable.comment.content)}
+                                    className="comment-text"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {msg.shareable?.type === 'user' && msg.shareable.user && (() => {
+                        const profileUser = msg.shareable.user;
+                        const bannerImage = profileUser.personalization?.banner_image;
+                        const bannerColor = profileUser.personalization?.banner_color;
+                        const usernameColor = profileUser.personalization?.username_color;
+
+                        return (
+                            <div className="mt-[6px] border border-border bg-bg-page max-w-[340px] overflow-hidden">
+                                {/* Бейдж-шапка пересланого профілю */}
+                                <div className="px-[8px] py-[4px] bg-bg-box border-b border-border flex items-center justify-between text-[10px] font-bold text-theme-link uppercase tracking-wider">
+                                    <span>{t('chat.badges.shared_profile')}</span>
+                                    <Link
+                                        to={`/${profileUser.username}`}
+                                        className="text-[10px] font-normal text-theme-link hover:underline normal-case"
+                                    >
+                                        {t('chat.badges.open_profile')}
+                                    </Link>
+                                </div>
+
+                                {/* Міні-банер / градієнт користувача */}
+                                <div
+                                    className="h-[48px] w-full relative bg-cover bg-center"
+                                    style={{
+                                        background: bannerImage
+                                            ? `url(${bannerImage}) center/cover no-repeat`
+                                            : (bannerColor || 'var(--theme-header-bg)')
+                                    }}
+                                />
+
+                                {/* Вміст картки профілю */}
+                                <div className="px-[10px] pb-[10px] pt-[0px] relative flex items-end gap-[10px]">
+                                    <div className="-mt-[20px] shrink-0 relative z-10">
+                                        <Link to={`/${profileUser.username}`}>
+                                            <Avatar
+                                                user={profileUser}
+                                                className="w-[40px] h-[40px] object-cover border-2 border-bg-box block bg-bg-box"
+                                            />
+                                        </Link>
+                                    </div>
+
+                                    <div className="min-w-0 flex-1 pt-[4px]">
+                                        <Link
+                                            to={`/${profileUser.username}`}
+                                            className="text-[11px] font-bold hover:underline block truncate"
+                                            style={usernameColor ? { color: usernameColor } : { color: 'var(--theme-link)' }}
+                                        >
+                                            {`${profileUser.first_name || ''} ${profileUser.last_name || ''}`.trim() || profileUser.username}
+                                        </Link>
+                                        <div className="text-[10px] text-text-muted truncate">
+                                            @{profileUser.username}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     {msg.files?.length > 0 && (
                         <div className="mt-[6px] flex flex-wrap gap-[8px]">

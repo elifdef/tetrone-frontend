@@ -79,13 +79,14 @@ export function useChatPage() {
                     notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
                 });
 
+            if (activeChatSlug !== 'saved') {
             chatService.markAsRead(activeChatSlug)
                 .onSuccess(() => {
                     setChats(prev =>
                         prev.map(c => (c.slug === activeChatSlug ? { ...c, unread_count: 0, is_last_unread: false } : c))
                     );
                 });
-
+            }
             return () => {
                 if (socket) {
                     socket.emit('chat:leave', { chat_slug: activeChatSlug });

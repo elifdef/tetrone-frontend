@@ -1261,7 +1261,8 @@
       "in_your_friends": "У ваших друзях",
       "not_your_friends": "Немає у ваших друзях",
       "request_received": "Запит отримано",
-      "you_have_blocked": "Ви заблокували"
+      "you_have_blocked": "Ви заблокували",
+      "share_profile": "Поділитися профілем"
     },
     "not_setup": "Профіль ще не налаштований",
     "not_setup_desc": "@{{name}} ще вказує інформацію про себе.",
@@ -2066,7 +2067,23 @@
       "poll": "Опитування",
       "table": "Таблиця",
       "code": "Код",
-      "group_author": "Бесіда"
+      "group_author": "Бесіда",
+      "open_post": "Відкрити оригінал",
+      "forwarded_comment": "Пересланий коментар",
+      "go_to_comment": "Перейти до коментаря",
+      "shared_profile": "Профіль користувача",
+      "open_profile": "Профіль"
+    },
+    "share": {
+      "title": "Поділитися у повідомлення",
+      "to_message": "Надіслати в повідомлення",
+      "type_post": "Поділитися дописом у чат",
+      "type_comment": "Поділитися коментарем у чат",
+      "type_user": "Поділитися профілем у чат",
+      "comment_placeholder": "Додати коментар...",
+      "search_chats": "Пошук діалогу або бесіди...",
+      "no_chats": "Діалогів не знайдено",
+      "send_btn": "Надіслати"
     },
     "info_modal": {
       "group_info": "Інформація про бесіду",
