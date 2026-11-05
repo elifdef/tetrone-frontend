@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSocket } from '../../context/SocketContext';
+import { useDateFormatter } from '../../hooks/useDateFormatter';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 import RichText from '../common/RichText.jsx';
@@ -7,7 +9,7 @@ import ChatScrollContainer from '../common/ChatScrollContainer.jsx';
 import MessageItem from './MessageItem';
 import ChatComposer from './ChatComposer';
 import { useLocalMessageSearch } from './hooks/useLocalMessageSearch.js';
-import { parseRichText, getPlainText } from './utils/messageParser.js';
+import { parseRichText, getPlainText, hasRichContent } from './utils/messageParser.js';
 import {PinSvg, CloseSvg, PencilTypingIcon, SavedMessagesIcon} from '../ui/Icons.jsx';
 
 export default function ChatWindow(props) {
@@ -49,6 +51,24 @@ export default function ChatWindow(props) {
     } = useLocalMessageSearch(messages);
 
     const { t, i18n } = useTranslation();
+    const formatDate = useDateFormatter();
+    const { onlineUsers = [] } = useSocket() || {};
+
+    const getLastSeenText = () => {
+        if (!activeChat.target_user?.last_seen) {
+            return t('chat.offline');
+        }
+        const formattedTime = formatDate(activeChat.target_user.last_seen);
+        const genderKey = activeChat.target_user.gender === 2 ? 'chat.was_online_female' : 'chat.was_online_male';
+        return t(genderKey, { time: formattedTime });
+    };
+
+    const isTargetOnline = Boolean(
+        !activeChat.is_saved &&
+        !activeChat.is_group &&
+        activeChat.target_user?.username &&
+        onlineUsers.includes(activeChat.target_user.username)
+    );
 
     const pinnedMessage = useMemo(() => messages.find(m => m.is_pinned), [messages]);
     const typingLabel = getTypingText(activeChat, isTyping);
@@ -78,14 +98,39 @@ export default function ChatWindow(props) {
                 ? `group_${activeChat?.slug}`
                 : (msg.isMine ? currentUser?.username : msg.author?.username);
 
+            // Групуємо повідомлення одного автора підряд (зокрема пачки пересланих / відповідей)
             const isSameAuthor = Boolean(
                 prevMsg &&
                 prevAuthorKey === currAuthorKey &&
-                !msg.reply_to &&
                 !msg.shared_post
             );
 
-            currentGroup.items.push({ ...msg, isSameAuthor });
+            // Визначаємо пересилання та групування оригінальних авторів
+            const isPureForward = Boolean(msg.reply_to && !hasRichContent(msg.text));
+            const prevIsPureForward = Boolean(prevMsg?.reply_to && !hasRichContent(prevMsg?.text));
+
+            const prevForwardAuthorKey = prevMsg?.reply_to
+                ? (prevMsg.reply_to.author?.username || prevMsg.reply_to.sender_name)
+                : null;
+            const currForwardAuthorKey = msg.reply_to
+                ? (msg.reply_to.author?.username || msg.reply_to.sender_name)
+                : null;
+
+            // Якщо попереднє повідомлення теж переслане і від ТОГО Ж автора (наприклад, обидва від Віталія)
+            const isSameForwardAuthor = Boolean(
+                isSameAuthor &&
+                isPureForward &&
+                prevIsPureForward &&
+                prevForwardAuthorKey &&
+                prevForwardAuthorKey === currForwardAuthorKey
+            );
+
+            currentGroup.items.push({
+                ...msg,
+                isSameAuthor,
+                isPureForward,
+                isSameForwardAuthor
+            });
         });
         return groups;
     }, [filteredMessages, currentUser, activeChat, i18n.language]);
@@ -138,10 +183,15 @@ export default function ChatWindow(props) {
                             <span className="text-[10px] text-text-muted">
                                 ({t('chat.participants_count', { count: activeChat.participants_count })})
                             </span>
-                        ) : (
+                        ) : isTargetOnline ? (
                             <span className="text-[10px] text-text-muted flex items-center gap-[4px]">
                                 <span className="inline-block w-[6px] h-[6px] bg-theme-success" />
                                 <span>{t('chat.online')}</span>
+                            </span>
+                        ) : (
+                            <span className="text-[10px] text-text-muted flex items-center gap-[4px]">
+                                <span className="inline-block w-[6px] h-[6px] bg-border" />
+                                <span>{getLastSeenText()}</span>
                             </span>
                         )
                     )}

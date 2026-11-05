@@ -59,7 +59,7 @@ export default function AppRoutes() {
                 <Route element={<AuthGuard />}>
                     <Route path="/" element={<FeedPage />} />
                     <Route path="/friends" element={<FriendsPage />} />
-                    <Route path="/messages" element={<ChatPage />} />
+                    <Route path="/chat" element={<ChatPage />} />
                     <Route path="/email-verify/:id/:hash" element={<FeedPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />

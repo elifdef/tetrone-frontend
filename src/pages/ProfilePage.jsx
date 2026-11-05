@@ -28,7 +28,7 @@ export default function ProfilePage({ profile }) {
         chatService.initChat(targetUsername)
             .onSuccess((res) => {
                 if (res?.slug) {
-                    navigate(`/messages?id=${res.slug}`);
+                    navigate(`/chat?dm=${res.slug}`);
                 }
             })
             .onError((err) => {

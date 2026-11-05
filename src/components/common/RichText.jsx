@@ -76,9 +76,11 @@ const HashtagMark = Mark.create({
     },
 });
 
-// ФІКС: Додали нові плагіни в масив рендерера
 const RICH_TEXT_EXTENSIONS = [
-    StarterKit.configure(),
+    StarterKit.configure({
+        link: false,
+        underline: false,
+    }),
     TextStyle.configure(),
     FontFamily.configure(),
     Color.configure(),
@@ -101,8 +103,6 @@ const RICH_TEXT_EXTENSIONS = [
     Superscript.configure(),
     Highlight.configure({ multicolor: true }),
     HashtagMark.configure(),
-
-    // ДОДАНО СЮДИ:
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
     UniqueId.configure({ types: ['heading', 'paragraph', 'blockquote', 'codeBlock', 'bulletList', 'orderedList', 'listItem'] }),
 ];

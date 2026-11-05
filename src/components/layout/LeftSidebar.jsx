@@ -91,7 +91,7 @@ const LeftSidebar = () => {
                             <Link to={`/${user.username}`} className={getLinkClass(`/${user.username}`)} onClick={closeMenu}>
                                 <span className="whitespace-nowrap overflow-hidden text-ellipsis">{t('common.profile')}</span>
                             </Link>
-                            <Link to="/messages" className={getLinkClass("/messages")} onClick={closeMenu}>
+                            <Link to="/chat" className={getLinkClass("/chat")} onClick={closeMenu}>
                                 <span className="whitespace-nowrap overflow-hidden text-ellipsis">{t('common.messages')}</span>
                                 {unreadMessagesCount > 0 && (<span className={badgeClass}>+{unreadMessagesCount}</span>)}
                             </Link>

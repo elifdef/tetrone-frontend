@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from '../../hooks/useDateFormatter';
+import { useSocket } from '../../context/SocketContext';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 import RichText from '../common/RichText.jsx';
@@ -37,19 +38,28 @@ export default function ConversationList({
 }) {
     const { t } = useTranslation();
     const formatDate = useDateFormatter();
+    const { onlineUsers = [] } = useSocket() || {};
 
     const getAttachmentBadges = (chat, draftDoc, draftFiles = []) => {
         const badges = [];
         const filesArr = draftFiles.length > 0 ? draftFiles : (chat.last_message_files || []);
         const docToInspect = draftDoc || chat.last_message;
 
-        if (chat.last_message_shared_post && !draftDoc && draftFiles.length === 0) {
+        if (chat.last_message_shareable && !draftDoc && draftFiles.length === 0) {
+            const shareType = chat.last_message_shareable.type;
+            const labelKey = shareType === 'comment'
+                ? 'chat.badges.forwarded_comment'
+                : shareType === 'user'
+                    ? 'chat.badges.shared_profile'
+                    : 'chat.badges.forwarded_post';
+
             badges.push({
-                key: 'post',
-                label: t('chat.badges.post'),
-                isPost: true
+                key: `share_${shareType}`,
+                label: t(labelKey),
+                isPost: shareType === 'post'
             });
-            if (chat.last_message_shared_post.poll) {
+
+            if (shareType === 'post' && chat.last_message_shareable.post?.poll) {
                 badges.push({ key: 'poll', label: t('chat.badges.poll') });
             }
         }
@@ -157,10 +167,15 @@ export default function ConversationList({
                                         </div>
                                     )
                                 ) : (
-                                    <Avatar
-                                        user={chat.target_user}
-                                        className="w-[38px] h-[38px] object-cover border border-border block shrink-0"
-                                    />
+                                    <div className="relative shrink-0">
+                                        <Avatar
+                                            user={chat.target_user}
+                                            className="w-[38px] h-[38px] object-cover border border-border block"
+                                        />
+                                        {!chat.is_saved && !chat.is_group && chat.target_user?.username && onlineUsers.includes(chat.target_user.username) && (
+                                            <span className="absolute bottom-[-1px] right-[-1px] w-[7px] h-[7px] bg-theme-success border border-bg-box" />
+                                        )}
+                                    </div>
                                 )}
 
                                 <div className="flex flex-col min-w-0 flex-1">
@@ -274,71 +289,75 @@ export default function ConversationList({
 
                                     {openMenuChatSlug === chat.slug && (
                                         <div className="absolute right-0 top-full mt-[2px] w-[195px] bg-bg-box border border-border shadow-md z-30 flex flex-col divide-y divide-border text-[11px]">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    onTogglePinChat(chat.slug);
-                                                    setOpenMenuChatSlug(null);
-                                                }}
-                                                className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
-                                            >
-                                                {chat.is_pinned ? t('chat.menu.unpin_chat') : t('chat.menu.pin_chat')}
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    onMarkChatUnread(chat.slug);
-                                                    setOpenMenuChatSlug(null);
-                                                }}
-                                                className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
-                                            >
-                                                {t('chat.menu.mark_unread')}
-                                            </button>
-
-                                            {chat.muted_until ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        onMuteChat(chat.slug, null);
-                                                        setOpenMenuChatSlug(null);
-                                                    }}
-                                                    className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
-                                                >
-                                                    {t('chat.menu.unmute')}
-                                                </button>
-                                            ) : (
+                                            {!chat.is_saved && (
                                                 <>
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            onMuteChat(chat.slug, '1h');
+                                                            onTogglePinChat(chat.slug);
                                                             setOpenMenuChatSlug(null);
                                                         }}
                                                         className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
                                                     >
-                                                        {t('chat.menu.mute_1h')}
+                                                        {chat.is_pinned ? t('chat.menu.unpin_chat') : t('chat.menu.pin_chat')}
                                                     </button>
+
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            onMuteChat(chat.slug, '8h');
+                                                            onMarkChatUnread(chat.slug);
                                                             setOpenMenuChatSlug(null);
                                                         }}
                                                         className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
                                                     >
-                                                        {t('chat.menu.mute_8h')}
+                                                        {t('chat.menu.mark_unread')}
                                                     </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            onMuteChat(chat.slug, 'forever');
-                                                            setOpenMenuChatSlug(null);
-                                                        }}
-                                                        className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
-                                                    >
-                                                        {t('chat.menu.mute_forever')}
-                                                    </button>
+
+                                                    {chat.muted_until ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                onMuteChat(chat.slug, null);
+                                                                setOpenMenuChatSlug(null);
+                                                            }}
+                                                            className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
+                                                        >
+                                                            {t('chat.menu.unmute')}
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    onMuteChat(chat.slug, '1h');
+                                                                    setOpenMenuChatSlug(null);
+                                                                }}
+                                                                className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
+                                                            >
+                                                                {t('chat.menu.mute_1h')}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    onMuteChat(chat.slug, '8h');
+                                                                    setOpenMenuChatSlug(null);
+                                                                }}
+                                                                className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
+                                                            >
+                                                                {t('chat.menu.mute_8h')}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    onMuteChat(chat.slug, 'forever');
+                                                                    setOpenMenuChatSlug(null);
+                                                                }}
+                                                                className="px-[10px] py-[6px] text-left text-theme-link hover:bg-bg-hover bg-transparent border-none cursor-pointer"
+                                                            >
+                                                                {t('chat.menu.mute_forever')}
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </>
                                             )}
 
@@ -353,16 +372,18 @@ export default function ConversationList({
                                                 {t('chat.menu.clear_history')}
                                             </button>
 
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    onDeleteChat(chat.slug, false);
-                                                    setOpenMenuChatSlug(null);
-                                                }}
-                                                className="px-[10px] py-[6px] text-left text-theme-error font-bold hover:bg-bg-hover bg-transparent border-none cursor-pointer"
-                                            >
-                                                {t('chat.menu.delete_chat')}
-                                            </button>
+                                            {!chat.is_saved && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        onDeleteChat(chat.slug, false);
+                                                        setOpenMenuChatSlug(null);
+                                                    }}
+                                                    className="px-[10px] py-[6px] text-left text-theme-error font-bold hover:bg-bg-hover bg-transparent border-none cursor-pointer"
+                                                >
+                                                    {t('chat.menu.delete_chat')}
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>

@@ -15,8 +15,12 @@ export function useChatPage() {
     const currentUser = authUser;
     const { socket } = useSocket();
 
-    const [searchParams, setSearchParams] = useSearchParams();
-    const activeChatSlug = searchParams.get('id');
+const [searchParams, setSearchParams] = useSearchParams();
+
+    const activeChatSlug = useMemo(() => {
+        if (searchParams.has('saved')) return 'saved';
+        return searchParams.get('dm') || searchParams.get('gc') || null;
+    }, [searchParams]);
 
     const [chats, setChats] = useState([]);
     const [messagesMap, setMessagesMap] = useState({});
@@ -69,7 +73,11 @@ export function useChatPage() {
             chatService.getMessages(activeChatSlug)
                 .onSuccess((res) => {
                     if (res?.chat) {
-                        setChats(prev => prev.some(c => c.slug === res.chat.slug) ? prev : [res.chat, ...prev]);
+                        setChats(prev =>
+                            prev.some(c => c.slug === res.chat.slug)
+                                ? prev.map(c => (c.slug === res.chat.slug ? res.chat : c))
+                                : [res.chat, ...prev]
+                        );
                     }
                     if (Array.isArray(res?.messages)) {
                         setMessagesMap(prev => ({ ...prev, [activeChatSlug]: res.messages }));
@@ -80,12 +88,16 @@ export function useChatPage() {
                 });
 
             if (activeChatSlug !== 'saved') {
-            chatService.markAsRead(activeChatSlug)
-                .onSuccess(() => {
-                    setChats(prev =>
-                        prev.map(c => (c.slug === activeChatSlug ? { ...c, unread_count: 0, is_last_unread: false } : c))
-                    );
-                });
+                chatService.markAsRead(activeChatSlug)
+                    .onSuccess(() => {
+                        setChats(prev =>
+                            prev.map(c => (c.slug === activeChatSlug ? { ...c, unread_count: 0, is_last_unread: false } : c))
+                        );
+                        setMessagesMap(prev => ({
+                            ...prev,
+                            [activeChatSlug]: (prev[activeChatSlug] || []).map(m => ({ ...m, status: 'read', read_at: m.read_at || new Date().toISOString() }))
+                        }));
+                    });
             }
             return () => {
                 if (socket) {
@@ -122,7 +134,11 @@ export function useChatPage() {
                         return {
                             ...c,
                             last_message: data.message.text,
-                                last_message_sender_username: data.message.author?.username,
+                            last_message_files: data.message.files || [],
+                            last_message_shareable: data.message.shareable || null,
+                            last_message_sender_username: data.message.author?.username,
+                            last_message_author: data.message.author,
+                            last_message_author_type: data.message.author_type || 'user',
                             updated_at: data.message.created_at,
                             unread_count: activeChatSlug === slug ? 0 : (c.unread_count || 0) + 1,
                             is_last_unread: activeChatSlug !== slug
@@ -187,6 +203,10 @@ export function useChatPage() {
         const handleChatRead = (data) => {
             if (!data?.slug) return;
             setChats(prev => prev.map(c => c.slug === data.slug ? { ...c, unread_count: 0, is_last_unread: false } : c));
+            setMessagesMap(prev => ({
+                ...prev,
+                [data.slug]: (prev[data.slug] || []).map(m => ({ ...m, status: 'read', read_at: data.read_at || new Date().toISOString() }))
+            }));
         };
 
         socket.on('chat.message.sent', handleMessageSent);
@@ -283,14 +303,28 @@ export function useChatPage() {
         setIsBannerVisible(false);
     }, []);
 
-    const handleSelectChat = useCallback((chatSlug) => {
+const handleSelectChat = useCallback((chatSlug) => {
+        if (!chatSlug || chatSlug === 'undefined' || chatSlug === 'null') return;
+
         const slugStr = String(chatSlug);
         setOpenedChatSlugs(prev => (prev.includes(slugStr) ? prev : [...prev, slugStr]));
         setSelectedMessageUuids([]);
         setReplyingTo(null);
         setEditingMessage(null);
-        setSearchParams({ id: slugStr });
-    }, [setSearchParams]);
+
+        if (slugStr === 'saved') {
+            setSearchParams({ saved: '' });
+            return;
+        }
+
+        // Перевіряємо тип чату зі списку
+        const targetChat = chats.find(c => c.slug === slugStr);
+        if (targetChat?.is_group) {
+            setSearchParams({ gc: slugStr });
+        } else {
+            setSearchParams({ dm: slugStr });
+        }
+    }, [chats, setSearchParams]);
 
     const handleBackToInbox = useCallback(() => {
         setSelectedMessageUuids([]);
@@ -304,7 +338,7 @@ export function useChatPage() {
             const next = prev.filter(s => s !== slugStr);
             if (activeChatSlug === slugStr) {
                 if (next.length > 0) {
-                    setSearchParams({ id: next[next.length - 1] });
+                    handleSelectChat(next[next.length - 1]);
                 } else {
                     setSearchParams({});
                 }
@@ -377,7 +411,7 @@ export function useChatPage() {
             .onSuccess((res) => {
                 setMessagesMap(prev => ({ ...prev, [chatSlug]: [] }));
                 setChats(prev =>
-                    prev.map(c => (c.slug === chatSlug ? { ...c, last_message: null, last_message_files: [], unread_count: 0, is_last_unread: false } : c))
+                    prev.map(c => (c.slug === chatSlug ? { ...c, last_message: null, last_message_files: [], last_message_shareable: null, unread_count: 0, is_last_unread: false } : c))
                 );
                 notifySuccess(t(`api.success.${res.code}`));
             })
@@ -534,8 +568,10 @@ export function useChatPage() {
                             ...c,
                             last_message: res.message.text,
                             last_message_files: res.message.files || [],
+                            last_message_shareable: res.message.shareable || null,
                             last_message_sender_username: currentUser?.username,
                             last_message_author: currentUser,
+                            last_message_author_type: sendAsGroup ? 'group' : 'user',
                             updated_at: res.message.created_at
                         } : c));
                     }
@@ -548,7 +584,7 @@ export function useChatPage() {
                     notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         }
-    }, [activeChatSlug, text, files, editingMessage, replyingTo, sendAsGroup, setText, setFiles, t]);
+    }, [activeChatSlug, currentUser, text, files, editingMessage, replyingTo, sendAsGroup, setText, setFiles, t]);
 
     const handleDeleteClick = useCallback((uuid) => {
         if (!activeChatSlug) return;

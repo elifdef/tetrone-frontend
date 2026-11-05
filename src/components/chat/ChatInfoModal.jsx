@@ -122,7 +122,7 @@ export default function ChatInfoModal({
             if (chat.is_saved) {
                 return (
                     <div className="flex flex-col items-center p-[20px] bg-bg-page border border-border text-center">
-                        <div className="w-[60px] h-[60px] rounded-full bg-theme-link/15 border border-theme-link/40 mb-[10px] flex items-center justify-center text-theme-link">
+                        <div className="w-[60px] h-[60px] bg-theme-link/15 border border-theme-link/40 mb-[10px] flex items-center justify-center text-theme-link">
                             <SavedMessagesIcon size={28} />
                         </div>
                         <div className="font-bold text-[14px] text-theme-link mb-[6px]">

@@ -145,7 +145,7 @@ export const useNotificationConfig = () =>
             repost_post: () => ({ actionText: '', linkText: phrase.repost, linkUrl: `/post/${ target.target_id }` }),
             new_message: () => ({
                 actionText: phrase.wrote,
-                linkUrl: `/messages?dm=${ target.target_id }`,
+                linkUrl: `/chat?dm=${ target.target_id }`,
                 mediaPosition: 'left'
             }),
             like_comment: () => ({

@@ -4,10 +4,13 @@ import { useSocket } from './SocketContext';
 import fetchClient from '../api/client';
 import Notification from '../components/common/Notification';
 import NotificationService from '../services/notification.service';
+import { audioManager } from '../utils/audioManager';
+import { useTranslation } from 'react-i18next';
 
 export const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
+    const { t } = useTranslation();
     const { user } = useContext(AuthContext);
     const { socket } = useSocket();
 
@@ -51,15 +54,7 @@ export const NotificationProvider = ({ children }) => {
 
             if (isNewMessage) {
                 setIncomingMessage(payload);
-                const currentParams = new URLSearchParams(window.location.search);
-                if (currentParams.get('dm') === payload.target?.target_id) {
-                    return;
-                }
-
-                setUnreadMessagesCount(prev => prev + 1);
-                if (shouldShowToast) {
-                    setActiveToasts(prev => [...prev, { ...payload, toastId }].slice(-3));
-                }
+                // Повідомлення чату вже обробляються в реальному часі через handleChatMessageSent
                 return;
             }
 
@@ -88,12 +83,59 @@ export const NotificationProvider = ({ children }) => {
             });
         };
 
+        const handleChatMessageSent = (data) => {
+            if (!data?.slug || !data?.message) return;
+            const msg = data.message;
+
+            // Пункт 4: Ігноруємо 'saved', власні повідомлення та повідомлення від самого себе
+            if (data.slug === 'saved' || msg.isMine || msg.author?.username === user?.username) {
+                return;
+            }
+
+            const currentParams = new URLSearchParams(window.location.search);
+            const activeSlugInUrl = currentParams.get('dm') || currentParams.get('gc') || (currentParams.has('saved') ? 'saved' : null);
+            const isViewingThisChat = window.location.pathname.startsWith('/chat') && activeSlugInUrl === data.slug;
+
+            setUnreadMessagesCount(prev => prev + 1);
+
+            // Відтворюємо звук згідно з налаштуваннями користувача (notification_settings.messages)
+            const msgSettings = user?.notification_settings?.messages;
+            if (msgSettings?.is_enabled && msgSettings?.sound_id) {
+                audioManager.unlock();
+                audioManager.play(msgSettings.sound_id);
+            }
+
+            // Одноразовий тост показуємо тільки якщо користувач зараз НЕ в цьому чаті
+            if (!isViewingThisChat) {
+                const toastId = Date.now();
+                setActiveToasts(prev => [
+                    ...prev,
+                    {
+                        toastId,
+                        type: 'new_message',
+                        slug: data.slug,
+                        actor: msg.author_type === 'group'
+                            ? { username: data.slug, first_name: t('chat.badges.group_author'), avatar: null }
+                            : msg.author,
+                        message: msg,
+                        link: data.slug === 'saved'
+                            ? '/chat?saved'
+                            : msg.author_type === 'group'
+                                ? `/chat?gc=${data.slug}`
+                                : `/chat?dm=${data.slug}`
+                    }
+                ].slice(-3));
+            }
+        };
+
         socket.on('notification', handleNotification);
         socket.on('message_deleted', handleMessageDeleted);
+        socket.on('chat.message.sent', handleChatMessageSent);
 
         return () => {
             socket.off('notification', handleNotification);
             socket.off('message_deleted', handleMessageDeleted);
+            socket.off('chat.message.sent', handleChatMessageSent);
         };
     }, [socket, user]);
 
