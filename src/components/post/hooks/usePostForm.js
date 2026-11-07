@@ -72,9 +72,17 @@ export const usePostForm = (initialFilesCount = 0) => {
         if (e.dataTransfer.files) addFiles(e.dataTransfer.files);
     }, [addFiles]);
 
-    const handleFileSelect = useCallback((e) => {
-        if (e.target.files) addFiles(e.target.files);
-        e.target.value = '';
+    const handleFileSelect = useCallback((input) => {
+        if (!input) return;
+
+        if (input.target && input.target.files) {
+            addFiles(input.target.files);
+            input.target.value = '';
+        } else if (input instanceof FileList || Array.isArray(input)) {
+            addFiles(input);
+        } else if (input.files) {
+            addFiles(input.files);
+        }
     }, [addFiles]);
 
     // ФІКС 2: Ідеальний перехват Ctrl+V

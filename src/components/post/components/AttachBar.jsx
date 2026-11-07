@@ -10,6 +10,13 @@ export default function AttachBar({ onFileSelect, onAddPoll, hasPoll }) {
 
     useOnClickOutside(ref, () => setIsOpen(false));
 
+    const handleInput = (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            onFileSelect(e);
+        }
+        setIsOpen(false);
+    };
+
     const iconBtnClass = "text-text-muted transition-all duration-200 flex items-center justify-center bg-transparent border-none cursor-pointer hover:text-theme-link hover:scale-110 outline-none";
 
     return (
@@ -28,19 +35,19 @@ export default function AttachBar({ onFileSelect, onAddPoll, hasPoll }) {
                     
                     <div className="flex items-center justify-between gap-[12px] p-[6px]">
                         <label className={iconBtnClass} title={t('editor.attach_image')}>
-                            <input type="file" multiple className="hidden" onChange={(e) => { onFileSelect(Array.from(e.target.files)); setIsOpen(false); }} accept="image/*" />
+                            <input type="file" multiple className="hidden" onChange={handleInput} accept="image/*" />
                             <ImageIcon width={18} height={18} />
                         </label>
                         <label className={iconBtnClass} title={t('editor.attach_video')}>
-                            <input type="file" multiple className="hidden" onChange={(e) => { onFileSelect(Array.from(e.target.files)); setIsOpen(false); }} accept="video/*" />
+                            <input type="file" multiple className="hidden" onChange={handleInput} accept="video/*" />
                             <VideoIcon width={18} height={18} />
                         </label>
                         <label className={iconBtnClass} title={t('editor.attach_audio')}>
-                            <input type="file" multiple className="hidden" onChange={(e) => { onFileSelect(Array.from(e.target.files)); setIsOpen(false); }} accept="audio/*" />
+                            <input type="file" multiple className="hidden" onChange={handleInput} accept="audio/*" />
                             <AudioIcon width={18} height={18} />
                         </label>
                         <label className={iconBtnClass} title={t('editor.attach_document')}>
-                            <input type="file" multiple className="hidden" onChange={(e) => { onFileSelect(Array.from(e.target.files)); setIsOpen(false); }} accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" />
+                            <input type="file" multiple className="hidden" onChange={handleInput} accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" />
                             <DocumentIcon width={18} height={18} />
                         </label>
                     </div>
