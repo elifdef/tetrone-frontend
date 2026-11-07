@@ -116,7 +116,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
         const previousReactions = [...currentReactions];
 
         const stickerId = Number(typeof stickerPayload === 'object' ? stickerPayload.id : stickerPayload);
-        const stickerUrl = typeof stickerPayload === 'object' ? stickerPayload.url : null;
+        const stickerUrl = typeof stickerPayload === 'object' ? (stickerPayload.url || stickerPayload.src) : null;
 
         const existing = currentReactions.find(r => Number(r.id) === stickerId);
         const isAdding = !existing || !existing.me;
@@ -200,6 +200,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                                 </span>
                             )}
                         </span>
+                        
 
                         {(isOwner || canReport) && !isEditing && (
                             <div className="relative ml-auto px-[4px] cursor-pointer text-text-muted hover:text-text-main flex items-center" ref={menuRef}>
@@ -248,6 +249,27 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                         )}
                     </div>
 
+                   {comment.reactions && comment.reactions.length > 0 && (
+                        <div id={`comment-reactions-${comment.id}`} className="flex flex-wrap items-center gap-[4px] mb-[6px]">
+                            {comment.reactions.map((r) => (
+                                <button
+                                    key={r.id}
+                                    data-sticker-id={r.id}
+                                    className={`inline-flex items-center gap-[4px] px-[8px] h-[23px] rounded-[4px] border text-[11px] font-bold transition-colors outline-none select-none ${
+                                        r.me
+                                            ? 'bg-[var(--theme-btn-primary-bg)] border-[var(--theme-btn-primary-border)] text-[var(--theme-btn-primary-text)] hover:bg-[var(--theme-btn-primary-hover-bg)]'
+                                            : 'bg-[var(--theme-btn-secondary-bg)] border-[var(--theme-btn-secondary-border)] text-[var(--theme-btn-secondary-text)] hover:bg-[var(--theme-btn-secondary-hover-bg)]'
+                                    } ${!currentUser ? 'cursor-default' : 'cursor-pointer'}`}
+                                    onClick={(e) => currentUser && handleToggleReaction(r.id, e)}
+                                    disabled={!currentUser}
+                                >
+                                    <img src={r.url} alt="" className="w-[14px] h-[14px] object-contain" />
+                                    <span>{r.count}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="flex items-center gap-[12px]">
                         <div
                             className="relative flex items-center"
@@ -265,17 +287,14 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                             </button>
 
                             {showPicker && currentUser && (
-                                <div className="absolute bottom-full left-0 mb-[5px] w-[146px] h-[190px] bg-bg-box border border-border shadow-[0_4px_16px_rgba(0,0,0,0.3)] z-[9999] overflow-hidden animate-[tetronePopoverFadeInUp_0.15s_cubic-bezier(0.16,1,0.3,1)_forwards]">
-                                    <div className="[&_.w-\[280px\]]:!w-full [&_.w-\[280px\]]:!h-full [&_.w-\[280px\]]:!border-none [&_.w-\[280px\]]:!shadow-none [&_.w-\[280px\]]:!bg-transparent">
-                                        <StickerPicker
-                                            packs={[]}
-                                            favorites={[]}
-                                            isLoading={false}
-                                            searchQuery=""
-                                            onSearchChange={() => {}}
-                                            onSelect={(sticker) => { setShowPicker(false); handleToggleReaction(sticker); }}
-                                        />
-                                    </div>
+                                <div className="absolute bottom-full left-0 mb-[5px] z-[9999]">
+                                    <StickerPicker
+                                        compact={true}
+                                        onSelect={(sticker) => { 
+                                            setShowPicker(false); 
+                                            handleToggleReaction(sticker); 
+                                        }}
+                                    />
                                 </div>
                             )}
                         </div>
@@ -299,24 +318,8 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
                                 </button>
                             </>
                         )}
-
-                        {comment.reactions && comment.reactions.length > 0 && (
-                            <div id={`comment-reactions-${comment.id}`} className="flex flex-wrap items-center gap-[4px] m-0 p-0 ml-auto">
-                                {comment.reactions.map((r) => (
-                                    <button
-                                        key={r.id}
-                                        data-sticker-id={r.id}
-                                        className={`inline-flex items-center gap-[4px] px-[6px] h-[20px] bg-bg-page border border-border transition-colors outline-none text-[10px] font-bold ${r.me ? '!bg-theme-header-bg !border-theme-link text-theme-link' : 'text-text-muted hover:bg-border'} ${!currentUser ? 'cursor-default' : 'cursor-pointer'}`}
-                                        onClick={(e) => currentUser && handleToggleReaction(r.id, e)}
-                                        disabled={!currentUser}
-                                    >
-                                        <img src={r.url} alt="" className="w-[12px] h-[12px] object-contain" />
-                                        <span>{r.count}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
+                    
 
                     {isReplying && (
                         <div className="mt-[10px] pt-[10px] border-t border-border">

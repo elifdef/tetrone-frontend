@@ -16,12 +16,12 @@ export const CustomStickerNode = Node.create({
     },
 
     parseHTML() {
-        return [{ tag: 'img.micro-sticker' }]; // ФІКС
+        return [{ tag: 'img.micro-sticker' }];
     },
 
     renderHTML({ HTMLAttributes }) {
         return ['img', mergeAttributes(HTMLAttributes, {
-            class: 'micro-sticker', // ФІКС
+            class: 'micro-sticker',
             src: HTMLAttributes.src,
             alt: `:${HTMLAttributes.shortcode}:`,
             'data-pack-name': HTMLAttributes.packName

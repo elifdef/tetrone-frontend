@@ -52,8 +52,28 @@ export default function PostFooter({
     const dropItemClass = "bg-transparent border-none py-[6px] px-[12px] flex items-center gap-[6px] text-left cursor-pointer transition-colors whitespace-nowrap text-[11px] w-full outline-none text-text-main hover:bg-bg-page hover:text-theme-link";
 
     return (
-        <div className={`flex items-center gap-[20px] pb-[10px] px-[15px] pl-[60px] mt-0 max-md:px-[10px] ${className || ''}`}>
-            <div className="flex gap-[15px] items-center pt-[15px] flex-wrap relative w-full">
+        <div className={`flex flex-col pb-[10px] px-[15px] pl-[60px] mt-0 max-md:px-[10px] ${className || ''}`}>
+            {reactions && reactions.length > 0 && (
+                <div id={`post-reactions-${postId}`} className="flex flex-wrap items-center gap-[4px] pt-[10px] m-0 p-0">
+                    {reactions.map((r) => (
+                        <button
+                            key={r.id}
+                            data-sticker-id={r.id}
+                            className={`inline-flex items-center gap-[4px] px-[8px] h-[23px] rounded-[4px] border text-[11px] font-bold transition-colors outline-none select-none ${r.me
+                                    ? 'bg-[var(--theme-btn-primary-bg)] border-[var(--theme-btn-primary-border)] text-[var(--theme-btn-primary-text)] hover:bg-[var(--theme-btn-primary-hover-bg)]'
+                                    : 'bg-[var(--theme-btn-secondary-bg)] border-[var(--theme-btn-secondary-border)] text-[var(--theme-btn-secondary-text)] hover:bg-[var(--theme-btn-secondary-hover-bg)]'
+                                } ${readonly ? 'cursor-default' : 'cursor-pointer'}`}
+                            onClick={(e) => !readonly && onToggleReaction(r.id, e)}
+                            disabled={readonly}
+                        >
+                            <img src={r.url} alt="" className="w-[14px] h-[14px] object-contain" />
+                            <span>{r.count}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            <div className="flex gap-[15px] items-center pt-[10px] flex-wrap relative w-full">
 
                 <div className="relative flex items-center" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                     <button
@@ -67,20 +87,14 @@ export default function PostFooter({
                     </button>
 
                     {showPicker && !readonly && (
-                        <div className="absolute top-[50%] left-[calc(100%+10px)] -translate-y-1/2 w-[146px] h-[190px] bg-btn-secondary-bg border border-btn-secondary-border shadow-[0_4px_16px_rgba(0,0,0,0.3)] z-[9999] overflow-hidden animate-[tetronePopoverFadeInRight_0.15s_cubic-bezier(0.16,1,0.3,1)_forwards]">
-                            <div className="[&_.w-\[280px\]]:!w-full [&_.w-\[280px\]]:!h-full [&_.w-\[280px\]]:!border-none [&_.w-\[280px\]]:!shadow-none [&_.w-\[280px\]]:!bg-transparent">
-                                <StickerPicker
-                                    packs={[]}
-                                    favorites={[]}
-                                    isLoading={false}
-                                    searchQuery=""
-                                    onSearchChange={() => {}}
-                                    onSelect={(sticker) => {
-                                        setShowPicker(false);
-                                        onToggleReaction(sticker);
-                                    }}
-                                />
-                            </div>
+                        <div className="absolute top-[50%] left-[calc(100%+10px)] -translate-y-1/2 z-[9999]">
+                            <StickerPicker
+                                compact={true}
+                                onSelect={(sticker) => {
+                                    setShowPicker(false);
+                                    onToggleReaction(sticker);
+                                }}
+                            />
                         </div>
                     )}
                 </div>
@@ -144,23 +158,6 @@ export default function PostFooter({
                                 )}
                             </div>
                         )}
-                    </div>
-                )}
-
-                {reactions && reactions.length > 0 && (
-                    <div id={`post-reactions-${postId}`} className="flex flex-wrap items-center gap-[4px] m-0 p-0 before:content-[''] before:block before:w-[1px] before:h-[14px] before:bg-border before:mx-[4px]">
-                        {reactions.map((r) => (
-                            <button
-                                key={r.id}
-                                data-sticker-id={r.id}
-                                className={`inline-flex items-center gap-[4px] px-[8px] bg-btn-secondary-bg text-btn-secondary-text border border-btn-secondary-border h-[23px] transition-colors ${r.me ? '!bg-btn-primary-bg !border-btn-primary-border !text-btn-primary-text' : ''} ${readonly ? 'cursor-default' : 'cursor-pointer hover:bg-btn-secondary-hover-bg'}`}
-                                onClick={(e) => !readonly && onToggleReaction(r.id, e)}
-                                disabled={readonly}
-                            >
-                                <img src={r.url} alt="" className="w-[14px] h-[14px] object-contain" />
-                                <span className="text-[11px] font-bold">{r.count}</span>
-                            </button>
-                        ))}
                     </div>
                 )}
             </div>

@@ -466,4 +466,35 @@
             box-shadow: 0 0 0 4px transparent;
         }
     }
+
+    /* --- АНІМАЦІЯ КОНФЕТІ СТІКЕРІВ --- */
+    .tetrone-sticker-particle {
+        position: fixed;
+        width: 24px;
+        height: 24px;
+        pointer-events: none;
+        z-index: 999999;
+        object-fit: contain;
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+
+    .tetrone-sticker-particle.animate {
+        animation: stickerConfettiAnim ease-in-out forwards;
+    }
+
+    @keyframes stickerConfettiAnim {
+        0% {
+            transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+            opacity: 1;
+        }
+        25% {
+            transform: translate(calc(-50% + var(--burst-x)), calc(-50% + var(--burst-y))) scale(1) rotate(calc(var(--rot) / 3));
+            opacity: 1;
+        }
+        100% {
+            transform: translate(calc(-50% + var(--burst-x) + var(--drift-x)), calc(-50% + var(--fall-y))) scale(0.5) rotate(var(--rot));
+            opacity: 0;
+        }
+    }
 }
