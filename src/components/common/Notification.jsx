@@ -58,7 +58,7 @@ export default function Notification({ notification, onClose }) {
     const isSystem = !isChatMessage && (actor.username === 'system' || !actor.username);
 
     const titleName = isChatMessage
-        ? t('chat.share.new_message')
+        ? t('notifications.new_message')
         : t('common.notification');
 
     const senderName = isSystem

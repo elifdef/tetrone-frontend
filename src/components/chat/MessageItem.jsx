@@ -52,41 +52,47 @@ export default function MessageItem({
         second: '2-digit'
     });
 
-    // Якщо це повідомлення має reply_to, але водночас немає власного тексту — це чисте пересилання
-    const isPureForward = Boolean(msg.reply_to && !hasRichContent(msg.text));
+    const isPureForward = Boolean(msg.isPureForward ?? (msg.reply_to && !hasRichContent(msg.text)));
 
     return (
-<div
+        <div
             id={`msg2-${msg.uuid}`}
             data-msg-id={msg.uuid}
-            className={`group flex items-start gap-[8px] px-[6px] transition-colors ${
-                msg.isSameForwardAuthor
-                    ? 'pt-0 pb-[1px]'
+            className={`group relative flex items-start gap-[8px] px-[6px] transition-colors ${isPureForward
+                    ? (msg.isForwardClusterStart ? 'mt-[4px] pt-[4px] pb-0' : 'mt-0 pt-0 pb-0')
+                    : (msg.isSameAuthor ? 'same-author pt-[2px] pb-[2px]' : 'mt-[4px] py-[4px]')
+                } ${isPureForward
+                    ? msg.isForwardClusterStart && !msg.isSameAuthor
+                        ? 'mt-[4px] pt-[4px] pb-0'
+                        : msg.isForwardClusterEnd
+                            ? 'pt-0 pb-[4px]'
+                            : 'py-0'
                     : msg.isSameAuthor
                         ? 'same-author pt-[2px] pb-[2px]'
                         : 'mt-[4px] py-[4px]'
-            } ${
-                isSelected
+                } ${isSelected
                     ? 'bg-[rgba(91,155,213,0.22)]'
                     : !msg.isMine && (!msg.read_at && msg.status !== 'read')
                         ? 'bg-[rgba(91,155,213,0.1)]'
                         : 'hover:bg-bg-hover'
-            }`}
+                }`}
         >
             {/* Чекбокс вибору */}
-            <div
-                onClick={onToggleSelect}
-                className="w-[18px] pt-[4px] flex justify-center shrink-0 cursor-pointer select-none"
-            >
-                <div
-                    className={`w-[13px] h-[13px] border flex items-center justify-center transition-opacity ${
-                        isSelected
-                            ? 'bg-theme-link border-theme-link text-white opacity-100'
-                            : 'border-border bg-bg-box opacity-0 group-hover:opacity-100'
-                    }`}
-                >
-                    {isSelected && <CheckSvg />}
-                </div>
+            <div className="w-[18px] pt-[3px] flex justify-center shrink-0 select-none">
+                {(!isPureForward || msg.isForwardClusterStart) ? (
+                    <div
+                        onClick={onToggleSelect}
+                        className={`w-[13px] h-[13px] border flex items-center justify-center cursor-pointer transition-opacity ${isSelected
+                                ? 'bg-theme-link border-theme-link text-white opacity-100'
+                                : 'border-border bg-bg-box opacity-0 group-hover:opacity-100'
+                            }`}
+                    >
+                        {isSelected && <CheckSvg />}
+                    </div>
+                ) : (
+                    /* Пустий блок для підтримки ширини сітки */
+                    <div className="w-[13px]" />
+                )}
             </div>
 
             {/* Аватар */}
@@ -116,10 +122,11 @@ export default function MessageItem({
             </div>
 
             {/* Тіло повідомлення */}
-            <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start gap-[8px]">
-                    {!msg.isSameAuthor ? (
-                        isGroupSender ? (
+            <div className="flex-1 min-w-0 pr-[110px]">
+                {/* Шапка автора (рендериться ТІЛЬКИ якщо це перше повідомлення автора, щоб не розривати дерево!) */}
+                {!msg.isSameAuthor && (
+                    <div className="flex items-center gap-[8px] mb-[2px]">
+                        {isGroupSender ? (
                             <span className="text-[11px] font-bold text-theme-link flex items-center gap-[4px]">
                                 <RichText
                                     text={parseRichText(activeChat?.title || senderName)}
@@ -133,27 +140,29 @@ export default function MessageItem({
                         ) : (
                             <Link
                                 to={senderLink}
-                                className="text-[11px] font-bold text-theme-link hover:underline"
+                                className="text-[11px] font-bold hover:underline"
+                                style={{ color: sender?.personalization?.username_color }}
                             >
                                 <strong>{senderName}</strong>
                             </Link>
-                        )
-                    ) : (
-                        <span />
-                    )}
+                        )}
+                    </div>
+                )}
 
-                    <div className="flex items-center gap-[8px] shrink-0 ml-auto">
-                        <MessageActions
-                            msg={msg}
-                            onToggleImportant={onToggleImportant}
-                            setReplyingTo={setReplyingTo}
-                            onForward={onForward}
-                            handleEditClick={handleEditClick}
-                            togglePin={togglePin}
-                            onReport={onReport}
-                            handleDelete={handleDelete}
-                        />
+                {/* Плаваюча панель дій і часу справа (не розштовхує елементи дерева по висоті) */}
+                <div className="absolute right-[6px] top-[3px] flex items-center gap-[8px] z-10">
+                    <MessageActions
+                        msg={{ ...msg, isPureForward }}
+                        onToggleImportant={onToggleImportant}
+                        setReplyingTo={setReplyingTo}
+                        onForward={onForward}
+                        handleEditClick={handleEditClick}
+                        togglePin={togglePin}
+                        onReport={onReport}
+                        handleDelete={handleDelete}
+                    />
 
+                    <div className={isPureForward && !msg.isForwardClusterEnd && msg.isSameAuthor ? 'opacity-0 group-hover:opacity-100 transition-opacity' : ''}>
                         <MessageStatusTicks
                             msg={msg}
                             timeString={timeString}
@@ -161,14 +170,18 @@ export default function MessageItem({
                     </div>
                 </div>
 
+                {/* Дерево пересилань або цитата відповіді */}
                 <MessageReplyQuote
                     replyTo={msg.reply_to}
                     isForwarded={isPureForward}
                     isSameForwardAuthor={msg.isSameForwardAuthor}
+                    isClusterStart={msg.isForwardClusterStart}
+                    isClusterEnd={msg.isForwardClusterEnd}
+                    onScrollToMessage={activeChat?.onScrollToMessage}
                 />
 
-                {/* Власний текст повідомлення (якщо є) */}
-                {hasRichContent(msg.text) && (
+                {/* Власний текст повідомлення */}
+                {hasRichContent(msg.text) && !isPureForward && (
                     <div className="text-[12px] text-text-main leading-[1.4] break-words">
                         <RichText
                             text={parseRichText(msg.text)}
@@ -192,13 +205,11 @@ export default function MessageItem({
                     </div>
                 )}
 
-                {/* Пости/репости */}
                 <MessageShareableCard
                     shareable={msg.shareable}
                     currentUsername={myself?.username}
                 />
 
-                {/* Список вкладень (фото, відео, аудіо, файли) */}
                 <MessageAttachmentsList files={msg.files} />
             </div>
         </div>

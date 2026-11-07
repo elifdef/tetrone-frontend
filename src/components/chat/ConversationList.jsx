@@ -45,6 +45,22 @@ export default function ConversationList({
         const filesArr = draftFiles.length > 0 ? draftFiles : (chat.last_message_files || []);
         const docToInspect = draftDoc || chat.last_message;
 
+        // Перевірка на переслане повідомлення в останній репліці
+        const isForward = chat.last_message_is_forward || Boolean(chat.last_message_source_uuid || (chat.last_message_reply_to && !hasRichContent(chat.last_message)));
+        if (isForward && !draftDoc && draftFiles.length === 0 && !chat.last_message_shareable) {
+            badges.push({
+                key: 'forwarded_msg',
+                label: t('chat.badges.forwarded_message', 'Переслане повідомлення'),
+            });
+        }
+
+        if (chat.last_message_is_forward && !draftDoc && draftFiles.length === 0 && !chat.last_message_shareable) {
+            badges.push({
+                key: 'forwarded_msg',
+                label: t('chat.badges.forwarded_message', 'Переслане повідомлення'),
+            });
+        }
+
         if (chat.last_message_shareable && !draftDoc && draftFiles.length === 0) {
             const shareType = chat.last_message_shareable.type;
             const labelKey = shareType === 'comment'

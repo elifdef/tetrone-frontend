@@ -143,11 +143,24 @@ export default function ChatComposer({
                                 : t('chat.composer.replying_to', { name: replyingToName })}:
                         </span>
                         <div className="text-text-muted truncate">
-                            <RichText
-                                text={parseRichText((editingMessage || replyingTo)?.text)}
-                                className="post-text [&_p]:inline [&_p]:m-0"
-                                limit={100000}
-                            />
+                            {(() => {
+                                const targetObj = editingMessage || replyingTo;
+                                const contentText = targetObj?.text || targetObj?.reply_to?.text;
+                                if (contentText) {
+                                    return (
+                                        <RichText
+                                            text={parseRichText(contentText)}
+                                            className="post-text [&_p]:inline [&_p]:m-0"
+                                            limit={100000}
+                                        />
+                                 );
+                                }
+                                const filesList = targetObj?.files || targetObj?.reply_to?.files || [];
+                                if (filesList.length > 0) {
+                                    return <span>[{filesList[0].name || 'Attachment'}]</span>;
+                                }
+                                return <span>[Media]</span>;
+                            })()}
                         </div>
                     </div>
                     <button

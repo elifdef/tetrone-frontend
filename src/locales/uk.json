@@ -119,7 +119,8 @@
     "upload": "Завантажити",
     "view": "Переглянути",
     "vote": "Проголосувати",
-    "write_post": "Написати пост..."
+    "write_post": "Написати пост...",
+    "share_to_chat":"Відправити у чат"
   },
   "activity": {
     "comments": {
@@ -1163,7 +1164,8 @@
     "your_photo": "вашому фото",
     "your_poll": "вашому опитуванні",
     "your_post": "ваш пост",
-    "your_video": "вашому відео"
+    "your_video": "вашому відео",
+    "new_message":"Нове повідомлення"
   },
   "page_404": {
     "invalid_page": "Можливо, ви перейшли за недійсним посиланням\nабо користувача було видалено.",
@@ -2047,7 +2049,8 @@
       "forward_selected": "Переслати",
       "star_selected": "У важливі",
       "delete_selected": "Видалити",
-      "clear_selection": "Скасувати"
+      "clear_selection": "Скасувати",
+      "forwarded_messages": "Переслані повідомлення"
     },
     "composer": {
       "placeholder": "Введіть повідомлення",

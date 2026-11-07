@@ -98,14 +98,12 @@ export default function ChatWindow(props) {
                 ? `group_${activeChat?.slug}`
                 : (msg.isMine ? currentUser?.username : msg.author?.username);
 
-            // Групуємо повідомлення одного автора підряд (зокрема пачки пересланих / відповідей)
             const isSameAuthor = Boolean(
                 prevMsg &&
                 prevAuthorKey === currAuthorKey &&
                 !msg.shared_post
             );
 
-            // Визначаємо пересилання та групування оригінальних авторів
             const isPureForward = Boolean(msg.reply_to && !hasRichContent(msg.text));
             const prevIsPureForward = Boolean(prevMsg?.reply_to && !hasRichContent(prevMsg?.text));
 
@@ -116,7 +114,6 @@ export default function ChatWindow(props) {
                 ? (msg.reply_to.author?.username || msg.reply_to.sender_name)
                 : null;
 
-            // Якщо попереднє повідомлення теж переслане і від ТОГО Ж автора (наприклад, обидва від Віталія)
             const isSameForwardAuthor = Boolean(
                 isSameAuthor &&
                 isPureForward &&
@@ -125,13 +122,39 @@ export default function ChatWindow(props) {
                 prevForwardAuthorKey === currForwardAuthorKey
             );
 
+            const isForwardClusterStart = Boolean(
+                isPureForward && (!prevIsPureForward || !isSameAuthor)
+            );
+
             currentGroup.items.push({
                 ...msg,
                 isSameAuthor,
                 isPureForward,
-                isSameForwardAuthor
+                isSameForwardAuthor,
+                isForwardClusterStart
             });
         });
+
+        // Двопрохідний розрахунок кіпця кластера (isForwardClusterEnd)
+        groups.forEach((group) => {
+            group.items.forEach((msg, idx) => {
+                const nextMsg = group.items[idx + 1];
+                const nextIsPureForward = Boolean(nextMsg?.reply_to && !hasRichContent(nextMsg?.text));
+                const nextAuthorKey = nextMsg
+                    ? (nextMsg.author_type === 'group' ? `group_${activeChat?.slug}` : (nextMsg.isMine ? currentUser?.username : nextMsg.author?.username))
+                    : null;
+                const currAuthorKey = msg.author_type === 'group'
+                    ? `group_${activeChat?.slug}`
+                    : (msg.isMine ? currentUser?.username : msg.author?.username);
+
+                const isSameNextAuthor = Boolean(nextMsg && nextAuthorKey === currAuthorKey);
+
+                msg.isForwardClusterEnd = Boolean(
+                    msg.isPureForward && (!nextIsPureForward || !isSameNextAuthor)
+                );
+            });
+        });
+        
         return groups;
     }, [filteredMessages, currentUser, activeChat, i18n.language]);
 

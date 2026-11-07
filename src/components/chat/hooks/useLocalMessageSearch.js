@@ -12,10 +12,26 @@ export function useLocalMessageSearch(messages = []) {
         return messages.filter((msg) => {
             const plain = getPlainText(msg.text || '').toLowerCase();
             const authorName = `${msg.author?.first_name || ''} ${msg.author?.last_name || ''}`.toLowerCase();
+            
+            // Пошук усередині цитати / пересланого повідомлення
+            const replyPlain = getPlainText(msg.reply_to?.text || '').toLowerCase();
+            const replyAuthor = (msg.reply_to?.sender_name || '').toLowerCase();
+
             const hasMatchingFile = (msg.files || []).some(f =>
                 (f.name || '').toLowerCase().includes(q)
             );
-            return plain.includes(q) || authorName.includes(q) || hasMatchingFile;
+            const hasMatchingReplyFile = (msg.reply_to?.files || []).some(f =>
+                (f.name || '').toLowerCase().includes(q)
+            );
+
+            return (
+                plain.includes(q) ||
+                authorName.includes(q) ||
+                replyPlain.includes(q) ||
+                replyAuthor.includes(q) ||
+                hasMatchingFile ||
+                hasMatchingReplyFile
+            );
         });
     }, [messages, messageSearchQuery]);
 

@@ -59,7 +59,9 @@ export default function MessageActions({
     onReport,
     handleDelete
 }) {
+
     const { t } = useTranslation();
+
 
     return (
         <div className="flex items-center gap-[6px] opacity-0 group-hover:opacity-100 transition-opacity">
@@ -92,7 +94,7 @@ export default function MessageActions({
                 <ForwardSvg />
             </button>
 
-            {msg.isMine && (
+            {msg.isMine && !msg.isPureForward && (
                 <button
                     type="button"
                     onClick={() => handleEditClick(msg)}
