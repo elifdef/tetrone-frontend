@@ -10,6 +10,23 @@ export default function FriendCard({ user, viewMode, onAction }) {
     const statusClass = "text-[#999] text-[10px] pr-[5px] text-right max-md:text-center";
 
     const renderButtons = () => {
+        if (viewMode === 'other_user') {
+            switch (user.friendship_status) {
+                case 'friends':
+                    return <span className={statusClass}>{t('friends.your_contacts')}</span>;
+                case 'pending_sent':
+                    return <button className={btnClass} onClick={() => onAction('cancel_request', user.username)}>{t('action.cancel')}</button>;
+                case 'pending_received':
+                    return <button className={btnClass} onClick={() => onAction('accept', user.username)}>{t('action.accept')}</button>;
+                case 'blocked_by_me':
+                    return <button className={btnClass} onClick={() => onAction('unblock', user.username)}>{t('action.unblock')}</button>;
+                case 'blocked_by_target':
+                    return <span className={statusClass}>{t('common.blocked')}</span>;
+                default:
+                    return <button className={btnClass} onClick={() => onAction('add', user.username)}>{t('action.add')}</button>;
+            }
+        }
+
         if (viewMode === 'my') {
             return (
                 <>

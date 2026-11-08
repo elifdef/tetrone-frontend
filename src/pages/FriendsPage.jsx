@@ -8,7 +8,7 @@ export default function FriendsPage() {
     const {
         tabs, activeTab, handleTabChange,
         searchQuery, setSearchQuery, handleSearchSubmit,
-        users, loading, handleAction, t
+        users, loading, handleAction, pageHeaderTitle, t
     } = useFriendsLogic();
 
     const displayUsers = activeTab === 'all'
@@ -22,7 +22,7 @@ export default function FriendsPage() {
         <div className="w-full max-w-[800px] mx-auto box-border p-[20px] bg-bg-page border border-border text-[11px] text-text-main max-md:p-[10px]">
 
             <h1 className="bg-theme-header-bg text-theme-link text-[11px] font-bold p-[8px_10px] -mt-[20px] -mx-[20px] mb-[15px] border-b border-border max-md:-mt-[10px] max-md:-mx-[10px]">
-                {t('friends.your_contacts')}
+                {pageHeaderTitle}
             </h1>
 
             <Tabs
@@ -63,9 +63,9 @@ export default function FriendsPage() {
                         <div className="flex flex-col bg-bg-box">
                             {displayUsers.map(user => (
                                 <FriendCard
-                                    key={user.username} // ФІКС: Тепер використовуємо username
+                                    key={user.username}
                                     user={user}
-                                    viewMode={activeTab}
+                                    viewMode={activeTab === 'my' && window.location.pathname.includes('/friends') && !window.location.pathname.startsWith('/friends') ? 'other_user' : activeTab}
                                     onAction={handleAction}
                                 />
                             ))}

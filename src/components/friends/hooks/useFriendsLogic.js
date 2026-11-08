@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, useParams, useLocation } from "react-router";
 import FriendService from "../../../services/friend.service";
 import { AuthContext } from "../../../context/AuthContext";
 import { useFriendship } from "./useFriendship";
@@ -13,9 +13,17 @@ export const useFriendsLogic = () => {
     const { user: currentUser } = useContext(AuthContext);
     const { addFriend, acceptRequest, removeFriend, blockUser, unblockUser } = useFriendship();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { username: paramUsername } = useParams();
+    const location = useLocation();
     const { openConfirm } = useModal();
 
-    const tabs = [
+    const targetUsername = (paramUsername && paramUsername !== currentUser?.username) ? paramUsername : null;
+    const isFollowersPath = location.pathname.endsWith('/followers');
+
+    const tabs = targetUsername ? [
+        { id: 'my', label: t('common.friends') },
+        { id: 'followers', label: t('profile.subscribers') }
+    ] : [
         { id: 'my', label: t('common.friends') },
         { id: 'requests', label: t('friends.requests') },
         { id: 'subscriptions', label: t('friends.subscriptions') },
@@ -23,7 +31,11 @@ export const useFriendsLogic = () => {
         { id: 'all', label: t('friends.global_search') },
     ];
 
-    const activeTab = searchParams.get('tab') || 'my';
+    const rawTab = searchParams.get('tab');
+    const validTabIds = tabs.map(t => t.id);
+    const activeTab = validTabIds.includes(rawTab)
+        ? rawTab
+        : (isFollowersPath ? 'followers' : 'my');
     usePageTitle(tabs.find(tab => tab.id === activeTab)?.label || t('common.friends'));
 
     const [users, setUsers] = useState([]);
@@ -43,7 +55,7 @@ export const useFriendsLogic = () => {
         setLoading(true);
 
         try {
-            const res = await FriendService.getList(tab, query, controller.signal);
+            const res = await FriendService.getList(tab, query, controller.signal, targetUsername);
 
             if (!controller.signal.aborted) {
                 // Витягуємо масив з data.data (якщо є пагінація) або з data, або напряму з res
@@ -101,5 +113,9 @@ export const useFriendsLogic = () => {
         }
     };
 
-    return { tabs, activeTab, handleTabChange, searchQuery, setSearchQuery, handleSearchSubmit, users, loading, handleAction, currentUser, t };
+    const pageHeaderTitle = targetUsername 
+        ? `${t('common.friends')} @${targetUsername}`
+        : t('friends.your_contacts');
+
+    return { tabs, activeTab, handleTabChange, searchQuery, setSearchQuery, handleSearchSubmit, users, loading, handleAction, currentUser, targetUsername, pageHeaderTitle, t };
 };

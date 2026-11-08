@@ -59,6 +59,7 @@ export const PRIVACY = {
         'avatar',
         'dob',
         'country',
+        'friends',
         'message',
         'wall_post',
         'comment',

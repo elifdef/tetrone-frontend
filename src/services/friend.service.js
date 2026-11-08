@@ -1,8 +1,21 @@
 import fetchClient from "../api/client";
 
 class FriendService {
-    async getList(tab, query = '', signal = null) {
+    async getList(tab, query = '', signal = null, targetUsername = null) {
         let endpoint = '/friends';
+
+        if (targetUsername) {
+            if (tab === 'followers' || tab === 'subscriptions') {
+                endpoint = `/friends/user/${targetUsername}/followers`;
+            } else {
+                endpoint = `/friends/user/${targetUsername}`;
+            }
+
+            if (query) {
+                endpoint += `?filter[search]=${encodeURIComponent(query)}`;
+            }
+            return await fetchClient(endpoint, { signal });
+        }
 
         switch (tab) {
             case 'requests': endpoint = '/friends/requests'; break;

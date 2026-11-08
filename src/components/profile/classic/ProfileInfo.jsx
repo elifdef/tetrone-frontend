@@ -56,15 +56,27 @@ export default function ProfileInfo({ user, displayBirth, displayCountry, displa
                     </h4>
 
                     <InfoRow label={t('common.friends')} value={
-                        <Link to={`/${user.username}/friends`} className="text-theme-link no-underline hover:underline">
-                            {user?.friends_count || 0}
-                        </Link>
+                        user?.can_view_friends !== false ? (
+                            <Link to={`/${user.username}/friends`} className="text-theme-link no-underline hover:underline">
+                                {user?.friends_count || 0}
+                            </Link>
+                        ) : (
+                            <span className="text-text-muted cursor-default">
+                                {user?.friends_count || 0}
+                            </span>
+                        )
                     } />
 
                     <InfoRow label={t('profile.subscribers')} value={
-                        <Link to={`/${user.username}/followers`} className="text-theme-link no-underline hover:underline">
-                            {user?.followers_count || 0}
-                        </Link>
+                        user?.can_view_friends !== false ? (
+                            <Link to={`/${user.username}/followers`} className="text-theme-link no-underline hover:underline">
+                                {user?.followers_count || 0}
+                            </Link>
+                        ) : (
+                            <span className="text-text-muted cursor-default">
+                                {user?.followers_count || 0}
+                            </span>
+                        )
                     } />
                 </div>
             )}
