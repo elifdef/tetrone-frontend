@@ -9,9 +9,18 @@ export const CustomStickerNode = Node.create({
 
     addAttributes() {
         return {
-            shortcode: { default: null },
-            src: { default: null },
-            packName: { default: null },
+            shortcode: {
+                default: null,
+                parseHTML: element => element.getAttribute('alt')?.replace(/^:|:$/g, '') || element.getAttribute('data-shortcode'),
+            },
+            src: {
+                default: null,
+                parseHTML: element => element.getAttribute('src'),
+            },
+            packName: {
+                default: null,
+                parseHTML: element => element.getAttribute('data-pack-name'),
+            },
         };
     },
 
@@ -20,11 +29,21 @@ export const CustomStickerNode = Node.create({
     },
 
     renderHTML({ HTMLAttributes }) {
+        let packName = HTMLAttributes.packName || HTMLAttributes['data-pack-name'];
+
+        if (!packName && HTMLAttributes.src) {
+            const match = HTMLAttributes.src.match(/\/storage\/emojis\/([^/]+)\//);
+            if (match) {
+                packName = match[1];
+            }
+        }
+
         return ['img', mergeAttributes(HTMLAttributes, {
-            class: 'micro-sticker',
+            class: 'micro-sticker cursor-pointer hover:opacity-80 transition-opacity',
             src: HTMLAttributes.src,
             alt: `:${HTMLAttributes.shortcode}:`,
-            'data-pack-name': HTMLAttributes.packName
+            'data-shortcode': HTMLAttributes.shortcode || '',
+            'data-pack-name': packName || ''
         })];
     },
 });

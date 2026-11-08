@@ -12,6 +12,8 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { CustomStickerNode } from '../editor/extensions/CustomStickerNode.js';
 import StickerTooltip from '../editor/StickerTooltip';
 import { PullquoteNode, DetailsNode, SummaryNode } from '../editor/extensions/extensions.js';
+import StickerService from '../../services/sticker.service.js';
+import { notifyError, notifySuccess } from '../common/Notify';
 import { Underline } from '@tiptap/extension-underline';
 import { Link } from '@tiptap/extension-link';
 import { TaskList } from '@tiptap/extension-task-list';
@@ -107,6 +109,8 @@ const RICH_TEXT_EXTENSIONS = [
     UniqueId.configure({ types: ['heading', 'paragraph', 'blockquote', 'codeBlock', 'bulletList', 'orderedList', 'listItem'] }),
 ];
 
+const packInfoCache = {};
+
 const decodeHtmlEntities = (text) => {
     const textArea = document.createElement('textarea');
     textArea.innerHTML = text;
@@ -120,11 +124,11 @@ export const decodeTipTapContent = (content) => {
 
     if (Array.isArray(content)) {
         return content
-        .map(decodeTipTapContent)
-        .filter(node => {
-            if (node && node.type === 'text' && typeof node.text !== 'string') return false;
-            return true;
-        });
+            .map(decodeTipTapContent)
+            .filter(node => {
+                if (node && node.type === 'text' && typeof node.text !== 'string') return false;
+                return true;
+            });
     }
 
     if (typeof content === 'object') {
@@ -192,12 +196,9 @@ const RichText = React.memo(function RichText({ text, className = "post-text", l
     const tooltipRef = useRef(null);
     const navigate = useNavigate();
 
-    const [activeStickerId, setActiveStickerId] = useState(null);
-    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-    const [isPinned, setIsPinned] = useState(false);
-    const hideTimeoutRef = useRef(null);
-
     const [isExpanded, setIsExpanded] = useState(false);
+    const [tooltipData, setTooltipData] = useState(null);
+    const [isLoadingTooltip, setIsLoadingTooltip] = useState(false);
 
     const { finalHtml, requiresExpansion } = useMemo(() => {
         if (!text || typeof text !== 'object') return { finalHtml: null, requiresExpansion: false };
@@ -268,7 +269,7 @@ const RichText = React.memo(function RichText({ text, className = "post-text", l
                     span.innerText = t('action.copied') || 'Copied!';
                     copyBtn.style.color = 'var(--theme-success)';
                     setTimeout(() => {
-                        if(span) span.innerText = 'Copy';
+                        if (span) span.innerText = 'Copy';
                         copyBtn.style.color = 'var(--theme-link)';
                     }, 2000);
                 });
@@ -279,37 +280,6 @@ const RichText = React.memo(function RichText({ text, className = "post-text", l
             pre.insertBefore(header, codeBlock);
         });
     }, [finalHtml, t]);
-
-    const showTooltip = (target, pinned = false) => {
-        clearTimeout(hideTimeoutRef.current);
-        const packname = target.getAttribute('data-pack-name');
-        const rect = target.getBoundingClientRect();
-
-        if (packname) {
-            setTooltipPosition({
-                x: rect.left + window.scrollX + (rect.width / 2),
-                y: rect.top + window.scrollY - 10
-            });
-            setActiveStickerId(packname);
-            if (pinned) setIsPinned(true);
-        }
-    };
-
-    const handleMouseOver = useCallback((e) => {
-        if (isPinned) return;
-        const target = e.target;
-        if (target && target.classList.contains('micro-sticker')) {
-            showTooltip(target, false);
-        }
-    }, [isPinned]);
-
-    const handleMouseOut = useCallback((e) => {
-        if (isPinned) return;
-        const target = e.target;
-        if (target && target.classList.contains('micro-sticker')) {
-            hideTimeoutRef.current = setTimeout(() => { setActiveStickerId(null); }, 300);
-        }
-    }, [isPinned]);
 
     const handleClick = useCallback((e) => {
         const target = e.target;
@@ -326,49 +296,92 @@ const RichText = React.memo(function RichText({ text, className = "post-text", l
             return;
         }
 
-        if (target && target.classList.contains('micro-sticker')) {
+        if (target && (target.classList.contains('micro-sticker') || target.tagName === 'IMG')) {
             e.preventDefault();
             e.stopPropagation();
-            const shortcode = target.getAttribute('data-shortcode');
 
-            if (isPinned && activeStickerId === shortcode) {
-                setIsPinned(false);
-                setActiveStickerId(null);
-            } else {
-                showTooltip(target, true);
+            let packName = target.getAttribute('data-pack-name');
+            if (!packName && target.src) {
+                const match = target.src.match(/\/storage\/emojis\/([^/]+)\//);
+                if (match) packName = match[1];
             }
+
+            if (!packName) return;
+
+            const rect = target.getBoundingClientRect();
+            const position = {
+                x: rect.left + window.scrollX,
+                y: rect.bottom + window.scrollY + 5,
+            };
+
+            if (tooltipData && tooltipData.packName === packName) {
+                setTooltipData(null);
+                return;
+            }
+
+            if (packInfoCache[packName]) {
+                setTooltipData({
+                    packName,
+                    position,
+                    info: packInfoCache[packName].info,
+                    samples: packInfoCache[packName].samples,
+                });
+                return;
+            }
+
+            setIsLoadingTooltip(true);
+            setTooltipData({ packName, position, info: null, samples: [] });
+
+            StickerService.getStickerInfo(packName)
+                .onSuccess((res) => {
+                    const packData = res.pack;
+                    const samplesData = res.samples || [];
+                    
+                    packInfoCache[packName] = {
+                        info: packData,
+                        samples: samplesData,
+                    };
+
+                    setTooltipData({
+                        packName,
+                        position,
+                        info: packData,
+                        samples: samplesData,
+                    });
+                    setIsLoadingTooltip(false);
+                })
+                .onError((err) => {
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    setIsLoadingTooltip(false);
+                    setTooltipData(null);
+                });
         }
-    }, [isPinned, activeStickerId, navigate]);
+    }, [navigate, tooltipData, t]);
+
+    const handleInstallPack = useCallback((packShortName) => {
+        if (!packShortName) return;
+        StickerService.installPack(packShortName)
+            .onSuccess((res) => {
+                notifySuccess(t(`api.success.${res.code || 'PACK_INSTALLED'}`));
+                if (packInfoCache[packShortName]) {
+                    packInfoCache[packShortName].info.is_installed = true;
+                }
+                setTooltipData(prev => prev ? { ...prev, info: { ...prev.info, is_installed: true } } : null);
+            })
+            .onError((err) => {
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            });
+    }, [t]);
 
     useEffect(() => {
-        const handleGlobalClick = (e) => {
-            if (isPinned) {
-                if (tooltipRef.current && !tooltipRef.current.contains(e.target) && !e.target.classList.contains('micro-sticker')) {
-                    setIsPinned(false);
-                    setActiveStickerId(null);
-                }
+        const handleOutsideClick = (e) => {
+            if (tooltipRef.current && !tooltipRef.current.contains(e.target) && !e.target.classList.contains('micro-sticker')) {
+                setTooltipData(null);
             }
         };
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && activeStickerId) {
-                setIsPinned(false);
-                setActiveStickerId(null);
-            }
-        };
-        document.addEventListener('click', handleGlobalClick);
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            document.removeEventListener('click', handleGlobalClick);
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isPinned, activeStickerId]);
-
-    const handleTooltipMouseEnter = () => { if (!isPinned) clearTimeout(hideTimeoutRef.current); };
-    const handleTooltipMouseLeave = () => {
-        if (!isPinned) {
-            hideTimeoutRef.current = setTimeout(() => { setActiveStickerId(null); }, 300);
-        }
-    };
+        document.addEventListener('click', handleOutsideClick);
+        return () => document.removeEventListener('click', handleOutsideClick);
+    }, []);
 
     if (!finalHtml) return null;
 
@@ -378,8 +391,6 @@ const RichText = React.memo(function RichText({ text, className = "post-text", l
                 ref={containerRef}
                 className={className}
                 dangerouslySetInnerHTML={{ __html: finalHtml }}
-                onMouseOver={handleMouseOver}
-                onMouseOut={handleMouseOut}
                 onClick={handleClick}
             />
 
@@ -392,15 +403,15 @@ const RichText = React.memo(function RichText({ text, className = "post-text", l
                 </div>
             )}
 
-            {activeStickerId && (
-                <div
-                    ref={tooltipRef}
-                    onMouseEnter={handleTooltipMouseEnter}
-                    onMouseLeave={handleTooltipMouseLeave}
-                >
+            {tooltipData && (
+                <div ref={tooltipRef}>
                     <StickerTooltip
-                        shortcode={activeStickerId}
-                        position={tooltipPosition}
+                        info={tooltipData.info}
+                        samples={tooltipData.samples}
+                        isLoading={isLoadingTooltip}
+                        position={tooltipData.position}
+                        onMouseLeave={() => setTooltipData(null)}
+                        onInstall={() => handleInstallPack(tooltipData.info?.short_name || tooltipData.packName)}
                     />
                 </div>
             )}

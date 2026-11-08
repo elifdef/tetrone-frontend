@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import Button from "../ui/Button"
 
 export default function StickerTooltip({ info, samples, isLoading, position, onMouseLeave, onInstall }) {
     const { t } = useTranslation();
@@ -43,13 +44,13 @@ export default function StickerTooltip({ info, samples, isLoading, position, onM
                             </span>
                         ) : (
                             <>
-                                <Link to={`/stickers-shop?tab=catalog&search=${info.short_name}`} className="block w-full text-center py-[5px] px-[10px] border border-border text-text-main text-[11px] font-bold no-underline hover:bg-bg-page hover:text-theme-link transition-colors">
+                                <Link to={`/stickers-shop?tab=catalog&filter%5Bsearch%5D=${encodeURIComponent(info.short_name)}`} className="block w-full text-center py-[5px] px-[10px] border border-border text-text-main text-[11px] font-bold no-underline hover:bg-bg-page hover:text-theme-link transition-colors">
                                     {t('stickers.view_pack')}
                                 </Link>
                                 {!info.is_installed && (
-                                    <button className="w-full mt-[10px] bg-theme-link text-white border-none py-[6px] px-[12px] font-bold text-[11px] cursor-pointer hover:opacity-90" onClick={onInstall}>
+                                    <Button className="w-full mt-[10px] bg-theme-link text-white border-none py-[6px] px-[12px] font-bold text-[11px] cursor-pointer hover:opacity-90" onClick={onInstall}>
                                         {t('action.install')}
-                                    </button>
+                                    </Button>
                                 )}
                             </>
                         )}

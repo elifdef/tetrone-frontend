@@ -7,6 +7,34 @@ let cachedStickers = null;
 
 export default {
     char: ':',
+    allowSpaces: true,
+
+    findSuggestionMatch(config) {
+        const { $position } = config;
+        if (!$position || !$position.parent) return null;
+
+        const text = $position.parent.textBetween(
+            Math.max(0, $position.parentOffset - 40),
+            $position.parentOffset,
+            null,
+            '\ufffc'
+        );
+
+        const regexp = /(?:^|\s):([a-zA-Z0-9_\s]{1,30})$/;
+        const match = regexp.exec(text);
+
+        if (!match) return null;
+
+        const matchText = match[0].replace(/^\s+/, '');
+        const from = $position.pos - matchText.length;
+        const to = $position.pos;
+
+        return {
+            range: { from, to },
+            query: match[1],
+            text: matchText,
+        };
+    },
 
     command: ({ editor, range, props }) => {
         editor
@@ -29,13 +57,13 @@ export default {
     async items({ query }) {
         if (query.length < 1) return [];
 
-        if (!cachedStickers) {
-            // Обертаємо наш onSuccess у Promise, щоб Tiptap міг його почекати
+        if (!cachedStickers || cachedStickers.length === 0) {
             await new Promise((resolve) => {
                 StickerService.getMyPacks()
                     .onSuccess((res) => {
-                        if (res.data && Array.isArray(res.data)) {
-                            cachedStickers = res.data.flatMap(pack => {
+                        const packs = res.packs || res.data || [];
+                        if (Array.isArray(packs)) {
+                            cachedStickers = packs.flatMap(pack => {
                                 if (!Array.isArray(pack.stickers)) return [];
                                 return pack.stickers.map(sticker => ({
                                     ...sticker,
@@ -45,22 +73,22 @@ export default {
                         } else {
                             cachedStickers = [];
                         }
-                        resolve(); // Сигнал для Tiptap, що ми завантажили
+                        resolve();
                     })
                     .onError((err) => {
                         console.error("Помилка завантаження кешу:", err);
                         cachedStickers = [];
-                        resolve(); // Відпускаємо Tiptap навіть при помилці
+                        resolve();
                     });
             });
         }
 
-        const lowerQuery = query.toLowerCase();
+        const normQuery = query.toLowerCase().trim().replace(/_/g, ' ');
         return cachedStickers.filter(sticker => {
             if (!sticker || !sticker.shortcode) return false;
-            const matchShortcode = sticker.shortcode.toLowerCase().includes(lowerQuery);
-            const matchKeywords = sticker.keywords && sticker.keywords.toLowerCase().includes(lowerQuery);
-            return matchShortcode || matchKeywords;
+            const normShortcode = sticker.shortcode.toLowerCase().replace(/_/g, ' ');
+            const normKeywords = (sticker.keywords || '').toLowerCase().replace(/_/g, ' ');
+            return normShortcode.includes(normQuery) || normKeywords.includes(normQuery);
         }).slice(0, 20);
     },
 
