@@ -23,11 +23,21 @@ export default function MessageAttachmentsList({ files = [] }) {
     if (!files || files.length === 0) return null;
 
     const isImageFile = (file) =>
-        file.type?.startsWith('image/') || file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+        file.type === 'image' || file.type?.startsWith('image/') || file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
     const isVideoFile = (file) =>
-        file.type?.startsWith('video/') || file.name?.match(/\.(mp4|webm|ogg)$/i);
+        file.type === 'video' || file.type?.startsWith('video/') || file.name?.match(/\.(mp4|webm|ogg|mov|mkv|avi)$/i);
     const isAudioFile = (file) =>
-        file.type?.startsWith('audio/') || file.name?.match(/\.(mp3|wav|ogg)$/i);
+        file.type === 'audio' || file.type?.startsWith('audio/') || file.name?.match(/\.(mp3|wav|ogg|m4a|aac)$/i);
+
+    const getVideoMimeType = (file) => {
+        if (file.type && file.type.includes('/')) return file.type;
+        const ext = file.name?.split('.').pop()?.toLowerCase();
+        if (ext === 'webm') return 'video/webm';
+        if (ext === 'ogg') return 'video/ogg';
+        if (ext === 'mov') return 'video/quicktime';
+        if (ext === 'mkv') return 'video/x-matroska';
+        return 'video/mp4';
+    };
 
     return (
         <>
@@ -57,7 +67,7 @@ export default function MessageAttachmentsList({ files = [] }) {
                             <div key={idx} className="w-full max-w-[420px] border border-border overflow-hidden bg-black">
                                 <VideoPlayer
                                     src={file.url}
-                                    type={file.type || 'video/mp4'}
+                                    type={getVideoMimeType(file)}
                                     className="w-full"
                                 />
                             </div>
