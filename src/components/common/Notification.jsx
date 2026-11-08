@@ -59,7 +59,7 @@ export default function Notification({ notification, onClose }) {
 
     const titleName = isChatMessage
         ? t('notifications.new_message')
-        : t('common.notification');
+        : t('common.notifications');
 
     const senderName = isSystem
         ? t('common.moderation')

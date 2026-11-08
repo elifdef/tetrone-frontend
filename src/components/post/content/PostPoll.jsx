@@ -14,6 +14,7 @@ export default function PostPoll({ poll, postId, isOwner }) {
     const { openConfirm } = useModal();
 
     const [results, setResults] = useState({});
+    const [totalVotes, setTotalVotes] = useState(0);
     const [votedOptionIds, setVotedOptionIds] = useState([]);
     const [draftOptionIds, setDraftOptionIds] = useState([]);
     const [isClosed, setIsClosed] = useState(false);
@@ -32,6 +33,7 @@ export default function PostPoll({ poll, postId, isOwner }) {
     useEffect(() => {
         if (poll) {
             setResults(poll.results || {});
+            setTotalVotes(poll.total_voters_count || 0);
             setVotedOptionIds(poll.voted_option_ids || []);
             setDraftOptionIds(poll.voted_option_ids || []);
             setIsClosed(poll.is_closed || false);
@@ -44,12 +46,11 @@ export default function PostPoll({ poll, postId, isOwner }) {
 
     if (!poll) return null;
 
-    const totalVotes = poll.total_voters_count;
-
     const getPercentage = (optionId) => {
-        if (totalVotes === 0) return 0;
+        const effectiveTotal = totalVotes || Object.values(results).reduce((acc, curr) => acc + (Number(curr) || 0), 0);
+        if (effectiveTotal === 0) return 0;
         const count = Number(results[optionId]) || 0;
-        return Math.round((count / totalVotes) * 100);
+        return Math.round((count / effectiveTotal) * 100);
     };
 
     const hasDraftChanges = JSON.stringify([...draftOptionIds].sort()) !== JSON.stringify([...votedOptionIds].sort());
@@ -61,6 +62,7 @@ export default function PostPoll({ poll, postId, isOwner }) {
         PostService.votePoll(postId, idsToSubmit)
         .onSuccess((res) => {
             setResults(res.poll.results);
+            setTotalVotes(res.poll.total_voters_count ?? 0);
             setVotedOptionIds(res.poll.voted_option_ids);
             setDraftOptionIds(res.poll.voted_option_ids);
             if (res.poll.quiz_data) setQuizData(res.poll.quiz_data);
