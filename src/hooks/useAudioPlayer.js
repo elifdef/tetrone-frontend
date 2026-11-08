@@ -5,10 +5,9 @@ import { AudioContext } from "../context/AudioContext";
 const STORAGE_KEY = 'tetrone_audio_state';
 
 export const useAudioPlayer = () => {
-    const { currentTrack, isPlaying, setIsPlaying, closePlayer, channelRef } = useContext(AudioContext);
-
-    const audioRef = useRef(new Audio()); // Змінено ім'я на audioRef для мікро-компонентів
+    const { audioRef, currentTrack, isPlaying, setIsPlaying, closePlayer, channelRef } = useContext(AudioContext);
     const hlsRef = useRef(null);
+
 
     const [isReady, setIsReady] = useState(false);
     const [hasError, setHasError] = useState(false);
@@ -51,13 +50,39 @@ export const useAudioPlayer = () => {
             hlsRef.current = null;
         }
 
-        const relativeUrl = currentTrack.url.replace(/^https?:\/\/[^\/]+/, '');
+        // Безпечне отримання URL треку
+        const rawUrl = currentTrack.file_url || currentTrack.url || '';
+        if (!rawUrl) {
+            setHasError(true);
+            return;
+        }
+
+        const relativeUrl = rawUrl.replace(/^https?:\/\/[^\/]+/, '');
         audio.crossOrigin = "anonymous";
         audio.loop = stateRef.current.isLooping;
         audio.volume = stateRef.current.volume;
         audio.playbackRate = stateRef.current.playbackRate;
 
-        // Ініціалізація HLS
+        // Отримання збереженого часу
+        let savedTime = 0;
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved && saved.track && saved.track.id === currentTrack.id && saved.time) {
+                savedTime = saved.time;
+            }
+        } catch (e) { }
+
+        const restoreTimeAndPlay = () => {
+            if (savedTime > 0) {
+                audio.currentTime = savedTime;
+            }
+            setIsReady(true);
+            if (isPlaying) {
+                audio.play().catch(() => setIsPlaying(false));
+            }
+        };
+
+        // Ініціалізація HLS або звичайного аудіо
         if (relativeUrl.includes('.m3u8') && Hls.isSupported()) {
             const hls = new Hls();
             hlsRef.current = hls;
@@ -65,14 +90,16 @@ export const useAudioPlayer = () => {
             hls.attachMedia(audio);
 
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                setIsReady(true);
-                if (isPlaying) audio.play().catch(() => setIsPlaying(false));
+                restoreTimeAndPlay();
             });
+
             hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
-                // Зберігаємо тривалість в атрибут, щоб мікро-компоненти могли її зчитати
-                audio.setAttribute('data-hls-duration', data.details.totalduration);
-                audio.dispatchEvent(new Event('durationchange'));
+                if (data.details?.totalduration) {
+                    audio.setAttribute('data-hls-duration', data.details.totalduration);
+                    audio.dispatchEvent(new Event('durationchange'));
+                }
             });
+
             hls.on(Hls.Events.ERROR, (event, data) => {
                 if (data.fatal) {
                     setHasError(true);
@@ -81,13 +108,24 @@ export const useAudioPlayer = () => {
             });
         } else {
             audio.src = relativeUrl;
-            audio.onloadedmetadata = () => {
-                setIsReady(true);
-                if (isPlaying) audio.play().catch(() => setIsPlaying(false));
+
+            const handleLoadedMetadata = () => {
+                restoreTimeAndPlay();
             };
+
+            audio.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
         }
 
-        // Обробники подій
+        // Автоматичне фонове збереження прогресу (кожні 1 сек та при виході)
+        let lastSavedSec = -1;
+        const onTimeUpdate = () => {
+            const currentSec = Math.floor(audio.currentTime);
+            if (currentSec !== lastSavedSec && currentSec > 0) {
+                lastSavedSec = currentSec;
+                saveStateToStorage(audio.currentTime);
+            }
+        };
+
         const onPlay = () => {
             setIsPlaying(true);
             if (channelRef?.current) channelRef.current.postMessage('PAUSE_AUDIO');
@@ -99,20 +137,14 @@ export const useAudioPlayer = () => {
         const onEnded = () => setIsPlaying(false);
         const onError = () => setHasError(true);
 
+        audio.addEventListener('timeupdate', onTimeUpdate);
         audio.addEventListener('play', onPlay);
         audio.addEventListener('pause', onPause);
         audio.addEventListener('ended', onEnded);
         audio.addEventListener('error', onError);
 
-        // Відновлення часу
-        try {
-            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            if (saved && saved.track && saved.track.id === currentTrack.id && saved.time) {
-                audio.currentTime = saved.time;
-            }
-        } catch (e) { }
-
         return () => {
+            audio.removeEventListener('timeupdate', onTimeUpdate);
             audio.removeEventListener('play', onPlay);
             audio.removeEventListener('pause', onPause);
             audio.removeEventListener('ended', onEnded);

@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import { AuthContext } from './AuthContext';
 import { WS_URL } from '../config';
 
-const SocketContext = createContext(null);
+export const SocketContext = createContext(null);
 
 export const useSocket = () => useContext(SocketContext);
 

@@ -6,7 +6,7 @@ const RightSidebar = () => {
     const isMobile = useIsMobile();
 
     return (
-        <aside className="w-[10%] min-w-[200px] shrink-0 sticky top-[15px] h-max flex flex-col max-md:hidden">
+        <aside className="w-[280px] shrink-0 sticky top-[15px] h-max flex flex-col gap-[15px] max-md:hidden">
             {!isMobile && <GlobalAudioPlayer />}
         </aside>
     );

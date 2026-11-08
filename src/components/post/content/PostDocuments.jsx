@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { formatFileSize } from "../../../utils/upload";
-import AudioTrack from "./AudioTrack";
+import AudioTrack from '../../ui/AudioTrack';
 
 import EpsteinIcon from "../../../assets/filetypes/pdf.svg?react";
 import RARIcon from "../../../assets/filetypes/rar.svg?react";

@@ -210,7 +210,7 @@ export default function MessageItem({
                     currentUsername={myself?.username}
                 />
 
-                <MessageAttachmentsList files={msg.files} />
+                <MessageAttachmentsList files={msg.files} activeChat={activeChat} />
             </div>
         </div>
     );

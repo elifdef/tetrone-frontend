@@ -5,6 +5,9 @@ export const AudioContext = createContext();
 const STORAGE_KEY = 'tetrone_audio_state';
 
 export const AudioProvider = ({ children }) => {
+    const audioRef = useRef(new Audio());
+    const channelRef = useRef(null);
+
     const [currentTrack, setCurrentTrack] = useState(() => {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
@@ -15,7 +18,6 @@ export const AudioProvider = ({ children }) => {
     });
 
     const [isPlaying, setIsPlaying] = useState(false);
-    const channelRef = useRef(null);
 
     // Зберігаємо поточний трек при його зміні
     useEffect(() => {
@@ -40,17 +42,24 @@ export const AudioProvider = ({ children }) => {
         };
     }, []);
 
-    const playTrack = (track) => {
+    const playTrack = (track, sourceInfo = null) => {
+        const resolvedSource = sourceInfo || track.sourceInfo || (track.post_id ? { type: 'post', id: track.post_id, url: `/post/${track.post_id}` } : null);
+        
+        const fullTrackData = {
+            ...track,
+            sourceInfo: resolvedSource
+        };
+
         if (currentTrack && currentTrack.id === track.id) {
             const newState = !isPlaying;
             setIsPlaying(newState);
             if (newState) {
-                channelRef.current.postMessage('PAUSE_AUDIO');
+                channelRef.current?.postMessage('PAUSE_AUDIO');
             }
         } else {
-            setCurrentTrack(track);
+            setCurrentTrack(fullTrackData);
             setIsPlaying(true);
-            channelRef.current.postMessage('PAUSE_AUDIO');
+            channelRef.current?.postMessage('PAUSE_AUDIO');
         }
     };
 
@@ -60,7 +69,7 @@ export const AudioProvider = ({ children }) => {
     };
 
     return (
-        <AudioContext.Provider value={{ currentTrack, isPlaying, setIsPlaying, playTrack, closePlayer, channelRef }}>
+        <AudioContext.Provider value={{ audioRef, currentTrack, isPlaying, setIsPlaying, playTrack, closePlayer, channelRef }}>
             {children}
         </AudioContext.Provider>
     );
