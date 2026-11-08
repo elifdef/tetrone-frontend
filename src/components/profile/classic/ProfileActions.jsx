@@ -6,7 +6,7 @@ import ShareToChatModal from "../../modals/ShareToChatModal";
 
 export default function ProfileActions({
     user, sameUser, loading, status, isBlockedByMe, isBlockedByTarget,
-    onFriendAction, onBlockAction, onReportAction, onOpenChat, isBanned
+    onFriendAction, onBlockAction, onReportAction, onOpenChat, isBanned, className = ""
 }) {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,13 +21,15 @@ export default function ProfileActions({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const containerClass = `flex gap-2 w-full ${className || 'flex-col'}`;
+
     if (sameUser) {
         return (
-            <div className="flex flex-col gap-2">
-                <Link to="/settings" className="no-underline">
-                    <Button variant="primary" className="w-full">{t('action.edit')}</Button>
+            <div className={containerClass}>
+                <Link to="/settings" className="no-underline w-full">
+                    <Button variant="primary" className="w-full text-center justify-center">{t('action.edit')}</Button>
                 </Link>
-                <Button variant="secondary" className="w-full" onClick={() => setIsShareModalOpen(true)}>
+                <Button variant="secondary" className="w-full text-center justify-center" onClick={() => setIsShareModalOpen(true)}>
                     {t('profile.menu.share_profile')}
                 </Button>
                 <ShareToChatModal
@@ -69,11 +71,11 @@ export default function ProfileActions({
     };
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className={containerClass}>
             {!isBlockedByMe && user.permissions?.can_message && (
                 <Button
                     variant="primary"
-                    className="w-full"
+                    className="w-full text-center justify-center"
                     disabled={loading}
                     onClick={() => onOpenChat && onOpenChat(user.username)}
                 >
@@ -81,10 +83,10 @@ export default function ProfileActions({
                 </Button>
             )}
 
-            <div className="relative" ref={menuRef}>
+            <div className="relative w-full" ref={menuRef}>
                 <Button
                     variant="primary"
-                    className="w-full text-left flex justify-between items-center after:content-['▼'] after:text-[8px] after:ml-2"
+                    className="w-full text-center justify-center flex items-center gap-[6px] after:content-['▼'] after:text-[8px]"
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     disabled={loading}
                 >

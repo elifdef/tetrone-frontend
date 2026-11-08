@@ -5,18 +5,19 @@ import ProfileActions from "../classic/ProfileActions";
 export default function Header(props) {
     const {
         user, isPreview, displayAvatar, isBlockedByTarget, isBanned, isPrivateProfile,
-        authUser, sameUser, statusText, onAvatarClick, isAvatarLoading
+        authUser, sameUser, statusText, onAvatarClick, isAvatarLoading, isOnline
     } = props;
 
     const { t } = useTranslation();
 
-    // Логіка для аватара
     const isBlocked = isBlockedByTarget || isBanned || isPrivateProfile;
     const hasCustomAvatar = displayAvatar && !displayAvatar.includes('defaultAvatar');
     const canViewAvatar = !isPreview && !isBlocked && hasCustomAvatar;
 
     const customNameColor = user.personalization?.username_color;
     const nameStyle = customNameColor && customNameColor.startsWith('#') ? { color: customNameColor } : {};
+
+    const activeOnline = isOnline !== undefined ? isOnline : user.is_online;
 
     return (
         <div className="flex justify-between items-end px-[20px] -mt-[60px] relative z-10 gap-[15px] flex-wrap max-md:flex-col max-md:items-center max-md:-mt-[65px] max-md:px-[15px]">
@@ -43,8 +44,8 @@ export default function Header(props) {
                     <div className="flex items-center gap-[10px] mt-[4px] flex-wrap max-md:justify-center">
                         <span className="text-[13px] text-text-muted" style={nameStyle}>@{user.username}</span>
                         {!isPreview && !user.is_private && (
-                            <span className={`text-[12px] flex items-center gap-[5px] ${user.is_online ? 'text-theme-success font-bold' : 'text-text-muted'}`}>
-                                {user.is_online && <span className="w-[6px] h-[6px] bg-theme-success inline-block"></span>}
+                            <span className={`text-[12px] flex items-center gap-[5px] ${activeOnline ? 'text-theme-success font-bold' : 'text-text-muted'}`}>
+                                {activeOnline && <span className="w-[6px] h-[6px] bg-theme-success inline-block"></span>}
                                 {statusText}
                             </span>
                         )}
@@ -52,13 +53,9 @@ export default function Header(props) {
                 </div>
             </div>
 
-            {/* Блок з кнопками дій */}
-            <div className="flex gap-[10px] items-end pb-[15px] z-10 max-md:w-full max-md:justify-center max-md:pb-0 max-md:mt-[15px]">
-                {!sameUser && !isPreview && authUser && !user.is_deleted && (
-                    <div className="flex gap-[10px] items-center mb-[12px] max-md:w-full max-md:justify-center max-md:flex-wrap [&_.relative]:w-auto [&_button]:w-auto [&_button]:px-[15px] [&_button]:py-[6px] [&_.absolute]:right-0 [&_.absolute]:left-auto [&_.absolute]:min-w-[180px]">
-                        {/* Ми просто перевикористовуємо логіку кнопок з класичної теми! */}
-                        <ProfileActions {...props} />
-                    </div>
+            <div className="flex gap-[10px] items-end pb-[5px] mt-[60px] z-10 w-[170px] max-md:w-full max-md:justify-center max-md:pb-0 max-md:mt-[15px]">
+                {!isPreview && authUser && !user.is_deleted && (
+                    <ProfileActions {...props} className="flex-col w-full" />
                 )}
             </div>
         </div>

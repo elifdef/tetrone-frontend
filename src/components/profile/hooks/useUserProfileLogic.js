@@ -1,5 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../../context/AuthContext";
+import { useSocket } from "../../../context/SocketContext";
+import { useDateFormatter } from "../../../hooks/useDateFormatter";
 import FriendService from "../../../services/friend.service";
 import { notifyError, notifyInfo, notifySuccess } from "../../common/Notify";
 import { useModal } from "../../../context/ModalContext";
@@ -9,9 +11,12 @@ export const useUserProfileLogic = (currentUser, isPreview = false) => {
     const { t } = useTranslation();
     const { user } = useContext(AuthContext);
     const { openConfirm } = useModal();
+    const { onlineUsers, lastSeenMap } = useSocket() || {};
 
     const [status, setStatus] = useState(currentUser?.friendship_status || 'none');
     const [loading, setLoading] = useState(false);
+
+    const formatDate = useDateFormatter();
 
     const sameUser = user && currentUser && currentUser.username === user.username;
     const isBlockedByMe = !isPreview && status === 'blocked_by_me';
@@ -21,6 +26,27 @@ export const useUserProfileLogic = (currentUser, isPreview = false) => {
     const isDeleted = currentUser?.is_deleted === true;
     const displayAvatar = currentUser?.avatar;
 
+    const isOnline = onlineUsers && currentUser?.username
+        ? onlineUsers.includes(currentUser.username)
+        : !!currentUser?.is_online;
+
+    const dynamicLastSeen = (currentUser?.username && lastSeenMap?.[currentUser.username])
+        || currentUser?.last_seen;
+
+    const getStatusText = () => {
+        if (isOnline) {
+            return t('profile.online');
+        }
+        if (dynamicLastSeen) {
+            const genderSuffix = currentUser?.gender === 2 ? 'female' : 'male';
+            const wasText = t(`profile.was_online_${genderSuffix}`, t('profile.was_online', 'був(ла) у мережі'));
+            return `${wasText} ${formatDate(dynamicLastSeen)}`;
+        }
+        return t('profile.offline', 'офлайн');
+    };
+
+    const statusText = getStatusText();
+    
     const getDisplayBio = () => {
         if (isBanned) return t('profile.banned_status');
         if (isDeleted) return t('profile.deleted_status');
@@ -133,5 +159,24 @@ export const useUserProfileLogic = (currentUser, isPreview = false) => {
         }
     };
 
-    return { status, loading, sameUser, isBlockedByMe, isBlockedByTarget, isBanned, isDeleted, isFriend, displayAvatar, displayBio, displayBirth, displayCountry, displayGender, handleFriendshipAction, handleBlockAction };
+    return { 
+        status, 
+        loading, 
+        sameUser, 
+        isBlockedByMe, 
+        isBlockedByTarget, 
+        isBanned, 
+        isDeleted, 
+        isFriend, 
+        displayAvatar, 
+        displayBio, 
+        displayBirth, 
+        displayCountry, 
+        displayGender, 
+        isOnline, 
+        dynamicLastSeen, 
+        statusText,
+        handleFriendshipAction, 
+        handleBlockAction 
+    };
 };

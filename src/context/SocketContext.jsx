@@ -10,6 +10,7 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
+    const [lastSeenMap, setLastSeenMap] = useState({});
     const { isAuthenticated } = useContext(AuthContext);
 
     useEffect(() => {
@@ -39,6 +40,9 @@ export const SocketProvider = ({ children }) => {
 
         newSocket.on('user_offline', (data) => {
             setOnlineUsers(prev => prev.filter(username => username !== data.username));
+            if (data.last_seen) {
+                setLastSeenMap(prev => ({ ...prev, [data.username]: data.last_seen }));
+            }
         });
 
         newSocket.on('force_disconnect', (data) => {
@@ -68,7 +72,7 @@ export const SocketProvider = ({ children }) => {
     }, [isAuthenticated]);
 
     return (
-        <SocketContext.Provider value={{ socket, onlineUsers }}>
+        <SocketContext.Provider value={{ socket, onlineUsers, lastSeenMap }}>
             {children}
         </SocketContext.Provider>
     );

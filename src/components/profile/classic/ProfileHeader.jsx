@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
-export default function ProfileHeader({ user, isPreview, statusText }) {
+export default function ProfileHeader({ user, isPreview, statusText, isOnline }) {
     const { t } = useTranslation();
 
     const customNameColor = user.personalization?.username_color;
     const nameStyle = customNameColor && customNameColor.startsWith('#') ? { color: customNameColor } : {};
+
+    const activeOnline = isOnline !== undefined ? isOnline : user.is_online;
 
     return (
         <div className="flex justify-between items-start flex-wrap border-b border-border pb-[5px] mb-[10px] max-md:flex-col max-md:gap-[10px]">
@@ -14,8 +16,8 @@ export default function ProfileHeader({ user, isPreview, statusText }) {
             </h2>
 
             {!isPreview && !user.is_private && (
-                <span className={`text-[11px] flex items-center gap-[5px] ${user.is_online ? 'text-theme-success font-bold' : 'text-[#888]'}`}>
-                    {user.is_online && <span className="w-[6px] h-[6px] bg-theme-success inline-block"></span>}
+                <span className={`text-[11px] flex items-center gap-[5px] ${activeOnline ? 'text-theme-success font-bold' : 'text-[#888]'}`}>
+                    {activeOnline && <span className="w-[6px] h-[6px] bg-theme-success inline-block"></span>}
                     {statusText}
                 </span>
             )}
