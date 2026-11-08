@@ -286,6 +286,11 @@ export default function ChatComposer({
                                 onTyping?.();
                             }}
                             onEnter={handleSend}
+                            onPasteFiles={(pastedFiles) => {
+                                if (handleFileChange) {
+                                    handleFileChange({ target: { files: pastedFiles } });
+                                }
+                            }}
                             placeholder={t('chat.composer.placeholder')}
                             className="min-h-[58px] text-[12px] outline-none"
                         />

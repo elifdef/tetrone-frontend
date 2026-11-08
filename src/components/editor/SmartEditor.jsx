@@ -16,6 +16,7 @@ export default function SmartEditor({
     placeholder = '',
     className = '',
     onEnter = null,
+    onPasteFiles = null,
     preset = 'post',
     stickerPacks = [],
     favoriteStickers = [],
@@ -36,9 +37,11 @@ export default function SmartEditor({
 
     const onEnterRef = useRef(onEnter);
     const onChangeRef = useRef(onChange);
+    const onPasteFilesRef = useRef(onPasteFiles);
 
     useEffect(() => { onEnterRef.current = onEnter; }, [onEnter]);
     useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+    useEffect(() => { onPasteFilesRef.current = onPasteFiles; }, [onPasteFiles]);
 
     const extensions = useEditorExtensions({ preset, placeholder, onEnterRef });
     const initialContent = useMemo(() => decodeTipTapContent(value), []);
@@ -46,6 +49,18 @@ export default function SmartEditor({
     const editor = useEditor({
         extensions,
         content: initialContent,
+        editorProps: {
+            handlePaste: (view, event) => {
+                const files = event.clipboardData?.files;
+                if (files && files.length > 0) {
+                    if (onPasteFilesRef.current) {
+                        onPasteFilesRef.current(Array.from(files));
+                        return true;
+                    }
+                }
+                return false;
+            },
+        },
         onUpdate: ({ editor }) => {
             onChangeRef.current(editor.getJSON());
             setIsEmpty(editor.isEmpty);
