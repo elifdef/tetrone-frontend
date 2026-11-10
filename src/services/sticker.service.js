@@ -1,4 +1,5 @@
 import fetchClient from '../api/client';
+import { clearStickerPacksCache } from '../components/editor/StickerPicker';
 
 const StickerService = {
     getCatalog: (queryString = '') => {
@@ -9,6 +10,7 @@ const StickerService = {
     getMyPacks: () => fetchClient('/stickers/my'),
 
     createPack: (data) => {
+        clearStickerPacksCache();
         const formData = new FormData();
         formData.append('title', data.title);
         formData.append('is_published', data.is_published ? '1' : '0');
@@ -21,6 +23,7 @@ const StickerService = {
     },
 
     updatePack: (shortName, data) => {
+        clearStickerPacksCache();
         const formData = new FormData();
         formData.append('_method', 'PUT');
 
@@ -34,16 +37,28 @@ const StickerService = {
         });
     },
 
-    deletePack: (shortName) => fetchClient(`/stickers/packs/${shortName}`, { method: 'DELETE' }),
+    deletePack: (shortName) => {
+        clearStickerPacksCache();
+        return fetchClient(`/stickers/packs/${shortName}`, { method: 'DELETE' });
+    },
 
-    installPack: (shortName) => fetchClient(`/stickers/packs/${shortName}/install`, { method: 'POST' }),
+    installPack: (shortName) => {
+        clearStickerPacksCache();
+        return fetchClient(`/stickers/packs/${shortName}/install`, { method: 'POST' });
+    },
 
-    uninstallPack: (shortName) => fetchClient(`/stickers/packs/${shortName}/uninstall`, { method: 'DELETE' }),
+    uninstallPack: (shortName) => {
+        clearStickerPacksCache();
+        return fetchClient(`/stickers/packs/${shortName}/uninstall`, { method: 'DELETE' });
+    },
 
-    reorderPacks: (packShortNames) => fetchClient('/stickers/reorder-packs', {
-        method: 'PUT',
-        body: { packShortNames }
-    }),
+    reorderPacks: (packShortNames) => {
+        clearStickerPacksCache();
+        return fetchClient('/stickers/reorder-packs', {
+            method: 'PUT',
+            body: { packShortNames }
+        });
+    },
 
     addSticker: (shortName, data) => {
         const formData = new FormData();

@@ -5,6 +5,11 @@ import StickerService from '../../services/sticker.service';
 let globalPacksCache = null;
 let fetchPacksPromise = null;
 
+export const clearStickerPacksCache = () => {
+    globalPacksCache = null;
+    fetchPacksPromise = null;
+};
+
 export default function StickerPicker({
                                           packs: externalPacks, 
                                           favorites: externalFavorites, 
