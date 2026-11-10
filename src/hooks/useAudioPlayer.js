@@ -1,8 +1,28 @@
 import { useEffect, useRef, useContext, useState, useCallback } from "react";
 import Hls from "hls.js";
 import { AudioContext } from "../context/AudioContext";
+import { API_URL } from "../config.js";
 
 const STORAGE_KEY = 'tetrone_audio_state';
+
+const getFullMediaUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        try {
+            const parsed = new URL(url);
+            if (parsed.hostname === 'backend' || parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+                const baseApi = API_URL ? API_URL.replace(/\/v1\/?$/, '') : '';
+                return `${baseApi}${parsed.pathname}${parsed.search}`;
+            }
+        } catch {
+            return url;
+        }
+        return url;
+    }
+    const baseApi = API_URL ? API_URL.replace(/\/v1\/?$/, '') : '';
+    const cleanPath = url.startsWith('/') ? url : `/${url}`;
+    return `${baseApi}${cleanPath}`;
+};
 
 export const useAudioPlayer = () => {
     const { audioRef, currentTrack, isPlaying, setIsPlaying, closePlayer, channelRef } = useContext(AudioContext);
@@ -57,7 +77,7 @@ export const useAudioPlayer = () => {
             return;
         }
 
-        const relativeUrl = rawUrl.replace(/^https?:\/\/[^\/]+/, '');
+        const mediaUrl = getFullMediaUrl(rawUrl);
         audio.crossOrigin = "anonymous";
         audio.loop = stateRef.current.isLooping;
         audio.volume = stateRef.current.volume;
@@ -83,10 +103,10 @@ export const useAudioPlayer = () => {
         };
 
         // Ініціалізація HLS або звичайного аудіо
-        if (relativeUrl.includes('.m3u8') && Hls.isSupported()) {
+        if (mediaUrl.includes('.m3u8') && Hls.isSupported()) {
             const hls = new Hls();
             hlsRef.current = hls;
-            hls.loadSource(relativeUrl);
+            hls.loadSource(mediaUrl);
             hls.attachMedia(audio);
 
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -107,7 +127,7 @@ export const useAudioPlayer = () => {
                 }
             });
         } else {
-            audio.src = relativeUrl;
+            audio.src = mediaUrl;
 
             const handleLoadedMetadata = () => {
                 restoreTimeAndPlay();
