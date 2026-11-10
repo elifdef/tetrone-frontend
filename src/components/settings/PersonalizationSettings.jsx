@@ -2,17 +2,16 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HexColorPicker } from 'react-colorful';
 import { AuthContext } from '../../context/AuthContext';
-// ІМПОРТИ ДЛЯ ТЕМИ
 import { useTheme } from '../../context/ThemeContext';
 import { APP_THEMES } from '../../config.js';
 import Checkbox from '../ui/Checkbox';
-import CustomSelect from '../ui/CustomSelect'; // Використовуємо твій кастомний селект
-
+import CustomSelect from '../ui/CustomSelect';
 import PersonalizationService from '../../services/personalization.service';
 import { notifySuccess, notifyError } from '../common/Notify';
 import UserProfileCard from '../profile/UserProfileCard';
 import ImageDropzone from './ImageDropzone';
 import Button from '../ui/Button';
+import StickerPicker from '../editor/StickerPicker';
 
 const hexToRgbString = (hex) => {
     if (!hex || !hex.startsWith('#')) return hex;
@@ -84,10 +83,15 @@ export default function PersonalizationSettings() {
         banner_color: initialPersonalization.banner_color,
         username_color: initialPersonalization.username_color,
         banner_image: initialPersonalization.banner_image,
+        verification_badge_type: user?.verification_badge?.type || 'classic',
+        verification_sticker_id: user?.verification_badge?.sticker_id || null,
     });
 
     const [bannerFile, setBannerFile] = useState(null);
     const [previewBannerImage, setPreviewBannerImage] = useState(initialPersonalization.banner_image || null);
+
+    const [selectedStickerUrl, setSelectedStickerUrl] = useState(user?.verification_badge?.sticker_url || null);
+    const [showStickerPicker, setShowStickerPicker] = useState(false);
 
     const safeGradient = settings.banner_color && settings.banner_color.includes('linear-gradient')
         ? settings.banner_color
@@ -138,12 +142,28 @@ export default function PersonalizationSettings() {
         formData.append('username_color', hexToRgbString(settings.username_color) || '');
         formData.append('banner_color', settings.banner_color || '');
 
+        if (settings.verification_badge_type) {
+            formData.append('verification_badge_type', settings.verification_badge_type);
+        }
+        if (settings.verification_sticker_id) {
+            formData.append('verification_sticker_id', settings.verification_sticker_id);
+        }
+
         if (bannerFile) formData.append('banner_image', bannerFile);
         else if (previewBannerImage === null) formData.append('remove_banner_image', 'true');
 
         PersonalizationService.updateSettings(formData)
         .onSuccess((res) => {
-            if (setUser) setUser({ ...user, personalization: res.personalization });
+            if (setUser) {
+                setUser({
+                    ...user,
+                    personalization: res.personalization,
+                    verification_badge: res.verification_badge
+                });
+            }
+            if (res.verification_badge?.sticker_url) {
+                setSelectedStickerUrl(res.verification_badge.sticker_url);
+            }
             notifySuccess(t('common.success'));
         })
         .onError((err) => {
@@ -296,6 +316,76 @@ export default function PersonalizationSettings() {
                             </div>
                         )}
                     </div>
+
+                   {/* НАЛАШТУВАННЯ ВЕРИФІКАЦІЇ (Якщо користувач верифікований) */}
+                        {user?.is_verified && (
+                            <div className="mb-[20px] pb-[15px] border-b border-dashed border-border w-full">
+                                <h3 className="text-[12px] font-bold text-theme-link m-0 mb-[10px] pb-[5px] border-b border-border">
+                                    {t('settings.verification_badge')}
+                                </h3>
+                                <div className="flex flex-col gap-[10px]">
+                                    <div className="flex items-center gap-[15px]">
+                                        <label className="flex items-center gap-[5px] cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="badge_type"
+                                                value="classic"
+                                                checked={(settings.verification_badge_type || user.verification_badge?.type || 'classic') === 'classic'}
+                                                onChange={() => setSettings(prev => ({ ...prev, verification_badge_type: 'classic' }))}
+                                            />
+                                            <span>{t('settings.badge_classic')}</span>
+                                        </label>
+                                        <label className="flex items-center gap-[5px] cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="badge_type"
+                                                value="sticker"
+                                                checked={(settings.verification_badge_type || user.verification_badge?.type) === 'sticker'}
+                                                onChange={() => setSettings(prev => ({ ...prev, verification_badge_type: 'sticker' }))}
+                                            />
+                                            <span>{t('settings.badge_sticker')}</span>
+                                        </label>
+                                    </div>
+
+                                    {(settings.verification_badge_type || user.verification_badge?.type) === 'sticker' && (
+                                        <div className="mt-[5px] flex flex-col gap-[8px]">
+                                            <div className="flex items-center gap-[10px]">
+                                                {selectedStickerUrl ? (
+                                                    <img
+                                                        src={selectedStickerUrl}
+                                                        alt="Selected sticker"
+                                                        className="w-[32px] h-[32px] object-contain border border-border p-[2px] bg-bg-box"
+                                                    />
+                                                ) : (
+                                                    <span className="text-text-muted text-[11px] italic">Стікер не обрано</span>
+                                                )}
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    onClick={() => setShowStickerPicker(prev => !prev)}
+                                                >
+                                                    {showStickerPicker ? t('action.cancel') : t('settings.select_saved_sticker')}
+                                                </Button>
+                                            </div>
+
+                                            {showStickerPicker && (
+                                                <div className="mt-[5px]">
+                                                    <StickerPicker
+                                                        compact={true}
+                                                        onSelect={(sticker) => {
+                                                            const imgUrl = sticker.url || sticker.src || (sticker.file_path ? `/storage/${sticker.file_path}` : null);
+                                                            setSettings(prev => ({ ...prev, verification_sticker_id: sticker.id }));
+                                                            setSelectedStickerUrl(imgUrl);
+                                                            setShowStickerPicker(false);
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                     <div className="p-[10px_15px] bg-bg-page flex justify-end border-t border-border w-full">
                         <Button type="submit" variant="save" disabled={isSaving}>

@@ -120,7 +120,7 @@
     "view": "Переглянути",
     "vote": "Проголосувати",
     "write_post": "Написати пост...",
-    "share_to_chat":"Відправити у чат"
+    "share_to_chat": "Відправити у чат"
   },
   "activity": {
     "comments": {
@@ -249,7 +249,7 @@
       "ticket_author": "Автор",
       "reply_placeholder": "Напишіть відповідь користувачу...",
       "closed_by": "Закрито: ",
-      "no_tickets_found":"Звернень поки немає."
+      "no_tickets_found": "Звернень поки немає."
     },
     "posts": {
       "title": "Пости",
@@ -680,7 +680,6 @@
   },
   "media_editor": {
     "title": "Редагування зображення",
-
     "tool_select": "Вибрати",
     "tool_transform": "Трансформація",
     "tool_crop": "Кроп",
@@ -690,13 +689,11 @@
     "tool_sticker": "Стікер",
     "tool_filter": "Фільтри",
     "tool_meme": "Меми",
-
     "select_tool_hint": "Виберіть об'єкт на полотні для редагування",
     "drawing_tool": "Інструмент малювання",
     "tool_pencil": "Олівець",
     "tool_line": "Лінія",
     "tool_arrow": "Стрілка",
-
     "color": "Колір",
     "size": "Розмір",
     "stroke_width": "Товщина",
@@ -707,7 +704,6 @@
     "height": "Висота",
     "fill": "Заливка",
     "stroke": "Контур",
-
     "shape_figure": "Фігура",
     "shape_pencil": "Малюнок",
     "shape_line": "Лінія",
@@ -722,7 +718,6 @@
     "shape_star": "Зірка",
     "shape_censor": "Цензура",
     "shapes_hint": "Натисни і тягни мишкою на полотні. Утримуй Shift для рівних пропорцій.",
-
     "layer_shape": "Фігура",
     "layer_text": "Текст",
     "layer_image": "Зображення",
@@ -731,29 +726,24 @@
     "layer_group": "Папка",
     "create_folder": "Створити папку",
     "add_image_layer": "Фото",
-
     "richtext_layer": "Текст (RichText)",
     "text_editing": "Редагування тексту",
     "text_placeholder": "Введіть текст...",
     "text_resize_hint": "Щоб змінити розмір або повернути текст, потягніть за рамку на полотні.",
     "text_creation": "Створення тексту",
     "text_create_hint": "Клікни у будь-якому місці на зображенні, щоб додати блок з текстом.",
-
     "rotate": "Поворот",
     "rotate_left": "Повернути вліво",
     "rotate_right": "Повернути вправо",
     "flip_h": "По горизонталі",
     "flip_v": "По вертикалі",
     "duplicate": "Дублювати",
-
     "center_h": "По центру горизонтально",
     "center_v": "По центру вертикально",
-
     "layer_forward": "На один рівень вперед",
     "layer_front": "Шари",
     "layer_backward": "На один рівень назад",
     "layer_back": "На задній план",
-
     "bold": "Жирний",
     "italic": "Курсив",
     "underline": "Підкреслення",
@@ -762,17 +752,14 @@
     "align_right": "Праворуч",
     "text_background": "Фон тексту",
     "shadow": "Тінь",
-
     "crop_ratio": "Пропорція",
     "ratio_free": "Вільна",
     "cancel_crop": "Скасувати",
     "apply_crop": "Застосувати",
-
     "filter": "Фільтр",
     "filter_selected": "Вибране зображення",
     "filter_original": "Основне зображення",
     "filter_no_image": "Зображення недоступне",
-
     "filter_none": "Без фільтра",
     "filter_grayscale": "Чорно-білий",
     "filter_invert": "Інверсія",
@@ -782,7 +769,6 @@
     "filter_blur": "Розмиття",
     "filter_noise": "Шум",
     "filter_sharpen": "Різкість",
-
     "meme_generator": "Генератор мемів",
     "meme_hint": "В один клік застосовує макрос. Після генерації ти зможеш відредагувати текст.",
     "btn_demotivator": "Створити Демотиватор",
@@ -791,16 +777,13 @@
     "meme_bottom_text": "НИЖНІЙ ТЕКСТ",
     "demotivator_title": "ЗАГОЛОВОК",
     "demotivator_subtitle": "Додатковий текст для демотиватора",
-
     "zoom_in": "Збільшити",
     "zoom_out": "Зменшити",
     "zoom_reset": "Скинути масштаб",
-
     "undo": "Скасувати останню дію",
     "redo": "Повторити дію",
     "deselect": "Зняти виділення",
     "delete_selected": "Видалити",
-
     "default_text": "Текст",
     "loading": "Завантаження...",
     "reset_all": "Скинути все",
@@ -1166,7 +1149,7 @@
     "your_poll": "вашому опитуванні",
     "your_post": "ваш пост",
     "your_video": "вашому відео",
-    "new_message":"Нове повідомлення"
+    "new_message": "Нове повідомлення"
   },
   "page_404": {
     "invalid_page": "Можливо, ви перейшли за недійсним посиланням\nабо користувача було видалено.",
@@ -1497,7 +1480,7 @@
     "privacy_desc": "Керуйте тим, хто може бачити вашу інформацію та взаємодіяти з вами.",
     "privacy_saved": "Налаштування приватності успішно збережено",
     "privacy_title": "Налаштування приватності",
-    "about_me_placeholder":"Розкажіть про себе...",
+    "about_me_placeholder": "Розкажіть про себе...",
     "profile_design_title": "Дизайн профілю",
     "profile_settings": "Налаштування профілю",
     "profile_theme": "Дизайн профілю",
@@ -1554,7 +1537,11 @@
     "usernames_title": "Управління юзернеймами",
     "verification_status": "Статус підтвердження",
     "your_current_aliases": "Ваші імена:",
-    "your_new_token": "Ваш новий токен доступу"
+    "your_new_token": "Ваш новий токен доступу",
+    "verification_badge": "Бейдж підтвердження профілю",
+    "badge_classic": "Класична галочка",
+    "badge_sticker": "Кастомний стікер",
+    "select_saved_sticker": "Оберіть стікер зі збережених:"
   },
   "sidebar": {
     "guest": {
@@ -1730,7 +1717,7 @@
     "cat_desc_content": "Допоможем створити нове або видалити старе",
     "cat_desc_privacy": "Пароль 12345678 не дуже хороша ідея...",
     "cat_desc_spaces": "Групи де можно найти однодумців",
-    "cat_desc_general":"Спілкуємось про все на світі (або майже все)",
+    "cat_desc_general": "Спілкуємось про все на світі (або майже все)",
     "cat_general": "Загальні питання",
     "cat_privacy_safety": "Приватність і безпека",
     "cat_spaces": "Простори",
@@ -1963,7 +1950,7 @@
   },
   "chat": {
     "title": "Повідомлення",
-    "to_chat":"Написати повідомлення",
+    "to_chat": "Написати повідомлення",
     "saved_messages": "Збережені",
     "saved_description": "Це ваше особисте сховище. Сюди можна пересилати повідомлення, пости, файли та зберігати нотатки.",
     "saved_meme": "Його тут немає. Тайлера тут не має. Тайлер пішов. Тайлер зник.",
