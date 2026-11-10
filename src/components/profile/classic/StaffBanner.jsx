@@ -1,16 +1,28 @@
-import { APP_NAME } from "../../../config";
-import { VerifiedIcon } from "../../ui/Icons";
-import {getRoleTitle} from "../utils/getRoleTitle";
+import { APP_NAME, userRole } from "../../../config";
+import { getRoleTitle } from "../utils/getRoleTitle";
+
+const getStaffBannerClass = (role) => {
+    switch (role) {
+        case userRole.Support:
+            return 'staff-banner-support';
+        case userRole.Moderator:
+            return 'staff-banner-moderator';
+        case userRole.Admin:
+            return 'staff-banner-admin';
+        case userRole.Owner:
+            return 'staff-banner-owner';
+        default:
+            return 'staff-banner-support';
+    }
+};
 
 export default function StaffBanner({ role }) {
-
     return (
-        <div className="flex justify-between items-center bg-staff-bg border border-staff-border py-[8px] px-[15px] mb-[10px] text-[11px] transition-colors">
-            <div className="flex items-center">
-                <span className="font-bold text-staff-text">{getRoleTitle(role)} {APP_NAME}</span>
-                <span className="flex items-center ml-[6px] cursor-help text-staff-icon" title={getRoleTitle(role)}>
-                    <VerifiedIcon width={12} height={12} />
-                </span>
+        <div className={`flex justify-between items-center border py-[8px] px-[15px] mb-[10px] text-[11px] transition-colors 
+        ${getStaffBannerClass(role)}`}>
+            <div className="flex items-center"
+            >
+                <span className="font-bold">{getRoleTitle(role)} {APP_NAME}</span>
             </div>
         </div>
     );

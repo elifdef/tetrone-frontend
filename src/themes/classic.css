@@ -34,10 +34,26 @@
     /* --- Специфічні блоки --- */
     --theme-section-bg: var(--theme-header-bg);
     --theme-section-text: #36638E;
-    --theme-staff-bg: #EEE5B8;
-    --theme-staff-border: #f5c400;
-    --theme-staff-text: #2b2b2b;
-    --theme-staff-icon: #8a6d00;
+
+    /* Техпідтримка (Фіалковий / світлий фіолетовий) */
+    --theme-staff-support-bg: linear-gradient(90deg, #f3e8ff, #e9d5ff);
+    --theme-staff-support-border: #c084fc;
+    --theme-staff-support-text: #581c87;
+
+    /* Модератор (Темний жовтий / бурштиновий) */
+    --theme-staff-moderator-bg: linear-gradient(90deg, #fef3c7, #fde68a);
+    --theme-staff-moderator-border: #d97706;
+    --theme-staff-moderator-text: #78350f;
+
+    /* Адміністратор (Темний синій) */
+    --theme-staff-admin-bg: linear-gradient(90deg, #dbeafe, #bfdbfe);
+    --theme-staff-admin-border: #2563eb;
+    --theme-staff-admin-text: #1e3a8a;
+
+    /* Власник (Чорний / графіт) */
+    --theme-staff-owner-bg: linear-gradient(90deg, #27272a, #18181b);
+    --theme-staff-owner-border: #09090b;
+    --theme-staff-owner-text: #ffffff;
 
     /* --- Кнопки (Світлі) --- */
     --theme-btn-primary-bg: #5d81ab;
@@ -140,10 +156,26 @@
 
     --theme-section-bg: var(--theme-bg-box);
     --theme-section-text: var(--theme-link);
-    --theme-staff-bg: #332b00;
-    --theme-staff-border: #8a6d00;
-    --theme-staff-text: #f5c400;
-    --theme-staff-icon: #f5c400;
+
+    /* Техпідтримка (Темна тема) */
+    --theme-staff-support-bg: linear-gradient(90deg, #3b0764, #581c87);
+    --theme-staff-support-border: #9333ea;
+    --theme-staff-support-text: #f3e8ff;
+
+    /* Модератор (Темна тема) */
+    --theme-staff-moderator-bg: linear-gradient(90deg, #451a03, #78350f);
+    --theme-staff-moderator-border: #b45309;
+    --theme-staff-moderator-text: #fef3c7;
+
+    /* Адміністратор (Темна тема) */
+    --theme-staff-admin-bg: linear-gradient(90deg, #0f172a, #1e3a8a);
+    --theme-staff-admin-border: #3b82f6;
+    --theme-staff-admin-text: #dbeafe;
+
+    /* Власник (Темна тема) */
+    --theme-staff-owner-bg: linear-gradient(90deg, #000000, #09090b);
+    --theme-staff-owner-border: #3f3f46;
+    --theme-staff-owner-text: #f4f4f5;
 
     --theme-btn-primary-bg: #496b8c;
     --theme-btn-primary-grad-top: #5a80a5;
@@ -294,7 +326,27 @@
    5. КОМПОНЕНТИ (Включаючи RichText)
    ========================================= */
 @layer components {
-    /* --- TEXT FORMATTING: VK 2007 STRICT EDITION --- */
+    .staff-banner-support {
+        background: var(--theme-staff-support-bg);
+        border-color: var(--theme-staff-support-border);
+        color: var(--theme-staff-support-text);
+    }
+    .staff-banner-moderator {
+        background: var(--theme-staff-moderator-bg);
+        border-color: var(--theme-staff-moderator-border);
+        color: var(--theme-staff-moderator-text);
+    }
+    .staff-banner-admin {
+        background: var(--theme-staff-admin-bg);
+        border-color: var(--theme-staff-admin-border);
+        color: var(--theme-staff-admin-text);
+    }
+    .staff-banner-owner {
+        background: var(--theme-staff-owner-bg);
+        border-color: var(--theme-staff-owner-border);
+        color: var(--theme-staff-owner-text);
+    }
+
     .post-text, .comment-text, .ProseMirror {
         @apply text-[11px] font-tahoma leading-[1.4] text-text-main break-words;
     }

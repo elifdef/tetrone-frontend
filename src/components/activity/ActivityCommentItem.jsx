@@ -4,6 +4,7 @@ import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { DeleteIcon } from "../ui/Icons";
 import RichText from '../common/RichText';
 import Avatar from "../ui/Avatar";
+import UserDisplayName from '../ui/UserDisplayName';
 
 export default function ActivityCommentItem({ comment, onDelete }) {
     const { t } = useTranslation();
@@ -50,7 +51,7 @@ export default function ActivityCommentItem({ comment, onDelete }) {
                         </Link>{' '}
                         {t('activity.comments.of_user')}{' '}
                         <Link to={`/${postAuthor.username}`} className="text-theme-link no-underline hover:underline font-bold" style={opColor ? { color: opColor } : undefined}>
-                            {postAuthor.first_name} {postAuthor.last_name}
+                            <UserDisplayName user={postAuthor} showUsername={false} />
                         </Link>
                     </span>
                 </div>

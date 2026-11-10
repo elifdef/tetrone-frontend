@@ -5,7 +5,20 @@ export default function UserDisplayName({ user, showUsername = true, className =
     if (!user) return null;
 
     const customColor = user.personalization?.username_color || user.username_color;
-    const style = customColor && customColor.startsWith('#') ? { color: customColor, ...nameStyle } : nameStyle;
+
+    let style = { ...nameStyle };
+    if (customColor) {
+        if (customColor.includes('gradient')) {
+            style = {
+                background: customColor,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                ...nameStyle
+            };
+        } else {
+            style = { color: customColor, ...nameStyle };
+        }
+    }
 
     const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username;
 
@@ -13,9 +26,11 @@ export default function UserDisplayName({ user, showUsername = true, className =
         <span className={`inline-flex items-center gap-[3px] font-bold ${className}`} style={style}>
             <span>{fullName}</span>
             <VerifiedBadge user={user} />
-            
+
             {showUsername && user.username && fullName !== user.username && (
-                <span className="text-[11px] text-text-muted font-normal">@{user.username}</span>
+                <span className={`text-[11px] font-normal ${customColor ? 'opacity-80' : 'text-text-muted'}`}>
+                    @{user.username}
+                </span>
             )}
         </span>
     );

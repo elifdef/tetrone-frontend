@@ -5,6 +5,7 @@ import { useDateFormatter } from '../../hooks/useDateFormatter';
 import useOnClickOutside from '../editor/hooks/useOnClickOutside';
 import { EditIcon, DeleteIcon, ReportIcon, DotsIcon, PinIcon, UnpinIcon, RocketIcon } from '../ui/Icons';
 import Avatar from '../ui/Avatar';
+import UserDisplayName from '../ui/UserDisplayName';
 
 const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername, readonly, isAdmin = false, onPublishNow, onPinToggle }) => {
     const { t } = useTranslation();
@@ -43,8 +44,6 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
     const showActions = canEdit || canDelete || canReport || isScheduled || canPin;
 
     const authorLink = `/${author.username}`;
-    const authorName = authorIsSpace ? author.name : `${author.first_name || ''} ${author.last_name || ''}`.trim() || author.username;
-    const authorNameColor = authorIsSpace ? undefined : author?.personalization?.username_color;
 
     const isPostedOnOwnWall = target?.username === author.username;
     const isViewingTargetWall = target?.username === currentProfileUsername;
@@ -69,24 +68,33 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
 
                 <div className="flex flex-col text-[11px] flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-x-[4px] leading-[1.4]">
-                        <Link
-                            to={authorLink}
-                            className="font-bold text-[12px] no-underline hover:underline text-theme-link"
-                            style={authorNameColor ? { color: authorNameColor } : undefined}
-                            onClick={handleLinkClick}
-                        >
-                            {authorName}
-                        </Link>
+                        {authorIsSpace ? (
+                            <Link
+                                to={authorLink}
+                                className="font-bold text-[12px] no-underline hover:underline text-theme-link"
+                                onClick={handleLinkClick}
+                            >
+                                {author.name}
+                            </Link>
+                        ) : (
+                            <Link
+                                to={authorLink}
+                                className="no-underline hover:underline text-theme-link"
+                                onClick={handleLinkClick}
+                            >
+                                <UserDisplayName user={author} showUsername={false} className="text-[12px]" />
+                            </Link>
+                        )}
 
                         {isAvatarUpdate && !authorIsSpace && (
                             <span className="text-text-main">{avatarUpdateText}</span>
                         )}
 
                         {showTarget && targetIsUser && (
-                            <span className="text-text-main">
+                            <span className="text-text-main flex items-center gap-[4px]">
                                 {wroteOnWallText}
-                                <Link to={`/${target.username}`} className="text-theme-link font-bold hover:underline ml-[4px]" onClick={handleLinkClick}>
-                                    {target.first_name} {target.last_name}
+                                <Link to={`/${target.username}`} className="no-underline hover:underline text-theme-link" onClick={handleLinkClick}>
+                                    <UserDisplayName user={target} showUsername={false} />
                                 </Link>
                             </span>
                         )}

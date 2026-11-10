@@ -7,6 +7,7 @@ import {useModal} from "../../context/ModalContext";
 import {useDateFormatter} from "../../hooks/useDateFormatter";
 import Button from "../ui/Button.jsx";
 import CustomSelect from "../ui/CustomSelect.jsx";
+import UserDisplayName from "../ui/UserDisplayName.jsx";
 
 export default function AdminAppeals()
 {
@@ -197,7 +198,6 @@ export default function AdminAppeals()
                 <div className="flex flex-col gap-[10px]">
                     {appeals.map((appeal) =>
                     {
-                        // ФІКС: Шукаємо повідомлення за юзернеймом, а не за id
                         const firstMessage = appeal.messages?.find(m => m.user?.username === appeal.user?.username)?.message || t('admin.appeals.no_message');
                         const isPending = appeal.status === 'open' || appeal.status === 'in_progress';
 
@@ -211,7 +211,7 @@ export default function AdminAppeals()
                                     <div className="mb-[4px]">
                                         <span className="text-text-muted mr-[5px]">{t('admin.appeals.from')}:</span>
                                         <Link to={`/${appeal.user?.username}`} className="text-theme-link hover:underline bg-transparent no-underline" target="_blank">
-                                            {appeal.user?.first_name} {appeal.user?.last_name} (@{appeal.user?.username})
+                                            <UserDisplayName user={appeal.user} showUsername={true} />
                                         </Link>
                                     </div>
 
@@ -258,7 +258,7 @@ export default function AdminAppeals()
                                                 <div>
                                                     <span className="text-text-muted mr-[5px]">{t('admin.reports.reviewed_by')}:</span>
                                                     <Link to={`/${appeal.closed_by.username}`} className="text-theme-link hover:underline bg-transparent no-underline" target="_blank">
-                                                        {appeal.closed_by.first_name} {appeal.closed_by.last_name} (@{appeal.closed_by.username})
+                                                        <UserDisplayName user={appeal.closed_by.user} showUsername={false} />
                                                     </Link>
                                                 </div>
                                             )}

@@ -1,4 +1,5 @@
 import { useState, useContext } from "react";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useDateFormatter } from "../hooks/useDateFormatter.js";
 import { NotificationContext } from "../context/NotificationContext.jsx";
@@ -24,14 +25,17 @@ export default function NotificationsPage() {
 
     usePageTitle(t('notifications.my_notifications'));
 
+    const navigate = useNavigate();
     const [selectedReport, setSelectedReport] = useState(null);
 
-    const handleNotificationClick = (notif, payload, isSystemReport) => {
+    const handleNotificationClick = (notif, payload, isSystemReport, linkUrl) => {
         if (!notif.read_at) {
             markAsRead(notif.id);
         }
         if (isSystemReport) {
             setSelectedReport(payload);
+        } else if (linkUrl) {
+            navigate(linkUrl);
         }
     };
 

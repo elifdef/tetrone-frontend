@@ -140,8 +140,8 @@ export const NotificationProvider = ({ children }) => {
     }, [socket, user]);
 
     const markAsRead = async (id) => {
-        const res = await NotificationService.read(id)
-        if (res.success) {
+        const res = await NotificationService.read(id);
+        if (res.ok) {
             setUnreadCount(prev => Math.max(0, prev - 1));
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
         }

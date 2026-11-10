@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Avatar from "../../ui/Avatar";
 import ProfileActions from "../classic/ProfileActions";
+import UserDisplayName from '../../ui/UserDisplayName';
 
 export default function Header(props) {
     const {
@@ -38,7 +39,7 @@ export default function Header(props) {
                 {/* Інформація (Ім'я, Нік, Статус) */}
                 <div className="mb-[12px] flex flex-col flex-1 min-w-0">
                     <h1 className="text-[20px] font-bold m-0 leading-[1.1] text-text-main whitespace-normal overflow-wrap-anywhere break-words" style={nameStyle}>
-                        {user.first_name} {user.last_name}
+                        <UserDisplayName user={user} showUsername={false} />
                     </h1>
 
                     <div className="flex items-center gap-[10px] mt-[4px] flex-wrap max-md:justify-center">

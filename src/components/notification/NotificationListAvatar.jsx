@@ -4,8 +4,8 @@ import Avatar from "../ui/Avatar";
 export const NotificationListAvatar = ({ actor, isSystem }) => {
     if (isSystem) {
         return (
-            <div className="w-[50px] h-[50px] bg-theme-header-bg border border-border p-[5px] flex items-center justify-center text-white">
-                <ShieldIcon width={64} height={64} />
+            <div className="w-[50px] h-[50px] bg-theme-header-bg border border-border flex items-center justify-center text-theme-link shrink-0">
+                <ShieldIcon width={28} height={28} />
             </div>
         );
     }

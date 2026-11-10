@@ -59,7 +59,7 @@ export default function PostFooter({
                         <button
                             key={r.id}
                             data-sticker-id={r.id}
-                            className={`inline-flex items-center gap-[4px] px-[8px] h-[23px] rounded-[4px] border text-[11px] font-bold transition-colors outline-none select-none ${r.me
+                            className={`inline-flex items-center gap-[4px] px-[8px] h-[23px] border text-[11px] font-bold transition-colors outline-none select-none ${r.me
                                     ? 'bg-[var(--theme-btn-primary-bg)] border-[var(--theme-btn-primary-border)] text-[var(--theme-btn-primary-text)] hover:bg-[var(--theme-btn-primary-hover-bg)]'
                                     : 'bg-[var(--theme-btn-secondary-bg)] border-[var(--theme-btn-secondary-border)] text-[var(--theme-btn-secondary-text)] hover:bg-[var(--theme-btn-secondary-hover-bg)]'
                                 } ${readonly ? 'cursor-default' : 'cursor-pointer'}`}

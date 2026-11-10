@@ -36,7 +36,19 @@ export const NotificationListItem = ({ notif, handleNotificationClick, getConfig
     ].includes(type);
 
     const onBlockClick = () => {
-        handleNotificationClick(notif, payload, isSystemReport);
+        handleNotificationClick(notif, payload, isSystemReport, linkUrl);
+    };
+
+    const handleActorClick = () => {
+        if (isUnread) {
+            handleNotificationClick(notif, payload, isSystemReport);
+        }
+    };
+
+    const handleLinkClick = () => {
+        if (isUnread) {
+            handleNotificationClick(notif, payload, isSystemReport);
+        }
     };
 
     return (
@@ -49,7 +61,7 @@ export const NotificationListItem = ({ notif, handleNotificationClick, getConfig
                     {isSystem ? (
                         <NotificationListAvatar isSystem={true} />
                     ) : (
-                        <Link to={`/${actor.username}`} onClick={e => e.stopPropagation()}>
+                        <Link to={`/${actor.username}`} onClick={handleActorClick}>
                             <NotificationListAvatar actor={actor} isSystem={false} />
                         </Link>
                     )}
@@ -64,7 +76,7 @@ export const NotificationListItem = ({ notif, handleNotificationClick, getConfig
                                 <Link
                                     to={`/${actor.username}`}
                                     className="font-bold text-theme-link no-underline hover:underline"
-                                    onClick={e => e.stopPropagation()}
+                                    onClick={handleActorClick}
                                     style={actor.personalization?.username_color ? { color: actor.personalization.username_color } : undefined}
                                 >
                                     {senderName}
@@ -76,7 +88,7 @@ export const NotificationListItem = ({ notif, handleNotificationClick, getConfig
                             {actionText}
                             {actionText && linkText ? ' ' : ''}
                             {linkUrl && linkText ? (
-                                <Link to={linkUrl} className="text-theme-link no-underline hover:underline" onClick={e => e.stopPropagation()}>
+                                <Link to={linkUrl} className="text-theme-link no-underline hover:underline" onClick={handleLinkClick}>
                                     {linkText}{snippetText && !isReaction ? ':' : ''}
                                 </Link>
                             ) : (
