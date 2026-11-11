@@ -1,28 +1,39 @@
-import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
+import { useState, useCallback, useMemo, useEffect, useContext, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { AuthContext } from '../../../context/AuthContext';
 import { useSocket } from '../../../context/SocketContext';
+import { ChatContext } from '../../../context/ChatContext';
 import chatService from '../../../services/chat.service.js';
 import { getPlainText, toTipTapDoc, hasRichContent } from '../utils/messageParser.js';
 import { notifySuccess, notifyError } from '../../common/Notify.jsx';
 
 const MAX_PINNED_CHATS = 5;
 
+const playIncomingMessageSound = () => {
+    try {
+        const audio = new Audio('/sounds/IR End.mp3');
+        audio.volume = 0.31415;
+        audio.play().catch(() => {
+        });
+    } catch (e) {
+    }
+};
+
 export function useChatPage() {
     const { t } = useTranslation();
     const { user: authUser } = useContext(AuthContext) || {};
     const currentUser = authUser;
     const { socket } = useSocket();
+    const { chats, setChats } = useContext(ChatContext);
 
-const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const activeChatSlug = useMemo(() => {
         if (searchParams.has('saved')) return 'saved';
         return searchParams.get('dm') || searchParams.get('gc') || null;
     }, [searchParams]);
 
-    const [chats, setChats] = useState([]);
     const [messagesMap, setMessagesMap] = useState({});
     const [openedChatSlugs, setOpenedChatSlugs] = useState(() => (activeChatSlug ? [activeChatSlug] : []));
     const [selectedMessageUuids, setSelectedMessageUuids] = useState([]);
@@ -37,6 +48,7 @@ const [searchParams, setSearchParams] = useSearchParams();
 
     // Стан "пише..." для активного чату
     const [typingUsers, setTypingUsers] = useState({});
+    const typingTimeoutRef = useRef(null);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -45,19 +57,6 @@ const [searchParams, setSearchParams] = useSearchParams();
     const [isBannerVisible, setIsBannerVisible] = useState(() => {
         return localStorage.getItem('tetrone_hide_im_banner') !== 'true';
     });
-
-    // Завантаження списку чатів
-    useEffect(() => {
-        chatService.getChats()
-            .onSuccess((res) => {
-                if (Array.isArray(res?.chats)) {
-                    setChats(res.chats);
-                }
-            })
-            .onError((err) => {
-                notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
-            });
-    }, [t]);
 
     // Завантаження повідомлень та керування кімнатами сокета при відкритті чату
     useEffect(() => {
@@ -80,7 +79,10 @@ const [searchParams, setSearchParams] = useSearchParams();
                         );
                     }
                     if (Array.isArray(res?.messages)) {
-                        setMessagesMap(prev => ({ ...prev, [activeChatSlug]: res.messages }));
+                        const sorted = [...res.messages].sort(
+                            (a, b) => new Date(a.created_at) - new Date(b.created_at)
+                        );
+                        setMessagesMap(prev => ({ ...prev, [activeChatSlug]: sorted }));
                     }
                 })
                 .onError((err) => {
@@ -120,6 +122,11 @@ const [searchParams, setSearchParams] = useSearchParams();
                 if (currentMsgs.some(m => m.uuid === data.message.uuid)) return prev;
                 return { ...prev, [slug]: [...currentMsgs, data.message] };
             });
+
+            if (activeChatSlug === slug && !data.message.isMine && data.message.author?.username !== currentUser?.username) {
+                chatService.markAsRead(slug);
+                playIncomingMessageSound();
+            }
 
             setChats(prev => {
                 const exists = prev.some(c => c.slug === slug);
@@ -303,7 +310,7 @@ const [searchParams, setSearchParams] = useSearchParams();
         setIsBannerVisible(false);
     }, []);
 
-const handleSelectChat = useCallback((chatSlug) => {
+    const handleSelectChat = useCallback((chatSlug) => {
         if (!chatSlug || chatSlug === 'undefined' || chatSlug === 'null') return;
 
         const slugStr = String(chatSlug);
@@ -351,7 +358,6 @@ const handleSelectChat = useCallback((chatSlug) => {
         chatService.markAllAsRead()
             .onSuccess((res) => {
                 setChats(prev => prev.map(c => ({ ...c, unread_count: 0, is_last_unread: false })));
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -375,7 +381,6 @@ const handleSelectChat = useCallback((chatSlug) => {
         chatService.togglePinChat(chatSlug, nextPinnedState)
             .onSuccess((res) => {
                 setChats(prev => prev.map(c => (c.slug === chatSlug ? { ...c, is_pinned: nextPinnedState } : c)));
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -388,7 +393,6 @@ const handleSelectChat = useCallback((chatSlug) => {
                 setChats(prev =>
                     prev.map(c => (c.slug === chatSlug ? { ...c, is_last_unread: true, unread_count: Math.max(1, c.unread_count) } : c))
                 );
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -399,7 +403,6 @@ const handleSelectChat = useCallback((chatSlug) => {
         chatService.muteChat(chatSlug, duration)
             .onSuccess((res) => {
                 setChats(prev => prev.map(c => (c.slug === chatSlug ? { ...c, muted_until: duration } : c)));
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -413,7 +416,6 @@ const handleSelectChat = useCallback((chatSlug) => {
                 setChats(prev =>
                     prev.map(c => (c.slug === chatSlug ? { ...c, last_message: null, last_message_files: [], last_message_shareable: null, unread_count: 0, is_last_unread: false } : c))
                 );
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -450,7 +452,6 @@ const handleSelectChat = useCallback((chatSlug) => {
             if (res?.slug) {
                 handleSelectChat(res.slug);
             }
-            notifySuccess(t(`api.success.${res.code}`));
         }).onError((err) => {
             notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
         });
@@ -476,7 +477,6 @@ const handleSelectChat = useCallback((chatSlug) => {
                         m.uuid === msgUuid ? { ...m, is_important: !m.is_important } : m
                     )
                 }));
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -494,7 +494,6 @@ const handleSelectChat = useCallback((chatSlug) => {
                     )
                 }));
                 setSelectedMessageUuids([]);
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -510,7 +509,6 @@ const handleSelectChat = useCallback((chatSlug) => {
                     [activeChatSlug]: (prev[activeChatSlug] || []).filter(m => !selectedMessageUuids.includes(m.uuid))
                 }));
                 setSelectedMessageUuids([]);
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -523,7 +521,6 @@ const handleSelectChat = useCallback((chatSlug) => {
             .onSuccess((res) => {
                 setSelectedMessageUuids([]);
                 handleSelectChat(targetChatSlug);
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -578,7 +575,6 @@ const handleSelectChat = useCallback((chatSlug) => {
                     setText(null);
                     setFiles([]);
                     setReplyingTo(null);
-                    notifySuccess(t(`api.success.${res.code}`));
                 })
                 .onError((err) => {
                     notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -691,8 +687,8 @@ const handleSelectChat = useCallback((chatSlug) => {
             receiver_username: receiverUsername
         });
 
-        if (window.typingTimeout) clearTimeout(window.typingTimeout);
-        window.typingTimeout = setTimeout(() => {
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
             if (socket) {
                 socket.emit('typing_stop', {
                     chat_slug: activeChatSlug,
@@ -725,7 +721,6 @@ const handleSelectChat = useCallback((chatSlug) => {
                 setChats(prev =>
                     prev.map(c => (c.slug === activeChatSlug ? { ...c, title: tiptapTitle, description: tiptapDesc } : c))
                 );
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -736,7 +731,6 @@ const handleSelectChat = useCallback((chatSlug) => {
         if (!activeChatSlug) return;
         chatService.inviteGroupMember(activeChatSlug, username)
             .onSuccess((res) => {
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
@@ -758,7 +752,6 @@ const handleSelectChat = useCallback((chatSlug) => {
                         };
                     })
                 );
-                notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));

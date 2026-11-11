@@ -6,6 +6,7 @@ import { NotificationProvider } from './context/NotificationContext.jsx';
 import { AuthProvider } from './context/AuthContext';
 import { ModalProvider } from './context/ModalContext';
 import { SocketProvider } from './context/SocketContext.jsx';
+import { ChatProvider } from './context/ChatContext.jsx';
 import './i18n'
 
 import "./styles/global.css";
@@ -34,13 +35,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={ queryClient }>
         <BrowserRouter>
             <ThemeProvider>
-                <AuthProvider>
+               <AuthProvider>
                     <SocketProvider>
-                        <NotificationProvider>
-                            <ModalProvider>
-                                <App/>
-                            </ModalProvider>
-                        </NotificationProvider>
+                        <ChatProvider>
+                            <NotificationProvider>
+                                <ModalProvider>
+                                    <App/>
+                                </ModalProvider>
+                            </NotificationProvider>
+                        </ChatProvider>
                     </SocketProvider>
                 </AuthProvider>
             </ThemeProvider>

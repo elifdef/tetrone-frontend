@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { APP_NAME, userRole } from "../../config";
 import { AuthContext } from "../../context/AuthContext";
 import { NotificationContext } from "../../context/NotificationContext";
+import { ChatContext } from "../../context/ChatContext";
 import GlobalAudioPlayer from "./GlobalAudioPlayer";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import Avatar from "../ui/Avatar";
@@ -11,7 +12,8 @@ import Avatar from "../ui/Avatar";
 const LeftSidebar = () => {
     const { t } = useTranslation();
     const { logout, user } = useContext(AuthContext);
-    const { unreadCount, unreadMessagesCount } = useContext(NotificationContext);
+    const { unreadCount } = useContext(NotificationContext);
+    const { unreadMessagesCount } = useContext(ChatContext) || { unreadMessagesCount: 0 };
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -29,10 +31,10 @@ const LeftSidebar = () => {
         return `flex items-center justify-between py-[6px] px-[10px] max-md:py-[6px] max-md:px-[8px] text-text-main no-underline text-[12px] transition-colors hover:bg-nav-hover ${isActive ? "bg-nav-active font-bold" : ""}`;
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         closeMenu();
-        logout();
-        navigate('/');
+        await logout();
+        navigate('/login');
     };
 
     const badgeClass = "bg-[#c95151] text-white text-[9px] px-[4px] py-[2px] font-bold leading-none";

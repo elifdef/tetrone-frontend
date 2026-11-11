@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
@@ -126,6 +126,12 @@ export default function ChatComposer({
         handleAddGraffitiFile?.(dataUrl);
         setIsGraffitiOpen(false);
     };
+
+    const isInitialMountRef = useRef(true);
+
+    useEffect(() => {
+        isInitialMountRef.current = true;
+    }, [activeChatSlug, editingMessage?.uuid, editorResetKey]);
 
     const isImageAttachment = (f) =>
         f.type?.startsWith('image/') || f.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
@@ -283,7 +289,19 @@ export default function ChatComposer({
                             value={text}
                             onChange={(val) => {
                                 setText(val);
-                                onTyping?.();
+                                const currentPlain = getPlainText(val);
+                                const prevPlain = getPlainText(text);
+
+                                if (isInitialMountRef.current) {
+                                    isInitialMountRef.current = false;
+                                    if (currentPlain === prevPlain) {
+                                        return;
+                                    }
+                                }
+
+                                if (currentPlain !== prevPlain || JSON.stringify(val) !== JSON.stringify(text)) {
+                                    onTyping?.();
+                                }
                             }}
                             onEnter={handleSend}
                             onPasteFiles={(pastedFiles) => {

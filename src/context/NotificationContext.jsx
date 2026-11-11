@@ -14,28 +14,19 @@ export const NotificationProvider = ({ children }) => {
     const { user } = useContext(AuthContext);
     const { socket } = useSocket();
 
-    const [notifications, setNotifications] = useState([]);
+   const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
-    const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
     const [activeToasts, setActiveToasts] = useState([]);
     const [incomingMessage, setIncomingMessage] = useState(null);
 
     const fetchInitialData = useCallback(async () => {
         if (!user) return;
 
-        const [notifRes, chatRes] = await Promise.all([
-            fetchClient('/notifications'),
-            // fetchClient('/chat')
-        ]);
+        const notifRes = await fetchClient('/notifications');
 
         if (notifRes) {
             setNotifications(notifRes.notifications);
             setUnreadCount(notifRes.unread_count);
-        }
-        if (chatRes) {
-            const chats = chatRes.data || [];
-            const totalUnreadMsg = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
-            setUnreadMessagesCount(totalUnreadMsg);
         }
     }, [user]);
 
@@ -87,7 +78,6 @@ export const NotificationProvider = ({ children }) => {
             if (!data?.slug || !data?.message) return;
             const msg = data.message;
 
-            // Пункт 4: Ігноруємо 'saved', власні повідомлення та повідомлення від самого себе
             if (data.slug === 'saved' || msg.isMine || msg.author?.username === user?.username) {
                 return;
             }
@@ -96,17 +86,13 @@ export const NotificationProvider = ({ children }) => {
             const activeSlugInUrl = currentParams.get('dm') || currentParams.get('gc') || (currentParams.has('saved') ? 'saved' : null);
             const isViewingThisChat = window.location.pathname.startsWith('/chat') && activeSlugInUrl === data.slug;
 
-            setUnreadMessagesCount(prev => prev + 1);
-
-            // Відтворюємо звук згідно з налаштуваннями користувача (notification_settings.messages)
-            const msgSettings = user?.notification_settings?.messages;
-            if (msgSettings?.is_enabled && msgSettings?.sound_id) {
-                audioManager.unlock();
-                audioManager.play(msgSettings.sound_id);
-            }
-
-            // Одноразовий тост показуємо тільки якщо користувач зараз НЕ в цьому чаті
             if (!isViewingThisChat) {
+                const msgSettings = user?.notification_settings?.messages;
+                if (msgSettings?.is_enabled && msgSettings?.sound_id) {
+                    audioManager.unlock();
+                    audioManager.play(msgSettings.sound_id);
+                }
+
                 const toastId = Date.now();
                 setActiveToasts(prev => [
                     ...prev,
@@ -176,12 +162,10 @@ export const NotificationProvider = ({ children }) => {
 
     return (
         <NotificationContext.Provider value={{
-            notifications, unreadCount, markAsRead, unreadMessagesCount, setUnreadMessagesCount,
+            notifications, unreadCount, markAsRead,
             incomingMessage, readAllNotifications, deleteAllNotifications
         }}>
             {children}
-
-            {/* ФІКС: Контейнер тостів зафіксований знизу зліва */}
             <div className="fixed bottom-[20px] left-[20px] z-[9999] flex flex-col gap-[8px]">
                 {activeToasts.map(toast => (
                     <Notification
