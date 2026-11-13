@@ -173,10 +173,9 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
         }
     });
 
-    // ФІКС: Тепер ми приймаємо єдиний об'єкт postData, який згенерував useCreatePost
     const createPost = async (postData) => {
-        await createMutation.mutateAsync(postData);
-        return true;
+        const res = await createMutation.mutateAsync(postData);
+        return !!(res && res.ok);
     };
 
     const saveEdit = async (postId, updateData) => await editMutation.mutateAsync({ postId, updateData });
@@ -208,8 +207,10 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
         });
     };
 
-    return {
+return {
         posts, countPosts, isPageLoading: isLoading, hasMore: !!hasNextPage, isLoadingMore: isFetchingNextPage,
+        isCreatingPost: createMutation.isPending,
+        pendingPostMeta: createMutation.variables?._meta || null,
         loadMore: fetchNextPage, createPost, handleDelete, editingPostId, handleRepostSuccess,
         startEditing: (post) => setEditingPostId(post.id), cancelEditing: () => setEditingPostId(null), saveEdit,
         handlePublishNow, handlePinToggle

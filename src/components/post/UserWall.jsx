@@ -7,6 +7,7 @@ import CreatePostForm from './CreatePostForm';
 import WallPostList from './WallPostList';
 import InfiniteScrollList from '../common/InfiniteScrollList';
 import EditPostModal from '../modals/EditPostModal';
+import ProcessingSkeleton from './content/ProcessingSkeleton';
 
 export default function UserWall({ profileUser, isOwnProfile }) {
     const { user: authUser } = useContext(AuthContext);
@@ -47,6 +48,15 @@ export default function UserWall({ profileUser, isOwnProfile }) {
                 )
             )}
 
+            {wallData.isCreatingPost && (
+                <ProcessingSkeleton
+                    type="post"
+                    author={authUser}
+                    pendingMeta={wallData.pendingPostMeta}
+                    label={t('post.uploading_media')}
+                />
+            )}
+
             <InfiniteScrollList
                 itemsCount={wallData.posts.length}
                 isLoadingInitial={wallData.isPageLoading}
@@ -54,9 +64,11 @@ export default function UserWall({ profileUser, isOwnProfile }) {
                 hasMore={wallData.hasMore}
                 onLoadMore={wallData.loadMore}
                 emptyState={
-                    <div className="text-center text-text-muted p-[30px_20px] text-[13px] w-full box-border bg-bg-box my-[20px] mx-auto max-w-[500px]">
-                        {showScheduled ? t('empty.no_scheduled_posts') : t('empty.wall')}
-                    </div>
+                    !wallData.isCreatingPost && (
+                        <div className="text-center text-text-muted p-[30px_20px] text-[13px] w-full box-border bg-bg-box my-[20px] mx-auto max-w-[500px]">
+                            {showScheduled ? t('empty.no_scheduled_posts') : t('empty.wall')}
+                        </div>
+                    )
                 }
             >
                 <WallPostList

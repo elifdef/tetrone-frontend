@@ -28,8 +28,6 @@ export default function PostContent({ content: originalContent, post, onUpdate, 
 
             <PostVideos localVideos={local.videos} youtubeVideos={external.youtube} />
             <PostGallery images={local.images} onMediaClick={setSelectedImageId} />
-
-            {/* Передаємо postId для правильної роботи аудіо */}
             <PostDocuments documents={local.documents} postId={post.id} />
 
             {selectedImageId !== null && (

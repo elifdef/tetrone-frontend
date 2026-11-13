@@ -16,6 +16,7 @@ import { SettingsIcon, EditIcon } from "../components/ui/Icons.jsx";
 import FeedSettingsModal from "../components/modals/FeedSettingsModal.jsx";
 import Tabs from "../components/ui/Tabs.jsx";
 import CreatePostForm from "../components/post/CreatePostForm";
+import ProcessingSkeleton from "../components/post/content/ProcessingSkeleton";
 
 export default function FeedPage() {
     const { t } = useTranslation();
@@ -76,7 +77,7 @@ export default function FeedPage() {
     const createPostMutation = useMutation({
         mutationFn: (data) => PostService.create(data),
         onSuccess: (res) => {
-            if (res && res.post) {
+            if (res && res.ok && res.post) {
                 handlePostCreated(res.post);
             } else {
                 notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
@@ -162,6 +163,15 @@ export default function FeedPage() {
                         placeholder={t('feed.whats_new')}
                     />
                 </div>
+            )}
+
+            {createPostMutation.isPending && (
+                <ProcessingSkeleton
+                    type="post"
+                    author={authUser}
+                    pendingMeta={createPostMutation.variables?._meta}
+                    label={t('post.uploading_media')}
+                />
             )}
 
             <InfiniteScrollList

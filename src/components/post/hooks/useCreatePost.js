@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { notifyError } from "../../common/Notify";
 import { usePostMedia } from "./usePostMedia";
@@ -11,6 +11,8 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
     const [removedPreviews, setRemovedPreviews] = useState([]);
     const [pollData, setPollData] = useState(null);
     const [showPollCreator, setShowPollCreator] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const submitLockRef = useRef(false);
 
     const formTools = usePostForm(0);
     const { external } = usePostMedia(content, [], { removed_previews: removedPreviews });
@@ -37,6 +39,10 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
     };
 
     const handleSubmit = async (publishedAt = null, canComment = true) => {
+        if (submitLockRef.current || isSubmitting) {
+            return false;
+        }
+
         const emptyEditor = isEditorEmpty(content);
 
         if (emptyEditor && formTools.files.length === 0 && !pollData) {
@@ -44,36 +50,54 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
             return false;
         }
 
-        const contentPayload = {};
-        if (!emptyEditor) contentPayload.text = content;
-        if (pollData) contentPayload.poll = pollData;
-        if (removedPreviews.length > 0) contentPayload.youtube = { removed_previews: removedPreviews };
+        submitLockRef.current = true;
+        setIsSubmitting(true);
 
-        const finalData = {
-            payload: Object.keys(contentPayload).length > 0 ? contentPayload : null,
-            author_username: options.author_username || undefined,
-            target_username: options.target_username || undefined,
-            published_at: publishedAt || null,
-            can_comment: canComment,
-            images: formTools.files // Файли тепер передаються прямо всередині об'єкта
-        };
+        try {
+            const contentPayload = {};
+            if (!emptyEditor) contentPayload.text = content;
+            if (pollData) contentPayload.poll = pollData;
+            if (removedPreviews.length > 0) contentPayload.youtube = { removed_previews: removedPreviews };
 
-        // Відправляємо 1 аргумент
-        const success = await onSubmitSuccess(finalData);
+            const finalData = {
+                payload: Object.keys(contentPayload).length > 0 ? contentPayload : null,
+                author_username: options.author_username || undefined,
+                target_username: options.target_username || undefined,
+                published_at: publishedAt || null,
+                can_comment: canComment,
+                images: formTools.files,
+                _meta: {
+                    hasText: !emptyEditor,
+                    hasPoll: !!pollData,
+                    files: formTools.files.map(f => ({
+                        name: f.name,
+                        type: f.type,
+                        size: f.size
+                    }))
+                }
+            };
 
-        if (success !== false && success !== undefined) {
-            setContent('');
-            setRemovedPreviews([]);
-            setPollData(null);
-            formTools.clearFiles();
-            return true;
+            const res = await onSubmitSuccess(finalData);
+            const isSuccess = res === true || (res && typeof res === 'object' && res.ok !== false && !res.error);
+
+            if (isSuccess) {
+                setContent('');
+                setRemovedPreviews([]);
+                setPollData(null);
+                formTools.clearFiles();
+                return true;
+            }
+            return false;
+        } finally {
+            submitLockRef.current = false;
+            setIsSubmitting(false);
         }
-        return false;
     };
 
     return {
         content, setContent, pollData, setPollData, showPollCreator, setShowPollCreator,
         removedPreviews, toggleYouTubePreview, toggleMediaFlag, external, handleSubmit,
+        isSubmitting,
         ...formTools
     };
 };

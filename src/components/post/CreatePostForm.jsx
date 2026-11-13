@@ -1,10 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query'; // ДОДАНО
+import { useQuery } from '@tanstack/react-query';
 import { useCreatePost } from "./hooks/useCreatePost";
 import { useImageEditor } from "../../hooks/useImageEditor";
-import StickerService from '../../services/sticker.service'; // ДОДАНО
-
+import StickerService from '../../services/sticker.service';
 import SmartEditor from '../editor/SmartEditor';
 import IdentitySwitcher from '../editor/IdentitySwitcher';
 import PublishButton from '../editor/PublishButton';
@@ -40,8 +39,6 @@ export default function CreatePostForm({
 
     const { isEditorOpen, editingFile, openEditor, closeEditor, handleSave } = useImageEditor(replaceFile);
 
-    // ФІКС 1: Робимо запит на сервер для стікерів 
-    // і передаємо їх в SmartEditor та MediaEditorModal
     const { data: stickerPacks = [], isLoading: isStickersLoading } = useQuery({
         queryKey: ['my_sticker_packs'],
         queryFn: () => new Promise((resolve) => {
@@ -78,11 +75,11 @@ export default function CreatePostForm({
 
     return (
         <div
-            className={`flex flex-col gap-[10px] w-full transition-colors pb-[15px] ${isDragging ? 'bg-[rgba(91,155,213,0.05)]' : ''}`}
+            className={`flex flex-col gap-[10px] w-full transition-colors pb-[15px] ${isDragging ? 'bg-[rgba(91,155,213,0.05)]' : ''} ${isSubmitting ? 'pointer-events-none opacity-75' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onPasteCapture={handlePaste} // ФІКС 2: Змінено на onPasteCapture!
+            onPasteCapture={handlePaste}
         >
             <div className="flex items-start gap-[12px]">
 
@@ -161,11 +158,6 @@ export default function CreatePostForm({
                     onRemove={removeFile} 
                     onToggleFlag={toggleMediaFlag}
                     onEditClick={(index) => {
-                        // ДОДАНО ДЛЯ ДІАГНОСТИКИ:
-                        console.log("1. КЛІК НА ОЛІВЕЦЬ. Index:", index);
-                        console.log("   Файл з files:", files[index]);
-                        console.log("   Прев'ю з previews:", previews[index]);
-                        
                         openEditor(files[index] || previews[index], index);
                     }} 
                 />

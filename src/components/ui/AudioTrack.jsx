@@ -4,6 +4,7 @@ import { AudioContext } from "../../context/AudioContext";
 import { useSocket } from "../../context/SocketContext";
 import { formatFileSize } from "../../utils/upload";
 import ProcessingSkeleton from "../post/content/ProcessingSkeleton";
+import { useTranslation } from "react-i18next";
 
 const MiniPlayIcon = () => (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -96,6 +97,7 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
     const { audioRef, currentTrack, isPlaying, playTrack } = useContext(AudioContext);
     const socketContext = useSocket();
     const socket = socketContext?.socket;
+    const { t } = useTranslation();
 
     const [trackData, setTrackData] = useState(doc);
 
@@ -134,13 +136,13 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
     const isFailed = status === 'failed';
 
     if (isProcessing) {
-        return <ProcessingSkeleton type="audio" />;
+        return <ProcessingSkeleton type="audio" doc={trackData} />;
     }
 
     if (isFailed) {
         return (
             <div className="flex items-center py-[4px] px-[8px] text-theme-error text-[11px] italic bg-theme-error/10 border border-theme-error/20 rounded-none">
-                ⚠️ Помилка обробки аудіофайлу
+                {t('post.audio_processing_failed')}
             </div>
         );
     }

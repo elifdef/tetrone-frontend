@@ -1187,6 +1187,8 @@
     "hide_stats": "Сховати графік"
   },
   "post": {
+    "uploading_media" : "Завантаження медіа...",
+    "audio_processing_failed":"Невдалось завантажити аудіо",
     "add_repost_comment": "Додати коментар до репосту...",
     "anonymous_poll": "Анонімне опитування",
     "disable_reactions": "Повністю вимкнути реакції для цього поста",
