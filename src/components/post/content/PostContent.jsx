@@ -4,6 +4,7 @@ import { isOnlyStickers } from "../../../utils/editorHelpers";
 import RichText from "../../common/RichText";
 import PostGallery from "./PostGallery";
 import PostVideos from "./PostVideos";
+import PostAudios from "./PostAudios";
 import PostDocuments from "./PostDocuments";
 import PostPoll from "./PostPoll";
 import PhotoModal from "../../modals/PhotoModal.jsx";
@@ -28,7 +29,8 @@ export default function PostContent({ content: originalContent, post, onUpdate, 
 
             <PostVideos localVideos={local.videos} youtubeVideos={external.youtube} />
             <PostGallery images={local.images} onMediaClick={setSelectedImageId} />
-            <PostDocuments documents={local.documents} postId={post.id} />
+            <PostAudios audios={local.audios} postId={post.id} />
+            <PostDocuments documents={local.documents} />
 
             {selectedImageId !== null && (
                 <PhotoModal

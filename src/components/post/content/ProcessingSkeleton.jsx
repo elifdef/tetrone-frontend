@@ -3,6 +3,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { useTranslation } from 'react-i18next';
 import Avatar from '../../ui/Avatar';
 import UserDisplayName from '../../ui/UserDisplayName';
+import { getMediaCategory } from '../../../utils/fileTypes';
 import { LikeIcon, CommentIcon, RepostIcon } from '../../ui/Icons';
 
 const NOISE_SVG_DATA_URI = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
@@ -30,22 +31,17 @@ const AnimatedNoiseOverlay = () => (
     </>
 );
 
+
 const classifyPendingFiles = (files = []) => {
     const visual = [];
     const audios = [];
     const docs = [];
 
     files.forEach((f) => {
-        const type = String(f.type || '').toLowerCase();
-        const name = String(f.name || '').toLowerCase();
-
-        if (type.startsWith('image/') || type.startsWith('video/') || /\.(jpg|jpeg|png|gif|webp|mp4|mov|webm|mkv|avi)$/i.test(name)) {
-            visual.push(f);
-        } else if (type.startsWith('audio/') || /\.(mp3|wav|ogg|flac|m4a|aac)$/i.test(name)) {
-            audios.push(f);
-        } else {
-            docs.push(f);
-        }
+        const category = getMediaCategory(f);
+        if (category === 'image' || category === 'video') visual.push(f);
+        else if (category === 'audio') audios.push(f);
+        else docs.push(f);
     });
 
     return { visual, audios, docs };

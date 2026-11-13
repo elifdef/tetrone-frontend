@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { notifyError } from "../../common/Notify";
 import { MAX_FILE_SIZE_KB } from "../../../config";
+import { isForbiddenFile, isImageFile } from "../../../utils/fileTypes";
 
 export const usePostForm = (initialFilesCount = 0) => {
     const { t } = useTranslation();
@@ -14,14 +15,18 @@ export const usePostForm = (initialFilesCount = 0) => {
 
         const validFiles = [];
         let hasOversized = false;
+        let hasForbidden = false;
 
         Array.from(filesList).forEach(file => {
             if (!file) return;
 
-            // ФІКС 1: Додаємо допуск. Якщо це зображення з буфера, воно може бути великим.
-            // Щоб юзер міг його обрізати в редакторі, ми пропускаємо зображення до 10MB.
-            const isImage = file.type.startsWith('image/');
-            const maxSize = isImage ? 10 * 1024 * 1024 : MAX_FILE_SIZE_KB * 1024; 
+            if (isForbiddenFile(file)) {
+                hasForbidden = true;
+                return;
+            }
+
+            const isImage = isImageFile(file);
+            const maxSize = isImage ? 10 * 1024 * 1024 : MAX_FILE_SIZE_KB * 1024;
 
             if (file.size > maxSize) {
                 hasOversized = true;
@@ -29,6 +34,10 @@ export const usePostForm = (initialFilesCount = 0) => {
                 validFiles.push(file);
             }
         });
+
+        if (hasForbidden) {
+            notifyError(t('error.not_allowed_types'));
+        }
 
         if (hasOversized) {
             notifyError(t('error.file_too_large', { size: MAX_FILE_SIZE_KB / 1024 }));

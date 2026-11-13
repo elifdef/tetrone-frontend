@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import VideoPlayer from '../../ui/VideoPlayer';
-import { DocumentIcon, EyeOffIcon, DotsIcon, EditIcon } from "../../ui/Icons"; // Додано EditIcon
+import FileTypeIcon from '../../ui/FileTypeIcon';
+import { getMediaCategory } from '../../../utils/fileTypes';
+import { formatFileSize } from '../../../utils/upload';
+import { EyeOffIcon, DotsIcon, EditIcon } from "../../ui/Icons";
 
 export default function MediaPreviews({ previews, onRemove, onToggleFlag, onToggleNSFW, isExisting = false, onEditClick }) {
     const { t } = useTranslation();
@@ -23,22 +26,23 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
     if (!previews || !Array.isArray(previews) || previews.length === 0) return null;
 
     const videos = [];
+    const audios = [];
     const others = [];
 
     previews.forEach((preview, index) => {
         if (!preview) return;
-        const typeStr = String(preview.type || '').toLowerCase();
         const nameStr = String(preview.name || preview.original_name || 'File');
-        const isVideo = typeStr.includes('video') || /\.(mp4|mov|webm|mkv|avi)$/i.test(nameStr);
-        const isImage = typeStr.includes('image') || /\.(jpg|jpeg|png|gif|webp)$/i.test(nameStr);
+        const category = getMediaCategory(preview);
+        const isImage = category === 'image';
         const isFileObject = preview instanceof File || preview instanceof Blob;
 
-        const srcUrl = isFileObject ? URL.createObjectURL(preview) + '#t=0.1' : preview.url;
+        const srcUrl = isFileObject ? URL.createObjectURL(preview) + (category === 'video' ? '#t=0.1' : '') : preview.url;
         const isSpoiler = preview.is_spoiler === true;
         const isNsfw = preview.is_nsfw === true;
 
         const item = { preview, index, nameStr, srcUrl, isImage, isSpoiler, isNsfw };
-        if (isVideo) videos.push(item);
+        if (category === 'video') videos.push(item);
+        else if (category === 'audio') audios.push(item);
         else others.push(item);
     });
 
@@ -91,8 +95,8 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
         if (!isImage) {
             return (
                 <div className="flex flex-col items-center justify-center w-[100px] h-[100px] p-[8px] text-center overflow-hidden">
-                    <DocumentIcon width={24} height={24} className="text-text-muted" />
-                    <span className="text-[12px] mt-[4px] whitespace-nowrap overflow-hidden text-ellipsis w-full text-text-main" title={nameStr}>{nameStr}</span>
+                    <FileTypeIcon fileName={nameStr} size={28} />
+                    <span className="text-[11px] font-bold mt-[6px] whitespace-nowrap overflow-hidden text-ellipsis w-full text-text-main" title={nameStr}>{nameStr}</span>
                 </div>
             );
         }
@@ -155,6 +159,42 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
                                 )}
 
                                 {renderPreviewContent(srcUrl, isImage, isSpoiler, isNsfw, nameStr)}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {audios.length > 0 && (
+                <div className="flex flex-col gap-[6px] mt-[10px]">
+                    {audios.map(({ preview, index, nameStr }) => {
+                        const removeId = isExisting ? preview.id : index;
+                        const key = isExisting ? `exist-audio-${preview.id}` : `new-audio-${index}`;
+                        const fileSize = preview.size || preview.file_size || 0;
+
+                        return (
+                            <div key={key} className="flex items-center justify-between p-[6px_10px] bg-bg-box border border-border">
+                                <div className="flex items-center gap-[8px] min-w-0">
+                                    <FileTypeIcon fileName={nameStr} size={22} />
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-[11px] font-bold text-text-main truncate" title={nameStr}>
+                                            {nameStr}
+                                        </span>
+                                        {fileSize > 0 && (
+                                            <span className="text-[9px] text-text-muted">
+                                                {formatFileSize(fileSize)}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="bg-transparent border-none text-text-muted hover:text-theme-error cursor-pointer text-[15px] leading-none px-[4px] outline-none"
+                                    onClick={() => onRemove(removeId)}
+                                    title={t('action.delete')}
+                                >
+                                    ×
+                                </button>
                             </div>
                         );
                     })}

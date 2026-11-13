@@ -1,6 +1,7 @@
 import { notifyError, notifyWarn } from "../components/common/Notify";
 import { MAX_FILE_SIZE_KB } from "../config";
 import i18n from "../i18n";
+import { isForbiddenFile } from "./fileTypes";
 
 export const checkFileSize = (file) => {
     const maxBytes = MAX_FILE_SIZE_KB * 1024;
@@ -12,9 +13,8 @@ export const checkFileSize = (file) => {
 };
 
 export const validateImageFile = (file) => {
-    // Жорсткіша перевірка на дозволені типи (захист від завантаження скриптів під виглядом картинки)
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
+    const rasterMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!rasterMimes.includes(file.type)) {
         notifyError(i18n.t('error.not_image'));
         return false;
     }
@@ -22,11 +22,7 @@ export const validateImageFile = (file) => {
 };
 
 export const validateGenericFile = (file) => {
-    // Розширений список заборонених форматів для безпеки
-    const forbiddenExtensions = ['.exe', '.bat', '.sh', '.js', '.php', '.py', '.cmd'];
-    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-
-    if (forbiddenExtensions.includes(ext)) {
+    if (isForbiddenFile(file)) {
         notifyError(i18n.t('error.not_allowed_types'));
         return false;
     }

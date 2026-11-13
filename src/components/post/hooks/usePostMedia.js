@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { getMediaCategory } from '../../../utils/fileTypes';
 
 const YOUTUBE_REGEX = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/g;
 
@@ -21,13 +22,24 @@ const extractTextFromJSON = (json) => {
 export const usePostMedia = (content, attachments = [], entities = null) => {
     const localMedia = useMemo(() => {
         if (!attachments || attachments.length === 0) {
-            return { images: [], videos: [], documents: [] };
+            return { images: [], videos: [], audios: [], documents: [] };
         }
-        return {
-            images: attachments.filter(a => a.type === 'image'),
-            videos: attachments.filter(a => a.type === 'video'),
-            documents: attachments.filter(a => a.type !== 'image' && a.type !== 'video'),
-        };
+
+        const images = [];
+        const videos = [];
+        const audios = [];
+        const documents = [];
+
+        attachments.forEach((att) => {
+            if (!att) return;
+            const kind = getMediaCategory(att);
+            if (kind === 'image') images.push(att);
+            else if (kind === 'video') videos.push(att);
+            else if (kind === 'audio') audios.push(att);
+            else documents.push(att);
+        });
+
+        return { images, videos, audios, documents };
     }, [attachments]);
 
     const externalMedia = useMemo(() => {

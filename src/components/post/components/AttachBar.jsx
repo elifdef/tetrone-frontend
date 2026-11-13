@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import useOnClickOutside from '../../editor/hooks/useOnClickOutside';
 import { AttachIcon, ImageIcon, VideoIcon, AudioIcon, DocumentIcon, PollIcon } from '../../ui/Icons';
+import { ACCEPT_ATTRS } from '../../../utils/fileTypes';
 
 export default function AttachBar({ onFileSelect, onAddPoll, hasPoll }) {
     const { t } = useTranslation();
@@ -35,19 +36,19 @@ export default function AttachBar({ onFileSelect, onAddPoll, hasPoll }) {
                     
                     <div className="flex items-center justify-between gap-[12px] p-[6px]">
                         <label className={iconBtnClass} title={t('editor.attach_image')}>
-                            <input type="file" multiple className="hidden" onChange={handleInput} accept="image/*" />
+                            <input type="file" multiple className="hidden" onChange={handleInput} accept={ACCEPT_ATTRS.image} />
                             <ImageIcon width={18} height={18} />
                         </label>
                         <label className={iconBtnClass} title={t('editor.attach_video')}>
-                            <input type="file" multiple className="hidden" onChange={handleInput} accept="video/*" />
+                            <input type="file" multiple className="hidden" onChange={handleInput} accept={ACCEPT_ATTRS.video} />
                             <VideoIcon width={18} height={18} />
                         </label>
                         <label className={iconBtnClass} title={t('editor.attach_audio')}>
-                            <input type="file" multiple className="hidden" onChange={handleInput} accept="audio/*" />
+                            <input type="file" multiple className="hidden" onChange={handleInput} accept={ACCEPT_ATTRS.audio} />
                             <AudioIcon width={18} height={18} />
                         </label>
                         <label className={iconBtnClass} title={t('editor.attach_document')}>
-                            <input type="file" multiple className="hidden" onChange={handleInput} accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar" />
+                            <input type="file" multiple className="hidden" onChange={handleInput} accept={ACCEPT_ATTRS.document} />
                             <DocumentIcon width={18} height={18} />
                         </label>
                     </div>

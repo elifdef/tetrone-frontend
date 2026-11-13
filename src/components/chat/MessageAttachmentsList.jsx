@@ -2,35 +2,13 @@ import React, { useState } from 'react';
 import ImagePreviewModal from '../ui/ImagePreviewModal';
 import VideoPlayer from '../ui/VideoPlayer';
 import AudioTrack from '../ui/AudioTrack';
-
-const FileDocSvg = () => (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-        <polyline points="13 2 13 9 20 9" />
-    </svg>
-);
+import FileTypeIcon from '../ui/FileTypeIcon';
+import { isImageFile, isVideoFile, isAudioFile, getVideoMimeType } from '../../utils/fileTypes';
 
 export default function MessageAttachmentsList({ files = [], activeChat = null }) {
     const [previewImageUrl, setPreviewImageUrl] = useState(null);
 
     if (!files || files.length === 0) return null;
-
-    const isImageFile = (file) =>
-        file.type === 'image' || file.type?.startsWith('image/') || file.name?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-    const isVideoFile = (file) =>
-        file.type === 'video' || file.type?.startsWith('video/') || file.name?.match(/\.(mp4|webm|ogg|mov|mkv|avi)$/i);
-    const isAudioFile = (file) =>
-        file.type === 'audio' || file.type?.startsWith('audio/') || file.name?.match(/\.(mp3|wav|ogg|m4a|aac)$/i);
-
-    const getVideoMimeType = (file) => {
-        if (file.type && file.type.includes('/')) return file.type;
-        const ext = file.name?.split('.').pop()?.toLowerCase();
-        if (ext === 'webm') return 'video/webm';
-        if (ext === 'ogg') return 'video/ogg';
-        if (ext === 'mov') return 'video/quicktime';
-        if (ext === 'mkv') return 'video/x-matroska';
-        return 'video/mp4';
-    };
 
     return (
         <>
@@ -105,9 +83,10 @@ export default function MessageAttachmentsList({ files = [], activeChat = null }
                             href={file.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex items-center gap-[6px] px-[10px] py-[6px] bg-bg-page border border-border text-[11px] text-theme-link hover:underline rounded-none"
+                            download={file.name}
+                            className="flex items-center gap-[8px] px-[10px] py-[6px] bg-bg-page border border-border text-[11px] text-theme-link hover:underline rounded-none"
                         >
-                            <FileDocSvg />
+                            <FileTypeIcon fileName={file.name} size={20} />
                             <span className="max-w-[220px] truncate">{file.name}</span>
                         </a>
                     );
