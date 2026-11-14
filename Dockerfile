@@ -26,7 +26,7 @@ ENV VITE_APP_NAME=$VITE_APP_NAME
 ENV VITE_MAX_FILE_SIZE_KB=$VITE_MAX_FILE_SIZE_KB
 ENV VITE_APP_ENV=$VITE_APP_ENV
 
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY . .
 
 RUN npm run build
