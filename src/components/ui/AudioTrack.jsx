@@ -85,7 +85,7 @@ const TrackProgressBar = ({ audioRef, isActiveTrack }) => {
     return (
         <div className="w-full h-[3px] bg-border/40 overflow-hidden my-[2px] rounded-none">
             <div
-                className="h-full bg-theme-link rounded-none transition-all duration-75"
+                className="h-full bg-theme-brand rounded-none transition-all duration-75"
                 style={{ width: `${progress}%` }}
             />
         </div>
@@ -184,10 +184,10 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
     };
 
     return (
-        <div className={`w-full flex items-center p-[6px] border rounded-none transition-colors ${isActiveTrack ? 'bg-bg-box border-theme-link' : 'bg-bg-page border-border hover:border-theme-link/60'}`}>
+        <div className={`w-full flex items-center p-[6px] border rounded-none transition-colors ${isActiveTrack ? 'bg-bg-box border-theme-brand' : 'bg-bg-page border-border hover:border-theme-brand/60'}`}>
             <button
                 type="button"
-                className={`w-[36px] h-[36px] shrink-0 relative border flex items-center justify-center cursor-pointer outline-none rounded-none p-0 group/cover overflow-hidden mr-[8px] ${isActiveTrack ? 'border-theme-link text-white' : 'border-border bg-bg-box text-theme-link hover:border-theme-link'}`}
+                className={`w-[36px] h-[36px] shrink-0 relative border flex items-center justify-center cursor-pointer outline-none rounded-none p-0 group/cover overflow-hidden mr-[8px] ${isActiveTrack ? 'border-theme-brand text-white' : 'border-border bg-bg-box text-theme-brand hover:border-theme-brand'}`}
                 onClick={handlePlayClick}
             >
                 {trackData.cover_url ? (
@@ -198,7 +198,7 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
                         </div>
                     </>
                 ) : (
-                    <div className={`flex items-center justify-center w-full h-full ${isActiveTrack ? 'bg-theme-link text-white' : 'bg-bg-box text-text-muted hover:text-theme-link'}`}>
+                    <div className={`flex items-center justify-center w-full h-full ${isActiveTrack ? 'bg-theme-brand text-white' : 'bg-bg-box text-text-muted hover:text-theme-brand'}`}>
                         {isActiveTrack && isPlaying ? <MiniPauseIcon /> : <MiniPlayIcon />}
                     </div>
                 )}
@@ -206,7 +206,7 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
 
             <div className="flex flex-col min-w-0 flex-1 justify-center">
                 <span
-                    className={`text-[11px] font-bold truncate cursor-pointer hover:underline ${isActiveTrack ? 'text-theme-link' : 'text-text-main hover:text-theme-link'}`}
+                    className={`text-[11px] font-bold truncate cursor-pointer hover:underline ${isActiveTrack ? 'text-theme-brand' : 'text-text-main hover:text-theme-brand'}`}
                     title={trackName}
                     onClick={handleTitleClick}
                 >

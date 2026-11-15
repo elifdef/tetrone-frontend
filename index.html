@@ -8,11 +8,11 @@
       <script>
           (function() {
               try {
-                  var saved = localStorage.getItem('app_theme');
+                  var saved = localStorage.getItem('tetrone_personalization');
                   if (saved) {
-                      var theme = JSON.parse(saved);
-                      if (theme.isDark) document.documentElement.setAttribute('data-theme', 'dark');
-                      if (theme.name && theme.name !== 'default') document.documentElement.setAttribute('data-style', theme.name);
+                      var prefs = JSON.parse(saved);
+                      if (prefs.isDark) document.documentElement.setAttribute('data-theme', 'dark');
+                      if (prefs.name && prefs.name !== 'classic') document.documentElement.setAttribute('data-style', prefs.name);
                   }
               } catch (e) {}
           })();

@@ -87,8 +87,6 @@ export const AuthProvider = ({ children }) => {
         if (!localStorage.getItem('lang')) {
             localStorage.setItem('lang', getSystemLanguage());
         }
-        localStorage.setItem('app_theme', JSON.stringify({ name: 'default', isDark: true }));
-        window.dispatchEvent(new Event('storage'));
         setUser(newUser);
         setInitError(false);
         setCheckSession(false);

@@ -29,10 +29,6 @@
     "appeal": "Подати апеляцію",
     "are_u_sure": "Ви впевнені?",
     "attach": "Прикріпити",
-    "attach_audio": "Аудіо",
-    "attach_document": "Документ",
-    "attach_image": "Фотографію",
-    "attach_video": "Відеозапис",
     "back_to_login": "Повернутися до входу",
     "block": "Заблокувати",
     "browse": "Огляд...",
@@ -80,7 +76,7 @@
     "or_paste": "або вставте",
     "paste": "Вставити",
     "pause": "Пауза",
-    "pin": "Прикріпити",
+    "pin": "Закріпити",
     "play": "Відтворити",
     "preferences": "Вподобання",
     "public": "Опублікувати",
@@ -842,7 +838,11 @@
     "category_headers": "Заголовки",
     "category_lists": "Списки",
     "category_blocks": "Блокові елементи",
-    "category_tables": "Таблиці"
+    "category_tables": "Таблиці",
+    "attach_audio": "Прикріпити аудіо",
+    "attach_document": "Прикріпити документ",
+    "attach_image": "Прикріпити картинку",
+    "attach_video": "Прикіпити відео"
   },
   "empty": {
     "activity": "Немає даних для відображення",

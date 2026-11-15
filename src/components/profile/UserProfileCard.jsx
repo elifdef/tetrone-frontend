@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { AuthContext } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useUserProfileLogic } from "./hooks/useUserProfileLogic";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import PostService from "../../services/post.service";
@@ -13,6 +14,7 @@ import PhotoModal from "../modals/PhotoModal";
 export default function UserProfileCard({ currentUser, onOpenChat,isPreview = false, forceTheme = null }) {
     const { t } = useTranslation();
     const { user: authUser } = useContext(AuthContext);
+    const { theme } = useTheme();
     const formatDate = useDateFormatter();
 
     // 1. Уся бізнес-логіка з хука
@@ -96,8 +98,7 @@ export default function UserProfileCard({ currentUser, onOpenChat,isPreview = fa
         joinedDate: currentUser.created_at ? formatDate(currentUser.created_at, { withTime: true, forceYear: true }) : ''
     };
 
-    const localTheme = localStorage.getItem('app_profile_theme') || 'classic';
-    const activeTheme = forceTheme || localTheme;
+    const activeTheme = forceTheme || theme?.profileTheme;
 
     return (
         <>

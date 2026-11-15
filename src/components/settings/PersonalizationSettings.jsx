@@ -68,14 +68,12 @@ export default function PersonalizationSettings() {
     const { t } = useTranslation();
     const { user, setUser } = useContext(AuthContext);
 
-    // БЕРЕМО ПОТОЧНИЙ СТАН ТЕМИ З КОНТЕКСТУ (миттєва реакція)
-    const { theme, setThemeState, toggleDark, changeThemeName } = useTheme();
+    const { theme, toggleDark, changeSiteTheme, changeProfileTheme } = useTheme();
 
     const [isSaving, setIsSaving] = useState(false);
     const [showWipFeatures, setShowWipFeatures] = useState(false);
 
-    // Локальний стейт для ТЕМИ ПРОФІЛЮ
-    const [uiTheme, setUiTheme] = useState(localStorage.getItem('app_profile_theme') || 'modern');
+    const uiTheme = theme.profileTheme || 'classic';
 
     const initialPersonalization = user?.personalization || {};
 
@@ -106,10 +104,8 @@ export default function PersonalizationSettings() {
     }, []);
 
     const handleProfileThemeChange = (newTheme) => {
-        setUiTheme(newTheme);
-        localStorage.setItem('app_profile_theme', newTheme);
-        window.dispatchEvent(new Event('theme_changed'));
-    };
+        changeProfileTheme(newTheme);
+    }; 
 
     const updateGradient = (newDeg, color1, color2) => {
         setGrad({ deg: newDeg, c1: color1, c2: color2 });
@@ -181,7 +177,6 @@ export default function PersonalizationSettings() {
 
     const profileThemeSuffix = theme.isDark ? 'dark' : 'light';
 
-    // Форматуємо масив для твого CustomSelect
     const themeSelectOptions = APP_THEMES.map(opt => ({
         value: opt.value,
         label: t(opt.labelKey)
@@ -210,15 +205,15 @@ export default function PersonalizationSettings() {
                                 <span className="text-text-main text-[11px]">{t('settings.app_theme_label')}</span>
                                 <CustomSelect
                                     options={themeSelectOptions}
-                                    value={theme.name}
-                                    onChange={(val) => changeThemeName(val)}
+                                    value={theme.siteTheme}
+                                    onChange={(val) => changeSiteTheme(val)}
                                     className="w-[150px]"
                                 />
                             </div>
 
                             <div className="border border-border bg-bg-page mb-[12px] p-[5px]">
                                 <img
-                                    src={`/images/theme-${theme.name}-${profileThemeSuffix}.png`}
+                                    src={`/images/theme-${theme.siteTheme}-${profileThemeSuffix}.png`}
                                     alt="preview"
                                     className="w-full object-cover border border-border block"
                                 />

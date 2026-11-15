@@ -251,7 +251,6 @@
    3. ІНТЕГРАЦІЯ З TAILWIND V4
    ========================================= */
 @theme {
-    /* ФІКС: Взяли назви шрифтів у лапки */
     --font-tahoma: "Tahoma", "Verdana", "Arial", sans-serif;
     --font-size-base: 11px;
 

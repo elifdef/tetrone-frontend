@@ -26,7 +26,7 @@ export default function AttachBar({ onFileSelect, onAddPoll, hasPoll }) {
                 type="button"
                 className={`bg-transparent border-none cursor-pointer p-[6px] flex items-center justify-center outline-none transition-colors ${isOpen ? 'text-theme-link bg-[rgba(0,102,204,0.1)]' : 'text-text-muted hover:text-theme-link hover:bg-[rgba(255,255,255,0.05)]'}`}
                 onClick={() => setIsOpen(!isOpen)}
-                title={t('editor.attach')}
+                title={t('action.attach')}
             >
                 <AttachIcon width={18} height={18} />
             </button>

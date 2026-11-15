@@ -2,7 +2,6 @@ import { useContext, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { AudioContext } from "../../context/AudioContext";
-import { useAudioPlayer } from "../../hooks/useAudioPlayer";
 import { PlayIcon, PauseIcon, LoopIcon, VolumeIcon, CloseIcon, WaitIcon } from "../ui/Icons";
 
 const formatTime = (seconds) => {
@@ -174,14 +173,12 @@ const PlayerVolume = ({ volume, onVolumeChange }) => {
 export default function GlobalAudioPlayer() {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { currentTrack, isPlaying } = useContext(AudioContext);
-
     const {
-        audioRef, isReady, hasError,
+        audioRef, currentTrack, isPlaying, isReady, hasError,
         playbackRate, isLooping, volume,
         playPauseClick, toggleSpeed, toggleLoop,
         handleVolumeChange, handleClose
-    } = useAudioPlayer();
+    } = useContext(AudioContext);
 
     if (!currentTrack) return null;
 

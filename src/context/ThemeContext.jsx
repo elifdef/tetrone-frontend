@@ -2,40 +2,36 @@ import {createContext, useState, useEffect, useContext} from 'react';
 
 export const ThemeContext = createContext();
 
+const STORAGE_KEY = 'tetrone_personalization';
+
+const DEFAULT_PERSONALIZATION = {
+    siteTheme: "classic",
+    isDark: true,
+    profileTheme: 'classic',
+};
+
 export const ThemeProvider = ({children}) =>
 {
-    // 1. Дефолтна структура теми: ТЕПЕР СВІТЛА ЗА ЗАМОВЧУВАННЯМ
-    const defaultTheme = {name: 'default', isDark: false};
-
     const [theme, setThemeState] = useState(() =>
     {
-        const saved = localStorage.getItem('app_theme');
-        if (saved)
+        try
         {
-            try
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved)
             {
-                return JSON.parse(saved);
-            } catch (e)
-            {
+                return {...DEFAULT_PERSONALIZATION, ...JSON.parse(saved)};
             }
-        }
-
-        // Міграція зі старого формату
-        const oldDark = localStorage.getItem('dark_theme');
-        if (oldDark !== null)
+        } catch (e)
         {
-            localStorage.removeItem('dark_theme');
-            return {name: 'default', isDark: oldDark !== 'false'};
         }
 
-        return defaultTheme;
+        return DEFAULT_PERSONALIZATION;
     });
 
     useEffect(() =>
     {
-        localStorage.setItem('app_theme', JSON.stringify(theme));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(theme));
 
-        // Ставимо на document.documentElement (тег <html>)
         if (theme.isDark)
         {
             document.documentElement.setAttribute('data-theme', 'dark');
@@ -44,7 +40,7 @@ export const ThemeProvider = ({children}) =>
             document.documentElement.removeAttribute('data-theme');
         }
 
-        if (theme.name !== 'default')
+        if (theme.siteTheme && theme.siteTheme !== 'classic')
         {
             document.documentElement.setAttribute('data-style', theme.name);
         } else
@@ -53,16 +49,15 @@ export const ThemeProvider = ({children}) =>
         }
     }, [theme]);
 
-    // Синхронізація між вкладками браузера
     useEffect(() =>
     {
         const handleStorage = (e) =>
         {
-            if (e.key === 'app_theme')
+            if (e.key === STORAGE_KEY && e.newValue)
             {
                 try
                 {
-                    setThemeState(JSON.parse(e.newValue));
+                    setThemeState({...DEFAULT_PERSONALIZATION, ...JSON.parse(e.newValue)});
                 } catch (err)
                 {
                 }
@@ -72,19 +67,23 @@ export const ThemeProvider = ({children}) =>
         return () => window.removeEventListener('storage', handleStorage);
     }, []);
 
-    // Зручні функції для зміни теми
     const toggleDark = () =>
     {
         setThemeState(prev => ({...prev, isDark: !prev.isDark}));
     };
 
-    const changeThemeName = (name) =>
+    const changeSiteTheme = (siteTheme) =>
     {
-        setThemeState(prev => ({...prev, name}));
+        setThemeState(prev => ({...prev, siteTheme}));
+    };
+
+    const changeProfileTheme = (profileTheme) =>
+    {
+        setThemeState(prev => ({...prev, profileTheme}));
     };
 
     return (
-        <ThemeContext.Provider value={{theme, setThemeState, toggleDark, changeThemeName}}>
+        <ThemeContext.Provider value={{theme, setThemeState, toggleDark, changeSiteTheme, changeProfileTheme}}>
             {children}
         </ThemeContext.Provider>
     );
