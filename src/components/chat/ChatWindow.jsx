@@ -73,8 +73,16 @@ export default function ChatWindow(props) {
     const pinnedMessage = useMemo(() => messages.find(m => m.is_pinned), [messages]);
     const typingLabel = getTypingText(activeChat, isTyping);
 
+
+    const getSenderKey = (m) => {
+        if (!m) return null;
+        if (m.author_type === 'group') return `group_${activeChat?.slug}`;
+        return m.isMine ? currentUser?.username : m.author?.username;
+    };
+
     const groupedMessageDays = useMemo(() => {
         const groups = [];
+
         filteredMessages.forEach((msg) => {
             const d = new Date(msg.created_at);
             const dateKey = d.toISOString().slice(0, 10);
@@ -90,71 +98,57 @@ export default function ChatWindow(props) {
                 groups.push(currentGroup);
             }
 
-            const prevMsg = currentGroup.items[currentGroup.items.length - 1];
-            const prevAuthorKey = prevMsg
-                ? (prevMsg.author_type === 'group' ? `group_${activeChat?.slug}` : (prevMsg.isMine ? currentUser?.username : prevMsg.author?.username))
-                : null;
-            const currAuthorKey = msg.author_type === 'group'
-                ? `group_${activeChat?.slug}`
-                : (msg.isMine ? currentUser?.username : msg.author?.username);
+            const prevItem = currentGroup.items[currentGroup.items.length - 1];
+            const currSenderKey = getSenderKey(msg);
+            const prevSenderKey = prevItem ? getSenderKey(prevItem) : null;
+            const isForwarded = Boolean(msg.forwarded_from);
+
+            if (isForwarded) {
+                const prevTime = prevItem?.last_created_at || prevItem?.created_at;
+                const timeDiffMs = prevTime
+                    ? Math.abs(d.getTime() - new Date(prevTime).getTime())
+                    : Infinity;
+
+                if (
+                    prevItem?.isForwardBundle &&
+                    prevSenderKey === currSenderKey &&
+                    timeDiffMs <= 5000
+                ) {
+                    prevItem.forwardedItems.push(msg);
+                    prevItem.bundleUuids.push(msg.uuid);
+                    prevItem.last_created_at = msg.created_at;
+                    prevItem.is_important = prevItem.is_important || Boolean(msg.is_important);
+                    prevItem.is_pinned = prevItem.is_pinned || Boolean(msg.is_pinned);
+                    return;
+                }
+
+                const isSameAuthor = Boolean(prevItem && prevSenderKey === currSenderKey);
+
+                currentGroup.items.push({
+                    ...msg,
+                    isForwardBundle: true,
+                    forwardedItems: [msg],
+                    bundleUuids: [msg.uuid],
+                    last_created_at: msg.created_at,
+                    isSameAuthor
+                });
+                return;
+            }
 
             const isSameAuthor = Boolean(
-                prevMsg &&
-                prevAuthorKey === currAuthorKey &&
+                prevItem &&
+                prevSenderKey === currSenderKey &&
                 !msg.shared_post
-            );
-
-            const isPureForward = Boolean(msg.reply_to && !hasRichContent(msg.text));
-            const prevIsPureForward = Boolean(prevMsg?.reply_to && !hasRichContent(prevMsg?.text));
-
-            const prevForwardAuthorKey = prevMsg?.reply_to
-                ? (prevMsg.reply_to.author?.username || prevMsg.reply_to.sender_name)
-                : null;
-            const currForwardAuthorKey = msg.reply_to
-                ? (msg.reply_to.author?.username || msg.reply_to.sender_name)
-                : null;
-
-            const isSameForwardAuthor = Boolean(
-                isSameAuthor &&
-                isPureForward &&
-                prevIsPureForward &&
-                prevForwardAuthorKey &&
-                prevForwardAuthorKey === currForwardAuthorKey
-            );
-
-            const isForwardClusterStart = Boolean(
-                isPureForward && (!prevIsPureForward || !isSameAuthor)
             );
 
             currentGroup.items.push({
                 ...msg,
-                isSameAuthor,
-                isPureForward,
-                isSameForwardAuthor,
-                isForwardClusterStart
+                isForwardBundle: false,
+                bundleUuids: [msg.uuid],
+                isSameAuthor
             });
         });
 
-        // Двопрохідний розрахунок кіпця кластера (isForwardClusterEnd)
-        groups.forEach((group) => {
-            group.items.forEach((msg, idx) => {
-                const nextMsg = group.items[idx + 1];
-                const nextIsPureForward = Boolean(nextMsg?.reply_to && !hasRichContent(nextMsg?.text));
-                const nextAuthorKey = nextMsg
-                    ? (nextMsg.author_type === 'group' ? `group_${activeChat?.slug}` : (nextMsg.isMine ? currentUser?.username : nextMsg.author?.username))
-                    : null;
-                const currAuthorKey = msg.author_type === 'group'
-                    ? `group_${activeChat?.slug}`
-                    : (msg.isMine ? currentUser?.username : msg.author?.username);
-
-                const isSameNextAuthor = Boolean(nextMsg && nextAuthorKey === currAuthorKey);
-
-                msg.isForwardClusterEnd = Boolean(
-                    msg.isPureForward && (!nextIsPureForward || !isSameNextAuthor)
-                );
-            });
-        });
-        
         return groups;
     }, [filteredMessages, currentUser, activeChat, i18n.language]);
 
@@ -358,23 +352,52 @@ export default function ChatWindow(props) {
                                 </div>
 
                                 <div className="flex flex-col">
-                                    {dayGroup.items.map((msg) => (
-                                        <MessageItem
-                                            key={msg.uuid}
-                                            msg={msg}
-                                            myself={currentUser}
-                                            activeChat={activeChat}
-                                            isSelected={selectedMessageUuids.includes(msg.uuid)}
-                                            onToggleSelect={() => toggleSelectMessage(msg.uuid)}
-                                            onToggleImportant={() => toggleImportantMessage(msg.uuid)}
-                                            onForward={() => onOpenForwardModal([msg.uuid])}
-                                            onReport={() => onOpenReportModal(msg.uuid)}
-                                            handleEditClick={handleEditClick}
-                                            handleDelete={handleDelete}
-                                            setReplyingTo={setReplyingTo}
-                                            togglePin={togglePin}
-                                        />
-                                    ))}
+                                    {dayGroup.items.map((msg) => {
+                                        const itemUuids = msg.bundleUuids || [msg.uuid];
+                                        const isItemSelected = itemUuids.every(u => selectedMessageUuids.includes(u));
+
+                                        const handleToggleItemSelect = () => {
+                                            if (itemUuids.length === 1) {
+                                                toggleSelectMessage(msg.uuid);
+                                                return;
+                                            }
+                                            if (isItemSelected) {
+                                                itemUuids.forEach(u => {
+                                                    if (selectedMessageUuids.includes(u)) toggleSelectMessage(u);
+                                                });
+                                            } else {
+                                                itemUuids.forEach(u => {
+                                                    if (!selectedMessageUuids.includes(u)) toggleSelectMessage(u);
+                                                });
+                                            }
+                                        };
+
+                                        const handleDeleteItem = () => {
+                                            itemUuids.forEach(u => handleDelete(u));
+                                        };
+
+                                        const handleImportantItem = () => {
+                                            itemUuids.forEach(u => toggleImportantMessage(u));
+                                        };
+
+                                        return (
+                                            <MessageItem
+                                                key={msg.uuid}
+                                                msg={msg}
+                                                myself={currentUser}
+                                                activeChat={activeChat}
+                                                isSelected={isItemSelected}
+                                                onToggleSelect={handleToggleItemSelect}
+                                                onToggleImportant={handleImportantItem}
+                                                onForward={() => onOpenForwardModal(itemUuids)}
+                                                onReport={() => onOpenReportModal(msg.uuid)}
+                                                handleEditClick={handleEditClick}
+                                                handleDelete={handleDeleteItem}
+                                                setReplyingTo={setReplyingTo}
+                                                togglePin={togglePin}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}

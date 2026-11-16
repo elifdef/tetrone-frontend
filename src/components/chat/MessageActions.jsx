@@ -94,7 +94,11 @@ export default function MessageActions({
                 <ForwardSvg />
             </button>
 
-            {msg.isMine && !msg.isPureForward && (
+            {msg.isMine &&
+    !msg.forwarded_from &&
+    !msg.source_message_uuid &&
+    msg.created_at &&
+    new Date(msg.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000 && (
                 <button
                     type="button"
                     onClick={() => handleEditClick(msg)}

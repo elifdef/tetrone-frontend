@@ -69,7 +69,10 @@ export default function ChatTabs({
                             <button
                                 type="button"
                                 title={t('chat.tabs.close_tab')}
-                                onClick={(e) => onCloseChatTab(e, chatTab.slug)}
+                                onClick={(e) => {
+                                   e.stopPropagation();
+                                    onCloseChatTab(e, chatTab.slug);
+                                  }}
                                 className="ml-[2px] flex items-center justify-center cursor-pointer bg-transparent border-none p-0 text-text-muted hover:text-theme-error"
                             >
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">

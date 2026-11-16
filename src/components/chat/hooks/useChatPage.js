@@ -338,21 +338,25 @@ export function useChatPage() {
         setSearchParams({});
     }, [setSearchParams]);
 
-    const handleCloseChatTab = useCallback((e, chatSlug) => {
-        e.stopPropagation();
-        const slugStr = String(chatSlug);
-        setOpenedChatSlugs(prev => {
-            const next = prev.filter(s => s !== slugStr);
-            if (activeChatSlug === slugStr) {
-                if (next.length > 0) {
-                    handleSelectChat(next[next.length - 1]);
-                } else {
-                    setSearchParams({});
-                }
-            }
-            return next;
-        });
-    }, [activeChatSlug, setSearchParams]);
+
+const handleCloseChatTab = useCallback((e, chatSlug) => {
+    e.stopPropagation();
+
+    const slugStr = String(chatSlug);
+    const nextOpenedChats = openedChatSlugs.filter(slug => slug !== slugStr);
+
+    setOpenedChatSlugs(nextOpenedChats);
+
+    if (activeChatSlug !== slugStr) return;
+
+    if (nextOpenedChats.length > 0) {
+        handleSelectChat(nextOpenedChats[nextOpenedChats.length - 1]);
+    } else {
+        setSelectedMessageUuids([]);
+        setSearchParams({});
+    }
+}, [activeChatSlug, openedChatSlugs, handleSelectChat, setSearchParams]);
+
 
     const handleMarkAllAsRead = useCallback(() => {
         chatService.markAllAsRead()
@@ -582,27 +586,45 @@ export function useChatPage() {
         }
     }, [activeChatSlug, currentUser, text, files, editingMessage, replyingTo, sendAsGroup, setText, setFiles, t]);
 
-    const handleDeleteClick = useCallback((uuid) => {
-        if (!activeChatSlug) return;
-        chatService.deleteMessage(activeChatSlug, uuid, true)
-            .onSuccess((res) => {
-                setMessagesMap(prev => ({
-                    ...prev,
-                    [activeChatSlug]: (prev[activeChatSlug] || []).filter(m => m.uuid !== uuid)
-                }));
-                notifySuccess(t(`api.success.${res.code}`));
-            })
-            .onError((err) => {
-                notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
-            });
-    }, [activeChatSlug, t]);
 
-    const handleEditClick = useCallback((msg) => {
-        setEditingMessage(msg);
-        setText(toTipTapDoc(msg.text));
-        setEditorResetKey(k => k + 1);
-        setReplyingTo(null);
-    }, [setText]);
+const handleDeleteClick = useCallback((uuid, forBoth = false) => {
+    if (!activeChatSlug) return;
+
+    chatService.deleteMessage(activeChatSlug, uuid, forBoth)
+        .onSuccess((res) => {
+            setMessagesMap(prev => ({
+                ...prev,
+                [activeChatSlug]: (prev[activeChatSlug] || []).filter(m => m.uuid !== uuid)
+            }));
+
+            notifySuccess(t(`api.success.${res.code}`));
+        })
+        .onError((err) => {
+            notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+        });
+}, [activeChatSlug, t]);
+
+
+    
+const handleEditClick = useCallback((msg) => {
+    const editPeriod = 7 * 24 * 60 * 60 * 1000;
+    const createdAt = msg?.created_at
+        ? new Date(msg.created_at).getTime()
+        : 0;
+
+    const canEdit = msg?.isMine
+        && !msg?.forwarded_from
+        && !msg?.source_message_uuid
+        && createdAt > Date.now() - editPeriod;
+
+    if (!canEdit) return;
+
+    setEditingMessage(msg);
+    setText(toTipTapDoc(msg.text));
+    setEditorResetKey(k => k + 1);
+    setReplyingTo(null);
+}, [setText]);
+
 
     const togglePin = useCallback((uuid) => {
         if (!activeChatSlug) return;

@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTitle } from '../hooks/usePageTitle';
@@ -14,20 +15,35 @@ export default function ChatPage() {
 
     const handleScrollToMessage = useCallback((uuid) => {
         const el = document.getElementById(`msg2-${uuid}`);
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.classList.add('bg-[rgba(91,155,213,0.3)]', 'transition-colors', 'duration-[2000ms]');
-            setTimeout(() => el.classList.remove('bg-[rgba(91,155,213,0.3)]'), 2000);
-        }
+
+        if (!el) return;
+
+        el.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+        });
+
+        el.classList.add(
+            'bg-[rgba(91,155,213,0.3)]',
+            'transition-colors',
+            'duration-[2000ms]'
+        );
+
+        setTimeout(() => {
+            el.classList.remove('bg-[rgba(91,155,213,0.3)]');
+        }, 2000);
     }, []);
 
-    layoutProps.onOpenInfo = () => setIsInfoOpen(true);
-    layoutProps.onScrollToMessage = handleScrollToMessage;
+    const chatLayoutProps = {
+        ...layoutProps,
+        onOpenInfo: () => setIsInfoOpen(true),
+        onScrollToMessage: handleScrollToMessage,
+    };
 
     return (
         <>
             <div className="w-full max-w-[800px] mx-auto flex flex-col gap-[15px]">
-                <ChatLayout {...layoutProps} />
+                <ChatLayout {...chatLayoutProps} />
             </div>
 
             {isInfoOpen && layoutProps.activeChat && (
@@ -47,7 +63,9 @@ export default function ChatPage() {
                         setIsInfoOpen(false);
                     }}
                     onBlockUser={() => {
-                        layoutProps.handleBlockUser(layoutProps.activeChat.target_user?.username);
+                        layoutProps.handleBlockUser(
+                            layoutProps.activeChat.target_user?.username
+                        );
                         setIsInfoOpen(false);
                     }}
                 />
