@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../ui/Button';
-import RichText from '../common/RichText.jsx';
 import ConversationList from './ConversationList';
 import ChatWindow from './ChatWindow';
 import ChatModals from './ChatModals';
 import ChatTabs from './ChatTabs';
-import { getPlainText, parseRichText, hasRichContent } from './utils/messageParser.js';
-import { CloseSvg } from '../ui/Icons.jsx';
+import { getTypingText } from './utils/chatHelpers.js';
 
 export default function ChatLayout(props) {
     const {
@@ -34,7 +32,9 @@ export default function ChatLayout(props) {
         handleClearChatHistory,
         handleDeleteChat,
         handleCreateNewChat,
-        handleForwardMessages,
+        pendingForward,
+        setPendingForward,
+        handleStartForward,
         handleReportMessage,
         onOpenInfo,
         onScrollToMessage
@@ -44,64 +44,11 @@ export default function ChatLayout(props) {
 
     const [openMenuChatSlug, setOpenMenuChatSlug] = useState(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [forwardModalState, setForwardModalState] = useState({ isOpen: false, messageUuids: [] });
     const [isDateModalOpen, setIsDateModalOpen] = useState(false);
     const [selectedDateJump, setSelectedDateJump] = useState('');
     const [reportModalState, setReportModalState] = useState({ isOpen: false, messageUuid: null });
 
-    const renderChatTitle = (chat, className = '') => {
-        if (!chat) return null;
-        if (chat.is_saved) {
-            return <span className={className}>{t('chat.saved_messages')}</span>;
-        }
-        if (chat.is_group) {
-            return (
-                <RichText
-                    text={parseRichText(chat.title)}
-                    className={`post-text [&_p]:inline [&_p]:m-0 ${className}`}
-                    limit={100000}
-                />
-            );
-        }
-        if (chat.target_user?.is_deleted) {
-            return <span className={className}>{t('chat.deleted_user')}</span>;
-        }
-        const fullName = `${chat.target_user?.first_name || ''} ${chat.target_user?.last_name || ''}`.trim();
-        return <span className={className}>{fullName || chat.target_user?.username}</span>;
-    };
-
-    const getChatPlainShortTitle = (chat) => {
-        if (!chat) return '';
-        if (chat.is_saved) return t('chat.saved_messages');
-        if (chat.is_group) return getPlainText(chat.title);
-        if (chat.target_user?.is_deleted) return t('chat.deleted_user');
-        return chat.target_user?.first_name || chat.target_user?.username || '';
-    };
-
-    const getTypingText = (chat, forceTyping = false) => {
-        if (!chat) return '';
-        let typers = Array.isArray(chat.typing_users) ? [...chat.typing_users] : [];
-
-        if (typers.length === 0 && (chat.is_typing || forceTyping)) {
-            if (!chat.is_group && chat.target_user) {
-                typers = [chat.target_user];
-            } else if (chat.is_group && chat.participants?.length > 0) {
-                const other = chat.participants.find(p => p.user.username !== currentUser?.username)?.user;
-                if (other) typers = [other];
-            }
-        }
-
-        if (typers.length === 0) return '';
-        if (!chat.is_group) return t('chat.typing');
-
-        if (typers.length === 1) {
-            return t('chat.typing_one', { user: typers[0].first_name });
-        }
-        if (typers.length === 2) {
-            return t('chat.typing_two', { user1: typers[0].first_name, user2: typers[1].first_name });
-        }
-        return t('chat.typing_many', { user: typers[0].first_name, count: typers.length - 1 });
-    };
+    const handleGetTypingText = (chat, forceTyping = false) => getTypingText(chat, currentUser, t, forceTyping);
 
     const handleJumpToDate = () => {
         if (!selectedDateJump) return;
@@ -116,7 +63,7 @@ export default function ChatLayout(props) {
         <div
             id="im_container"
             onClick={() => setOpenMenuChatSlug(null)}
-            className="bg-bg-box border border-border flex flex-col font-sans text-text-main w-full"
+            className="bg-bg-box border border-border flex flex-col flex-1 font-sans text-text-main w-full"
         >
             {/* ВЕРХНІЙ БАНЕР ТА ПАНЕЛЬ ВКЛАДОК */}
             <div id="im_page_tabs">
@@ -161,7 +108,7 @@ export default function ChatLayout(props) {
             </div>
 
             {/* КОНТЕЙНЕР СПИСКУ АБО АКТИВНОГО ЧАТУ */}
-            <div id="im_page_containers">
+            <div id="im_page_containers" className="flex-1 flex flex-col min-h-0">
                 {!activeChat ? (
                     <ConversationList
                         currentUser={currentUser}
@@ -172,6 +119,8 @@ export default function ChatLayout(props) {
                         setSearchQuery={setSearchQuery}
                         openMenuChatSlug={openMenuChatSlug}
                         setOpenMenuChatSlug={setOpenMenuChatSlug}
+                        pendingForward={pendingForward}
+                        onCancelForward={() => setPendingForward(null)}
                         onSelectChat={handleSelectChat}
                         onMarkAllAsRead={handleMarkAllAsRead}
                         onOpenCreateModal={() => setIsCreateModalOpen(true)}
@@ -180,15 +129,13 @@ export default function ChatLayout(props) {
                         onMuteChat={handleMuteChat}
                         onClearChatHistory={handleClearChatHistory}
                         onDeleteChat={handleDeleteChat}
-                        renderChatTitle={renderChatTitle}
-                        getTypingText={getTypingText}
+                        getTypingText={handleGetTypingText}
                     />
                 ) : (
                     <ChatWindow
                         {...props}
-                        renderChatTitle={renderChatTitle}
-                        getTypingText={getTypingText}
-                        onOpenForwardModal={(uuids) => setForwardModalState({ isOpen: true, messageUuids: uuids })}
+                        getTypingText={handleGetTypingText}
+                        onStartForward={handleStartForward}
                         onOpenDateModal={(dateKey) => {
                             setSelectedDateJump(dateKey);
                             setIsDateModalOpen(true);
@@ -200,13 +147,9 @@ export default function ChatLayout(props) {
 
             <ChatModals
                 friendsList={friendsList}
-                allChats={allChats}
                 isCreateModalOpen={isCreateModalOpen}
                 setIsCreateModalOpen={setIsCreateModalOpen}
                 handleCreateNewChat={handleCreateNewChat}
-                forwardModalState={forwardModalState}
-                setForwardModalState={setForwardModalState}
-                handleForwardMessages={handleForwardMessages}
                 isDateModalOpen={isDateModalOpen}
                 setIsDateModalOpen={setIsDateModalOpen}
                 selectedDateJump={selectedDateJump}
@@ -215,7 +158,6 @@ export default function ChatLayout(props) {
                 reportModalState={reportModalState}
                 setReportModalState={setReportModalState}
                 handleReportMessage={handleReportMessage}
-                renderChatTitle={renderChatTitle}
             />
         </div>
     );

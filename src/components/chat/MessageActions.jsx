@@ -49,25 +49,32 @@ const TrashSvg = () => (
     </svg>
 );
 
-export default function MessageActions({
+export default React.memo(function MessageActions({
     msg,
+    itemUuids,
     onToggleImportant,
     setReplyingTo,
     onForward,
     handleEditClick,
     togglePin,
     onReport,
-    handleDelete
-}) {
-
+    handleDelete }) {
     const { t } = useTranslation();
+    const uuids = itemUuids || [msg.uuid];
 
+    const canEdit = Boolean(
+        msg.isMine &&
+        !msg.forwarded_from &&
+        !msg.source_message_uuid &&
+        msg.created_at &&
+        new Date(msg.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
+    );
 
     return (
         <div className="flex items-center gap-[6px] opacity-0 group-hover:opacity-100 transition-opacity">
             <button
                 type="button"
-                onClick={onToggleImportant}
+                onClick={() => onToggleImportant(uuids)}
                 title={t('chat.viewer.mark_important')}
                 className={`bg-transparent border-none p-0 cursor-pointer flex items-center ${
                     msg.is_important ? 'text-[#e6a100]' : 'text-text-muted hover:text-theme-link'
@@ -75,7 +82,6 @@ export default function MessageActions({
             >
                 <StarSvg filled={Boolean(msg.is_important)} />
             </button>
-
             <button
                 type="button"
                 onClick={() => setReplyingTo(msg)}
@@ -84,21 +90,15 @@ export default function MessageActions({
             >
                 <ReplySvg />
             </button>
-
             <button
                 type="button"
-                onClick={onForward}
+                onClick={() => onForward(uuids)}
                 title={t('chat.viewer.forward')}
                 className="bg-transparent border-none p-0 text-text-muted hover:text-theme-link cursor-pointer flex items-center"
             >
                 <ForwardSvg />
             </button>
-
-            {msg.isMine &&
-    !msg.forwarded_from &&
-    !msg.source_message_uuid &&
-    msg.created_at &&
-    new Date(msg.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000 && (
+            {canEdit && (
                 <button
                     type="button"
                     onClick={() => handleEditClick(msg)}
@@ -108,7 +108,6 @@ export default function MessageActions({
                     <EditSvg />
                 </button>
             )}
-
             <button
                 type="button"
                 onClick={() => togglePin(msg.uuid)}
@@ -119,21 +118,19 @@ export default function MessageActions({
             >
                 <PinSvg />
             </button>
-
             {!msg.isMine && (
                 <button
                     type="button"
-                    onClick={onReport}
+                    onClick={() => onReport(msg.uuid)}
                     title={t('chat.viewer.report')}
                     className="bg-transparent border-none p-0 text-text-muted hover:text-theme-error cursor-pointer flex items-center"
                 >
                     <FlagSvg />
                 </button>
             )}
-
             <button
                 type="button"
-                onClick={() => handleDelete(msg.uuid)}
+                onClick={() => handleDelete(uuids)}
                 title={t('chat.viewer.delete')}
                 className="bg-transparent border-none p-0 text-text-muted hover:text-theme-error cursor-pointer flex items-center"
             >
@@ -141,4 +138,4 @@ export default function MessageActions({
             </button>
         </div>
     );
-}
+});

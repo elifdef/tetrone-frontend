@@ -13,7 +13,7 @@ export function useLocalMessageSearch(messages = []) {
             const plain = getPlainText(msg.text || '').toLowerCase();
             const authorName = `${msg.author?.first_name || ''} ${msg.author?.last_name || ''}`.toLowerCase();
             
-            // Пошук усередині цитати / пересланого повідомлення
+            // Пошук усередині цитати/пересланого повідомлення
             const replyPlain = getPlainText(msg.reply_to?.text || '').toLowerCase();
             const replyAuthor = (msg.reply_to?.sender_name || '').toLowerCase();
 

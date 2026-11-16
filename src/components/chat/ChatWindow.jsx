@@ -1,16 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSocket } from '../../context/SocketContext';
-import { useDateFormatter } from '../../hooks/useDateFormatter';
-import Avatar from '../ui/Avatar';
-import Button from '../ui/Button';
-import RichText from '../common/RichText.jsx';
 import ChatScrollContainer from '../common/ChatScrollContainer.jsx';
 import MessageItem from './MessageItem';
 import ChatComposer from './ChatComposer';
+import ChatWindowHeader from './components/window/ChatWindowHeader.jsx';
+import ChatSearchBar from './components/window/ChatSearchBar.jsx';
+import PinnedMessageBanner from './components/window/PinnedMessageBanner.jsx';
 import { useLocalMessageSearch } from './hooks/useLocalMessageSearch.js';
-import { parseRichText, getPlainText, hasRichContent } from './utils/messageParser.js';
-import {PinSvg, CloseSvg, PencilTypingIcon, SavedMessagesIcon} from '../ui/Icons.jsx';
+import { groupMessagesByDay } from './utils/messageGrouper.js';
 
 export default function ChatWindow(props) {
     const {
@@ -35,9 +32,8 @@ export default function ChatWindow(props) {
         cantWriteReason,
         onOpenInfo,
         onScrollToMessage,
-        renderChatTitle,
         getTypingText,
-        onOpenForwardModal,
+        onStartForward,
         onOpenDateModal,
         onOpenReportModal
     } = props;
@@ -51,106 +47,14 @@ export default function ChatWindow(props) {
     } = useLocalMessageSearch(messages);
 
     const { t, i18n } = useTranslation();
-    const formatDate = useDateFormatter();
-    const { onlineUsers = [] } = useSocket() || {};
-
-    const getLastSeenText = () => {
-        if (!activeChat.target_user?.last_seen) {
-            return t('chat.offline');
-        }
-        const formattedTime = formatDate(activeChat.target_user.last_seen);
-        const genderKey = activeChat.target_user.gender === 2 ? 'chat.was_online_female' : 'chat.was_online_male';
-        return t(genderKey, { time: formattedTime });
-    };
-
-    const isTargetOnline = Boolean(
-        !activeChat.is_saved &&
-        !activeChat.is_group &&
-        activeChat.target_user?.username &&
-        onlineUsers.includes(activeChat.target_user.username)
-    );
 
     const pinnedMessage = useMemo(() => messages.find(m => m.is_pinned), [messages]);
     const typingLabel = getTypingText(activeChat, isTyping);
 
-
-    const getSenderKey = (m) => {
-        if (!m) return null;
-        if (m.author_type === 'group') return `group_${activeChat?.slug}`;
-        return m.isMine ? currentUser?.username : m.author?.username;
-    };
-
-    const groupedMessageDays = useMemo(() => {
-        const groups = [];
-
-        filteredMessages.forEach((msg) => {
-            const d = new Date(msg.created_at);
-            const dateKey = d.toISOString().slice(0, 10);
-            const label = d.toLocaleDateString(i18n.language || 'uk-UA', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
-
-            let currentGroup = groups[groups.length - 1];
-            if (!currentGroup || currentGroup.dateKey !== dateKey) {
-                currentGroup = { dateKey, label, items: [] };
-                groups.push(currentGroup);
-            }
-
-            const prevItem = currentGroup.items[currentGroup.items.length - 1];
-            const currSenderKey = getSenderKey(msg);
-            const prevSenderKey = prevItem ? getSenderKey(prevItem) : null;
-            const isForwarded = Boolean(msg.forwarded_from);
-
-            if (isForwarded) {
-                const prevTime = prevItem?.last_created_at || prevItem?.created_at;
-                const timeDiffMs = prevTime
-                    ? Math.abs(d.getTime() - new Date(prevTime).getTime())
-                    : Infinity;
-
-                if (
-                    prevItem?.isForwardBundle &&
-                    prevSenderKey === currSenderKey &&
-                    timeDiffMs <= 5000
-                ) {
-                    prevItem.forwardedItems.push(msg);
-                    prevItem.bundleUuids.push(msg.uuid);
-                    prevItem.last_created_at = msg.created_at;
-                    prevItem.is_important = prevItem.is_important || Boolean(msg.is_important);
-                    prevItem.is_pinned = prevItem.is_pinned || Boolean(msg.is_pinned);
-                    return;
-                }
-
-                const isSameAuthor = Boolean(prevItem && prevSenderKey === currSenderKey);
-
-                currentGroup.items.push({
-                    ...msg,
-                    isForwardBundle: true,
-                    forwardedItems: [msg],
-                    bundleUuids: [msg.uuid],
-                    last_created_at: msg.created_at,
-                    isSameAuthor
-                });
-                return;
-            }
-
-            const isSameAuthor = Boolean(
-                prevItem &&
-                prevSenderKey === currSenderKey &&
-                !msg.shared_post
-            );
-
-            currentGroup.items.push({
-                ...msg,
-                isForwardBundle: false,
-                bundleUuids: [msg.uuid],
-                isSameAuthor
-            });
-        });
-
-        return groups;
-    }, [filteredMessages, currentUser, activeChat, i18n.language]);
+    const groupedMessageDays = useMemo(
+        () => groupMessagesByDay(filteredMessages, currentUser, activeChat, i18n.language || 'uk-UA'),
+        [filteredMessages, currentUser, activeChat, i18n.language]
+    );
 
     const floatingDateLabel = groupedMessageDays.length > 0
         ? groupedMessageDays[groupedMessageDays.length - 1].label
@@ -163,161 +67,66 @@ export default function ChatWindow(props) {
         )
     );
 
+    const handleToggleItemSelect = useCallback((itemUuids, currentlySelected) => {
+        if (itemUuids.length === 1) {
+            toggleSelectMessage(itemUuids[0]);
+            return;
+        }
+        if (currentlySelected) {
+            itemUuids.forEach(u => {
+                if (selectedMessageUuids.includes(u)) toggleSelectMessage(u);
+            });
+        } else {
+            itemUuids.forEach(u => {
+                if (!selectedMessageUuids.includes(u)) toggleSelectMessage(u);
+            });
+        }
+    }, [selectedMessageUuids, toggleSelectMessage]);
+
+    const handleToggleBundleImportant = useCallback((itemUuids) => {
+        itemUuids.forEach(u => toggleImportantMessage(u));
+    }, [toggleImportantMessage]);
+
+    const handleDeleteBundle = useCallback((itemUuids) => {
+        itemUuids.forEach(u => handleDelete(u));
+    }, [handleDelete]);
+
     return (
-        <div className="im_page page-other flex flex-col">
-            {/* Шапка відкритого чату */}
-            <div
-                onClick={onOpenInfo}
-                className="flex items-center justify-between px-[12px] py-[8px] bg-bg-page border-b border-border cursor-pointer hover:bg-bg-hover transition-colors"
-            >
-                <div className="flex items-center gap-[8px]">
-                    {activeChat.is_saved ? (
-                        <div className="w-[22px] h-[22px] bg-theme-link/15 border border-theme-link/40 flex items-center justify-center text-theme-link">
-                            <SavedMessagesIcon size={14} />
-                        </div>
-                    ) : activeChat.is_group && activeChat.avatar ? (
-                        <img
-                            src={activeChat.avatar}
-                            alt=""
-                            className="w-[22px] h-[22px] object-cover border border-border"
-                        />
-                    ) : (
-                        <Avatar
-                            user={activeChat.target_user}
-                            className="w-[22px] h-[22px] object-cover border border-border"
-                        />
-                    )}
-                    <div className="font-bold text-[12px] text-theme-link hover:underline">
-                        {renderChatTitle(activeChat)}
-                    </div>
-                    {!activeChat.is_saved && (
-                        typingLabel ? (
-                            <span className="inline-flex items-center gap-[4px] text-[10px] text-theme-link font-bold">
-                                <PencilTypingIcon />
-                                <span>{typingLabel}</span>
-                            </span>
-                        ) : activeChat.is_group ? (
-                            <span className="text-[10px] text-text-muted">
-                                ({t('chat.participants_count', { count: activeChat.participants_count })})
-                            </span>
-                        ) : isTargetOnline ? (
-                            <span className="text-[10px] text-text-muted flex items-center gap-[4px]">
-                                <span className="inline-block w-[6px] h-[6px] bg-theme-success" />
-                                <span>{t('chat.online')}</span>
-                            </span>
-                        ) : (
-                            <span className="text-[10px] text-text-muted flex items-center gap-[4px]">
-                                <span className="inline-block w-[6px] h-[6px] bg-border" />
-                                <span>{getLastSeenText()}</span>
-                            </span>
-                        )
-                    )}
-                </div>
+        <div className="im_page page-other flex flex-col flex-1 min-h-0">
+            <ChatWindowHeader
+                activeChat={activeChat}
+                typingLabel={typingLabel}
+                selectedMessageUuids={selectedMessageUuids}
+                onOpenInfo={onOpenInfo}
+                onStartForward={onStartForward}
+                handleBulkImportant={handleBulkImportant}
+                handleBulkDelete={handleBulkDelete}
+                clearSelectedMessages={clearSelectedMessages}
+                toggleSearch={toggleSearch}
+            />
 
-                {/* Права частина шапки: або масові дії над виділеними, або кнопка пошуку */}
-                <div
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-[6px] text-[11px]"
-                >
-                    {selectedMessageUuids.length > 0 ? (
-                        <div className="flex items-center gap-[6px] flex-wrap">
-                            <span className="font-bold text-theme-link mr-[4px]">
-                                {t('chat.viewer.selected_count', { count: selectedMessageUuids.length })}
-                            </span>
-                            <Button
-                                variant="primary"
-                                onClick={() => onOpenForwardModal(selectedMessageUuids)}
-                            >
-                                {t('chat.viewer.forward_selected')}
-                            </Button>
-                            <Button variant="secondary" onClick={handleBulkImportant}>
-                                {t('chat.viewer.star_selected')}
-                            </Button>
-                            <Button variant="danger" onClick={() => handleBulkDelete(true)}>
-                                {t('chat.viewer.delete_selected')}
-                            </Button>
-                            <Button variant="secondary" onClick={clearSelectedMessages}>
-                                {t('chat.viewer.clear_selection')}
-                            </Button>
-                        </div>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={toggleSearch}
-                            className="text-[11px] text-theme-link hover:underline bg-transparent border-none cursor-pointer"
-                        >
-                            {t('chat.actions.search_placeholder')}
-                        </button>
-                    )}
-                </div>
-            </div>
+            <ChatSearchBar
+                isOpen={isSearchOpen}
+                query={messageSearchQuery}
+                onChange={setMessageSearchQuery}
+                onClose={toggleSearch}
+            />
 
-            {/* Випадаюче поле локального пошуку повідомлень */}
-            {isSearchOpen && (
-                <div className="flex items-center gap-[6px] px-[12px] py-[6px] bg-header-bg border-b border-border">
-                    <input
-                        type="text"
-                        autoFocus
-                        value={messageSearchQuery}
-                        onChange={(e) => setMessageSearchQuery(e.target.value)}
-                        placeholder={t('chat.actions.search_placeholder')}
-                        className="flex-1 px-[8px] py-[4px] text-[11px] bg-bg-box text-text-main border border-border outline-none focus:border-theme-link"
-                    />
-                    <Button variant="secondary" onClick={toggleSearch}>
-                        <CloseSvg size={11} />
-                    </Button>
-                </div>
-            )}
+            <PinnedMessageBanner
+                pinnedMessage={pinnedMessage}
+                activeChat={activeChat}
+                currentUser={currentUser}
+                onScrollToMessage={onScrollToMessage}
+                onUnpin={togglePin}
+            />
 
-            {/* Закріплене повідомлення */}
-            {pinnedMessage && (
-                <div
-                    onClick={() => onScrollToMessage?.(pinnedMessage.uuid)}
-                    className="flex items-center justify-between gap-[10px] px-[12px] py-[6px] bg-header-bg border-b border-border cursor-pointer hover:bg-bg-hover transition-colors"
-                >
-                    <div className="flex items-center gap-[8px] min-w-0 flex-1">
-                        <span className="text-theme-link">
-                            <PinSvg />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                            <div className="text-[10px] font-bold text-theme-link">
-                                {t('chat.pinned_message')}{' '}
-                                {pinnedMessage.author_type === 'group'
-                                    ? getPlainText(activeChat.title)
-                                    : pinnedMessage.isMine
-                                        ? currentUser?.first_name
-                                        : pinnedMessage.author?.first_name}
-                            </div>
-                            <div className="text-[11px] text-text-main truncate">
-                                <RichText
-                                    text={parseRichText(pinnedMessage.text)}
-                                    className="post-text [&_p]:inline [&_p]:m-0"
-                                    limit={100000}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            togglePin(pinnedMessage.uuid);
-                        }}
-                        className="text-text-muted hover:text-theme-error bg-transparent border-none cursor-pointer flex items-center"
-                    >
-                        <CloseSvg size={13} />
-                    </button>
-                </div>
-            )}
-
-            {/* Історія повідомлень */}
             <ChatScrollContainer
                 messagesLength={messages.length}
                 isLoadingMore={isLoadingMore}
                 isLoadingInitial={false}
                 hasMore={hasMoreMessages}
                 onLoadMore={onLoadMore}
-                className="relative flex flex-col h-[460px] overflow-y-auto custom-scrollbar bg-bg-box px-[10px] py-[8px]"
+                className="relative flex flex-col flex-1 min-h-[460px] max-h-[calc(100vh-225px)] overflow-y-auto custom-scrollbar bg-bg-box px-[10px] py-[8px]"
             >
                 {floatingDateLabel && (
                     <div className="sticky top-[4px] z-10 flex justify-center pointer-events-none mb-[4px]">
@@ -330,7 +139,7 @@ export default function ChatWindow(props) {
                 {groupedMessageDays.length === 0 ? (
                     <div className="p-[24px] text-center text-[11px] text-text-muted italic">
                         {isSearchOpen && messageSearchQuery ? (
-                            t('chat.empty.search_no_results', 'Повідомлень не знайдено')
+                            t('chat.empty.search_no_results')
                         ) : activeChat?.is_saved ? (
                             t('chat.saved_meme')
                         ) : (
@@ -355,31 +164,6 @@ export default function ChatWindow(props) {
                                     {dayGroup.items.map((msg) => {
                                         const itemUuids = msg.bundleUuids || [msg.uuid];
                                         const isItemSelected = itemUuids.every(u => selectedMessageUuids.includes(u));
-
-                                        const handleToggleItemSelect = () => {
-                                            if (itemUuids.length === 1) {
-                                                toggleSelectMessage(msg.uuid);
-                                                return;
-                                            }
-                                            if (isItemSelected) {
-                                                itemUuids.forEach(u => {
-                                                    if (selectedMessageUuids.includes(u)) toggleSelectMessage(u);
-                                                });
-                                            } else {
-                                                itemUuids.forEach(u => {
-                                                    if (!selectedMessageUuids.includes(u)) toggleSelectMessage(u);
-                                                });
-                                            }
-                                        };
-
-                                        const handleDeleteItem = () => {
-                                            itemUuids.forEach(u => handleDelete(u));
-                                        };
-
-                                        const handleImportantItem = () => {
-                                            itemUuids.forEach(u => toggleImportantMessage(u));
-                                        };
-
                                         return (
                                             <MessageItem
                                                 key={msg.uuid}
@@ -388,11 +172,11 @@ export default function ChatWindow(props) {
                                                 activeChat={activeChat}
                                                 isSelected={isItemSelected}
                                                 onToggleSelect={handleToggleItemSelect}
-                                                onToggleImportant={handleImportantItem}
-                                                onForward={() => onOpenForwardModal(itemUuids)}
-                                                onReport={() => onOpenReportModal(msg.uuid)}
+                                                onToggleImportant={handleToggleBundleImportant}
+                                                onForward={onStartForward}
+                                                onReport={onOpenReportModal}
                                                 handleEditClick={handleEditClick}
-                                                handleDelete={handleDeleteItem}
+                                                handleDelete={handleDeleteBundle}
                                                 setReplyingTo={setReplyingTo}
                                                 togglePin={togglePin}
                                             />
@@ -405,7 +189,6 @@ export default function ChatWindow(props) {
                 )}
             </ChatScrollContainer>
 
-            {/* Нижня панель вводу */}
             <div className="flex flex-col border-t border-border bg-header-bg">
                 {canWrite ? (
                     <ChatComposer

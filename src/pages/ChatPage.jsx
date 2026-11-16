@@ -42,7 +42,7 @@ export default function ChatPage() {
 
     return (
         <>
-            <div className="w-full max-w-[800px] mx-auto flex flex-col gap-[15px]">
+            <div className="w-full max-w-[800px] mx-auto flex flex-col gap-[15px] min-h-[calc(100vh-85px)]">
                 <ChatLayout {...chatLayoutProps} />
             </div>
 

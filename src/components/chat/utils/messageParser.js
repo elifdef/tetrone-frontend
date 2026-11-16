@@ -70,7 +70,8 @@ export const hasRichContent = (content) => {
 export const detectTipTapFeatures = (content) => {
     const doc = toTipTapDoc(content);
     const features = { hasTable: false, hasCode: false, hasTask: false, hasDetails: false };
-    if (!doc || !Array.isArray(doc.content)) return features;
+    if (!doc || !Array.isArray(doc.content)) 
+        return features;
 
     const walk = (nodes) => {
         nodes.forEach((node) => {
