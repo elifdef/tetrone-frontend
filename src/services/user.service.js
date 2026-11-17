@@ -35,6 +35,10 @@ const userService = {
     searchUsers: (query) => {
         return userService.getUsers({ 'filter[search]': query });
     },
+
+    getUser: (username) => {
+        return fetchClient(`/users/${encodeURIComponent(username)}`);
+    },
 };
 
 export default userService;

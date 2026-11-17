@@ -1,34 +1,66 @@
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import MentionList from '../MentionList.jsx';
-import userService from '../../../services/user.service.js';
+import userService from '@services/user.service.js';
 
 let debounceTimeout;
 
 const mentionSuggestion = {
     char: '@',
 
+    command: ({ editor, range, props }) => {
+        const nodeAfter = editor.view.state.doc.nodeAt(range.to);
+        const overrideSpace = nodeAfter?.text?.startsWith(' ');
+
+        if (overrideSpace) {
+            range.to += 1;
+        }
+
+        editor
+            .chain()
+            .focus()
+            .insertContentAt(range, [
+                {
+                    type: 'mention',
+                    attrs: props,
+                },
+                {
+                    type: 'text',
+                    text: ' ',
+                },
+            ])
+            .run();
+
+        window.getSelection()?.collapseToEnd();
+    },
+
     items: ({ query }) => {
         return new Promise((resolve) => {
             clearTimeout(debounceTimeout);
 
-            if (query.length < 4) {
+            const trimmedQuery = (query || '').trim();
+            if (trimmedQuery.length < 2) {
                 resolve([]);
                 return;
             }
 
-            debounceTimeout = setTimeout(async () => {
-                try {
-                    const res = await userService.searchUsers(query);
+            debounceTimeout = setTimeout(() => {
+                userService.searchUsers(trimmedQuery)
+                    .onSuccess((res) => {
+                        const rawUsers = Array.isArray(res?.users)
+                            ? res.users
+                            : Array.isArray(res?.users?.data)
+                                ? res.users.data
+                                : Array.isArray(res?.data)
+                                    ? res.data
+                                    : [];
 
-                    const users = res.users;
-
-                    resolve(users.slice(0, 5));
-                } catch (error) {
-                    console.error('Mention search error:', error);
-                    resolve([]);
-                }
-            }, 400);
+                        resolve(rawUsers.slice(0, 5));
+                    })
+                    .onError(() => {
+                        resolve([]);
+                    });
+            }, 300);
         });
     },
 
@@ -57,8 +89,8 @@ const mentionSuggestion = {
             },
 
             onUpdate(props) {
-                component.updateProps(props);
-                if (!props.clientRect) return;
+                component?.updateProps(props);
+                if (!props.clientRect || !popup?.[0]) return;
                 popup[0].setProps({
                     getReferenceClientRect: props.clientRect,
                 });
@@ -66,15 +98,15 @@ const mentionSuggestion = {
 
             onKeyDown(props) {
                 if (props.event.key === 'Escape') {
-                    popup[0].hide();
+                    popup?.[0]?.hide();
                     return true;
                 }
-                return component.ref?.onKeyDown(props);
+                return component?.ref?.onKeyDown(props);
             },
 
             onExit() {
-                popup[0].destroy();
-                component.destroy();
+                popup?.[0]?.destroy();
+                component?.destroy();
             },
         };
     },

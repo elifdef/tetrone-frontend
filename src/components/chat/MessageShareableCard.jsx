@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import Avatar from '../ui/Avatar';
-import RichText from '../common/RichText.jsx';
+import Avatar from '@ui/Avatar';
+import RichText from '@common/RichText.jsx';
+import UserMiniCard from '@common/UserMiniCard.jsx';
 import PostItem from '../post/PostItem.jsx';
 import { parseRichText } from './utils/messageParser.js';
 
@@ -94,56 +95,12 @@ if (shareable.is_deleted) {
     }
 
     if (shareable.type === 'user' && shareable.user) {
-        const profileUser = shareable.user;
-        const bannerImage = profileUser.personalization?.banner_image;
-        const bannerColor = profileUser.personalization?.banner_color;
-        const usernameColor = profileUser.personalization?.username_color;
-
         return (
-            <div className="mt-[6px] border border-border bg-bg-page max-w-[340px] overflow-hidden">
-                <div className="px-[8px] py-[4px] bg-bg-box border-b border-border flex items-center justify-between text-[10px] font-bold text-theme-link uppercase tracking-wider">
-                    <span>{t('chat.badges.shared_profile')}</span>
-                    <Link
-                        to={`/${profileUser.username}`}
-                        className="text-[10px] font-normal text-theme-link hover:underline normal-case"
-                    >
-                        {t('chat.badges.open_profile')}
-                    </Link>
-                </div>
-
-                <div
-                    className="h-[48px] w-full relative bg-cover bg-center"
-                    style={{
-                        background: bannerImage
-                            ? `url(${bannerImage}) center/cover no-repeat`
-                            : (bannerColor || 'var(--theme-header-bg)')
-                    }}
-                />
-
-                <div className="px-[10px] pb-[10px] pt-[0px] relative flex items-end gap-[10px]">
-                    <div className="-mt-[20px] shrink-0 relative z-10">
-                        <Link to={`/${profileUser.username}`}>
-                            <Avatar
-                                user={profileUser}
-                                className="w-[40px] h-[40px] object-cover border-2 border-bg-box block bg-bg-box"
-                            />
-                        </Link>
-                    </div>
-
-                    <div className="min-w-0 flex-1 pt-[4px]">
-                        <Link
-                            to={`/${profileUser.username}`}
-                            className="text-[11px] font-bold hover:underline block truncate"
-                            style={usernameColor ? { color: usernameColor } : { color: 'var(--theme-link)' }}
-                        >
-                            {`${profileUser.first_name || ''} ${profileUser.last_name || ''}`.trim() || profileUser.username}
-                        </Link>
-                        <div className="text-[10px] text-text-muted truncate">
-                            @{profileUser.username}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <UserMiniCard
+                user={shareable.user}
+                headerLabel={t('chat.badges.shared_profile')}
+                className="mt-[6px] max-w-[340px]"
+            />
         );
     }
 
