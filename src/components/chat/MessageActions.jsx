@@ -62,13 +62,8 @@ export default React.memo(function MessageActions({
     const { t } = useTranslation();
     const uuids = itemUuids || [msg.uuid];
 
-    const canEdit = Boolean(
-        msg.isMine &&
-        !msg.forwarded_from &&
-        !msg.source_message_uuid &&
-        msg.created_at &&
-        new Date(msg.created_at).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
-    );
+    const canEdit = Boolean(msg.can_edit);
+    const canDelete = Boolean(msg.can_delete);
 
     return (
         <div className="flex items-center gap-[6px] opacity-0 group-hover:opacity-100 transition-opacity">
@@ -128,14 +123,16 @@ export default React.memo(function MessageActions({
                     <FlagSvg />
                 </button>
             )}
-            <button
-                type="button"
-                onClick={() => handleDelete(uuids)}
-                title={t('chat.viewer.delete')}
-                className="bg-transparent border-none p-0 text-text-muted hover:text-theme-error cursor-pointer flex items-center"
-            >
-                <TrashSvg />
-            </button>
+            {canDelete && (
+                <button
+                    type="button"
+                    onClick={() => handleDelete(uuids)}
+                    title={t('chat.viewer.delete')}
+                    className="bg-transparent border-none p-0 text-text-muted hover:text-theme-error cursor-pointer flex items-center"
+                >
+                    <TrashSvg />
+                </button>
+            )}
         </div>
     );
 });

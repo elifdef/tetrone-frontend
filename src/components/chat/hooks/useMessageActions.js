@@ -157,10 +157,16 @@ export function useMessageActions({
             chatService.sendMessage(activeChatSlug, richDoc, files, null, replyingTo?.uuid, sendAsGroup)
                 .onSuccess((res) => {
                     if (res?.message) {
-                        setMessagesMap(prev => ({
-                            ...prev,
-                            [activeChatSlug]: [...(prev[activeChatSlug] || []), res.message]
-                        }));
+                        setMessagesMap(prev => {
+                            const currentList = prev[activeChatSlug] || [];
+                            const exists = currentList.some(m => m.uuid === res.message.uuid);
+                            return {
+                                ...prev,
+                                [activeChatSlug]: exists
+                                    ? currentList.map(m => (m.uuid === res.message.uuid ? res.message : m))
+                                    : [...currentList, res.message]
+                            };
+                        });
                         setChats(prev => prev.map(c => (c.slug === activeChatSlug ? {
                             ...c,
                             last_message: res.message.text,
@@ -198,13 +204,7 @@ export function useMessageActions({
     }, [activeChatSlug, setMessagesMap, t]);
 
     const handleEditClick = useCallback((msg) => {
-        const editPeriod = 7 * 24 * 60 * 60 * 1000;
-        const createdAt = msg?.created_at ? new Date(msg.created_at).getTime() : 0;
-        const canEdit = msg?.isMine
-            && !msg?.forwarded_from
-            && !msg?.source_message_uuid
-            && createdAt > Date.now() - editPeriod;
-        if (!canEdit) return;
+        if (!msg?.can_edit) return;
 
         setEditingMessage(msg);
         setText(toTipTapDoc(msg.text));

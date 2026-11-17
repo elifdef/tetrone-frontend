@@ -10,6 +10,7 @@ export default function ChatWindowHeader({
     activeChat,
     typingLabel,
     selectedMessageUuids,
+    canDeleteSelected,
     onOpenInfo,
     onStartForward,
     handleBulkImportant,
@@ -104,9 +105,11 @@ export default function ChatWindowHeader({
                         <Button variant="secondary" onClick={handleBulkImportant}>
                             {t('chat.viewer.star_selected')}
                         </Button>
-                        <Button variant="danger" onClick={() => handleBulkDelete(true)}>
-                            {t('chat.viewer.delete_selected')}
-                        </Button>
+                        {canDeleteSelected && (
+                            <Button variant="danger" onClick={() => handleBulkDelete(true)}>
+                                {t('chat.viewer.delete_selected')}
+                            </Button>
+                        )}
                         <Button variant="secondary" onClick={clearSelectedMessages}>
                             {t('chat.viewer.clear_selection')}
                         </Button>

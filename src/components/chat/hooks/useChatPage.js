@@ -48,12 +48,30 @@ export function useChatPage() {
         [chats, activeChatSlug]
     );
 
+    const canWrite = useMemo(() => {
+        if (!activeChat) return false;
+        if (activeChat.can_send_message === false) return false;
+        if (activeChat.target_user?.is_deleted || activeChat.target_user?.is_banned || activeChat.is_blocked) {
+            return false;
+        }
+        return true;
+    }, [activeChat]);
+
+    const cantWriteReason = useMemo(() => {
+        if (!activeChat || canWrite) return '';
+        if (activeChat.target_user?.is_deleted) return t('chat.cannot_write_deleted');
+        if (activeChat.target_user?.is_banned) return t('chat.cannot_write_banned');
+        if (activeChat.is_blocked) return t('chat.cannot_write_blocked');
+        return t('chat.cannot_write');
+    }, [activeChat, canWrite, t]);
+
     const drafts = useChatDrafts(activeChatSlug);
 
     const { typingUsers, handleTyping } = useChatSocket({
         socket,
         activeChatSlug,
         activeChat,
+        canWrite,
         currentUser,
         setChats,
         setMessagesMap
@@ -208,8 +226,6 @@ export function useChatPage() {
             });
     }, [activeChatSlug, isLoadingMore]);
 
-    const canWrite = !activeChat?.target_user?.is_deleted && !activeChat?.is_blocked;
-
     const handleStartForward = useCallback((uuids) => {
         if (!activeChatSlug || !Array.isArray(uuids) || uuids.length === 0) return;
         const currentMessages = messagesMap[activeChatSlug] || [];
@@ -242,10 +258,6 @@ export function useChatPage() {
         setSearchQuery,
         isBannerVisible,
         handleDismissBanner,
-        editingMessage,
-        replyingTo,
-        setReplyingTo,
-        replyingToName: getReplyName(),
         isTyping: Boolean(typingUsers[activeChatSlug]),
         typingUser: typingUsers[activeChatSlug],
         onTyping: handleTyping,
@@ -253,7 +265,7 @@ export function useChatPage() {
         hasMoreMessages,
         onLoadMore: handleLoadMoreMessages,
         canWrite,
-        cantWriteReason: '',
+        cantWriteReason,
         ...drafts,
         ...listActions,
         ...messageActions,

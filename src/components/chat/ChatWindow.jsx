@@ -60,6 +60,12 @@ export default function ChatWindow(props) {
         ? groupedMessageDays[groupedMessageDays.length - 1].label
         : '';
 
+    const canDeleteSelected = useMemo(() => {
+        if (selectedMessageUuids.length === 0) return false;
+        const selectedMsgs = messages.filter(m => selectedMessageUuids.includes(m.uuid));
+        return selectedMsgs.length > 0 && selectedMsgs.every(m => Boolean(m.can_delete));
+    }, [messages, selectedMessageUuids]);
+
     const canSendAsGroup = Boolean(
         activeChat.is_group && (
             activeChat.owner_username === currentUser?.username ||
@@ -97,6 +103,7 @@ export default function ChatWindow(props) {
                 activeChat={activeChat}
                 typingLabel={typingLabel}
                 selectedMessageUuids={selectedMessageUuids}
+                canDeleteSelected={canDeleteSelected}
                 onOpenInfo={onOpenInfo}
                 onStartForward={onStartForward}
                 handleBulkImportant={handleBulkImportant}

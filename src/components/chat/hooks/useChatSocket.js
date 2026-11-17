@@ -11,7 +11,26 @@ const playIncomingMessageSound = () => {
     }
 };
 
-export function useChatSocket({ socket, activeChatSlug, activeChat, currentUser, setChats, setMessagesMap }) {
+const normalizeSocketMessage = (msg, slug, currentUser) => {
+    const isOwnAuthor = Boolean(
+        currentUser?.username &&
+        msg.author?.username === currentUser.username &&
+        msg.author_type !== 'group'
+    );
+    const isMine = Boolean(msg.isMine || isOwnAuthor);
+    const isSaved = slug === 'saved';
+    const canDelete = Boolean(msg.can_delete || isMine || isSaved);
+    const canEdit = Boolean(msg.can_edit || (isMine && !msg.forwarded_from));
+
+    return {
+        ...msg,
+        isMine,
+        can_delete: canDelete,
+        can_edit: canEdit,
+    };
+};
+
+export function useChatSocket({ socket, activeChatSlug, activeChat, canWrite = true, currentUser, setChats, setMessagesMap }) {
     const [typingUsers, setTypingUsers] = useState({});
     const typingTimeoutRef = useRef(null);
 
@@ -21,14 +40,15 @@ export function useChatSocket({ socket, activeChatSlug, activeChat, currentUser,
         const handleMessageSent = (data) => {
             if (!data?.slug || !data?.message) return;
             const slug = data.slug;
+            const normalizedMessage = normalizeSocketMessage(data.message, slug, currentUser);
 
             setMessagesMap(prev => {
                 const currentMsgs = prev[slug] || [];
-                if (currentMsgs.some(m => m.uuid === data.message.uuid)) return prev;
-                return { ...prev, [slug]: [...currentMsgs, data.message] };
+                if (currentMsgs.some(m => m.uuid === normalizedMessage.uuid)) return prev;
+                return { ...prev, [slug]: [...currentMsgs, normalizedMessage] };
             });
 
-            if (activeChatSlug === slug && !data.message.isMine && data.message.author?.username !== currentUser?.username) {
+            if (activeChatSlug === slug && !normalizedMessage.isMine && normalizedMessage.author?.username !== currentUser?.username) {
                 chatService.markAsRead(slug);
                 playIncomingMessageSound();
             }
@@ -87,7 +107,16 @@ export function useChatSocket({ socket, activeChatSlug, activeChat, currentUser,
             setMessagesMap(prev => ({
                 ...prev,
                 [data.slug]: (prev[data.slug] || []).map(m =>
-                    m.uuid === data.uuid ? { ...m, ...data.message, is_edited: true } : m
+                    m.uuid === data.uuid
+                        ? {
+                            ...m,
+                            ...data.message,
+                            isMine: m.isMine,
+                            can_edit: m.can_edit,
+                            can_delete: m.can_delete,
+                            is_edited: true
+                        }
+                        : m
                 )
             }));
         };
@@ -139,7 +168,7 @@ export function useChatSocket({ socket, activeChatSlug, activeChat, currentUser,
     }, [socket, activeChatSlug, currentUser, setChats, setMessagesMap]);
 
     const handleTyping = useCallback(() => {
-        if (!socket || !activeChatSlug) return;
+        if (!socket || !activeChatSlug || !canWrite) return;
         const receiverUsername = activeChat?.target_user?.username;
         socket.emit('typing_start', {
             chat_slug: activeChatSlug,
@@ -154,7 +183,7 @@ export function useChatSocket({ socket, activeChatSlug, activeChat, currentUser,
                 });
             }
         }, 2500);
-    }, [socket, activeChatSlug, activeChat]);
+    }, [socket, activeChatSlug, activeChat, canWrite]);
 
     return {
         typingUsers,
