@@ -1,54 +1,72 @@
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import { STAFF_ROLES } from '../../context/SpaceContext';
 
 const SpaceListItem = ({ space, onLeave }) => {
     const { t } = useTranslation();
-    const { user } = useContext(AuthContext);
 
-    // Власник або адмін
-    const canManage = space.owner?.username === user?.username || space.member_role === 'admin';
+    const isOwner = space.member_role === 'owner';
+    const isStaff = STAFF_ROLES.includes(space.member_role);
 
     return (
-        <div className="flex bg-bg-box border border-border p-[10px] gap-[15px] hover:bg-bg-page transition-colors max-md:flex-col max-md:gap-[10px]">
-            <Link to={`/${space.username}`} className="shrink-0 max-md:mx-auto">
+        <div className="flex items-start bg-bg-box border border-border p-[10px] gap-[12px] hover:bg-bg-page transition-colors max-md:flex-col max-md:items-center max-md:text-center">
+            <Link to={`/${space.username}`} className="shrink-0 p-[2px] bg-bg-page border border-border">
                 <img
-                    src={space.avatar_url}
+                    src={space.avatar}
                     alt={space.name}
-                    className="w-[80px] h-[80px] object-cover border border-border"
+                    className="w-[75px] h-[75px] object-cover block"
                 />
             </Link>
 
-            <div className="flex-1 flex flex-col gap-[5px] text-[12px] text-text-main max-md:text-center">
-                <div className="flex max-md:justify-center">
-                    <Link to={`/${space.username}`} className="font-bold text-theme-link hover:underline">
+            <div className="flex-1 min-w-0 flex flex-col gap-[4px] text-[11px] text-text-main">
+                <div className="flex items-baseline gap-[6px] flex-wrap max-md:justify-center">
+                    <Link to={`/${space.username}`} className="font-bold text-[12px] text-theme-link hover:underline truncate">
                         {space.name}
                     </Link>
+                    <span className="text-[10px] text-text-muted">@{space.username}</span>
                 </div>
-                <div className="flex text-[11px] max-md:justify-center">
-                    <span className="text-text-muted mr-[5px]">{t('spaces.info_type')}:</span>
+
+                <div className="flex max-md:justify-center">
+                    <span className="w-[95px] shrink-0 text-text-muted max-md:w-auto max-md:mr-[4px]">{t('spaces.info_type')}:</span>
                     <span>{t(`spaces.privacy_${space.privacy_type}`)}</span>
                 </div>
-                <div className="flex text-[11px] max-md:justify-center">
-                    <span className="text-text-muted mr-[5px]">{t('spaces.blocks_members')}:</span>
-                    <Link to={`/${space.username}?tab=members`} className="text-theme-link hover:underline font-bold">
+
+                <div className="flex max-md:justify-center">
+                    <span className="w-[95px] shrink-0 text-text-muted max-md:w-auto max-md:mr-[4px]">{t('spaces.blocks_members')}:</span>
+                    <Link to={`/${space.username}?tab=members`} className="text-theme-link hover:underline">
                         {t('entities.member', { count: space.members_count })}
                     </Link>
                 </div>
+
+                {isStaff && (
+                    <div className="flex max-md:justify-center">
+                        <span className="w-[95px] shrink-0 text-text-muted max-md:w-auto max-md:mr-[4px]">{t('spaces.blocks_staff')}:</span>
+                        <span className="font-bold text-theme-link">{t(`spaces.role_${space.member_role}`)}</span>
+                    </div>
+                )}
             </div>
 
-            <div className="w-[180px] shrink-0 flex flex-col border-l border-border pl-[15px] max-md:w-full max-md:border-l-0 max-md:border-t max-md:pl-0 max-md:pt-[10px] max-md:flex-row max-md:justify-center max-md:gap-[15px]">
-                <Link className="text-theme-link text-[11px] py-[4px] border-b border-border hover:underline max-md:border-none" to={`/${space.username}`}>
+            <div className="w-[160px] shrink-0 flex flex-col border-l border-border pl-[10px] max-md:w-full max-md:border-l-0 max-md:border-t max-md:pl-0 max-md:pt-[8px] max-md:flex-row max-md:justify-center max-md:gap-[12px]">
+                <Link
+                    className="block py-[4px] px-[6px] text-theme-link text-[11px] font-bold border-b border-border hover:bg-bg-box hover:underline no-underline max-md:border-none"
+                    to={`/${space.username}`}
+                >
                     {t('spaces.visit')}
                 </Link>
-                {canManage && (
-                    <Link className="text-theme-link text-[11px] py-[4px] border-b border-border hover:underline max-md:border-none" to={`/${space.username}?tab=settings`}>
+                {isOwner && (
+                    <Link
+                        className="block py-[4px] px-[6px] text-theme-link text-[11px] border-b border-border hover:bg-bg-box hover:underline no-underline max-md:border-none"
+                        to={`/${space.username}?tab=settings`}
+                    >
                         {t('spaces.settings')}
                     </Link>
                 )}
-                {!canManage && space.is_member && (
-                    <button className="text-theme-link text-[11px] py-[4px] border-none bg-transparent text-left cursor-pointer hover:underline max-md:border-none" onClick={() => onLeave(space.username)}>
+                {!isOwner && space.is_member && (
+                    <button
+                        type="button"
+                        className="block text-left py-[4px] px-[6px] text-theme-link text-[11px] border-none bg-transparent cursor-pointer hover:bg-bg-box hover:underline max-md:text-center"
+                        onClick={() => onLeave(space.username)}
+                    >
                         {t('spaces.leave')}
                     </button>
                 )}

@@ -1,94 +1,165 @@
 import { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
-import SpaceService from '../../services/space.service';
-import { SpaceContext } from '../../context/SpaceContext';
+import { Link } from 'react-router';
+import SpaceService from '@/services/space.service';
+import { SpaceContext, STAFF_ROLES } from '@/context/SpaceContext';
+import { notifyError, notifySuccess } from '@/components/common/Notify';
+import Avatar from '@/components/ui/Avatar';
 
 const SpaceRightSidebar = ({ currentTab }) => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
-    const { space, updateSpace, isAdmin } = useContext(SpaceContext);
+    const { space, updateSpace, isOwner, canManageSettings, canManageInvites, canManageMembers } = useContext(SpaceContext);
     const [isLoading, setIsLoading] = useState(false);
 
     if (!space) return null;
 
     const spaceUrl = `/${space.username}`;
-    const isOwner = space.member_role === 'owner';
+    const isPending = space.membership_status === 'pending';
+    const isPrivate = space.privacy_type === 'private';
+    const isClosed = space.privacy_type === 'closed';
+    const canViewContent = space.can_view_content !== false;
 
-    const handleMembershipToggle = async () => {
-        if (space.is_member === null || isOwner) return; // Власник не може вийти
+    const handleMembershipToggle = () => {
+        if (space.is_member === null || isOwner || isLoading || isPending) return;
         setIsLoading(true);
-        try {
-            if (space.is_member) {
-                await SpaceService.leaveSpace(space.username);
-                updateSpace({ is_member: false, member_role: null, members_count: space.members_count - 1 });
-            } else {
-                await SpaceService.joinSpace(space.username);
-                updateSpace({ is_member: true, member_role: 'member', members_count: space.members_count + 1 });
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
+
+        if (space.is_member) {
+            SpaceService.leaveSpace(space.username)
+                .onSuccess((res) => {
+                    updateSpace({
+                        is_member: false,
+                        membership_status: null,
+                        member_role: null,
+                        members_count: Math.max(0, (space.members_count || 1) - 1)
+                    });
+                    notifySuccess(t(`api.success.${res.code}`));
+                })
+                .onError((err) => {
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                })
+                .onFinally(() => {
+                    setIsLoading(false);
+                });
+        } else {
+            SpaceService.joinSpace(space.username)
+                .onSuccess((res) => {
+                    if (res.code === 'JOIN_REQUEST_SENT') {
+                        updateSpace({ is_member: false, membership_status: 'pending' });
+                    } else {
+                        updateSpace({
+                            is_member: true,
+                            membership_status: 'approved',
+                            member_role: 'member',
+                            can_view_content: true,
+                            members_count: (space.members_count || 0) + 1
+                        });
+                    }
+                    notifySuccess(t(`api.success.${res.code}`));
+                })
+                .onError((err) => {
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                })
+                .onFinally(() => {
+                    setIsLoading(false);
+                });
         }
     };
 
     const getLinkClass = (tabName) => {
         const isActive = currentTab === tabName;
-        return `block p-[6px_8px] text-[11px] text-left w-full transition-colors border-b border-border no-underline ${
-            isActive ? 'bg-theme-link text-white font-bold' : 'text-theme-link hover:bg-bg-page hover:underline'
+        return `block p-[5px_8px] text-[11px] text-left w-full transition-colors border-b last:border-b-0 border-border no-underline ${
+            isActive
+                ? 'bg-bg-page text-theme-link font-bold border-l-[3px] border-l-theme-link'
+                : 'text-theme-link hover:bg-bg-page hover:underline'
         }`;
     };
 
-    // Фільтруємо керівників для міні-блоку
-    const staffMembers = space.preview_members ? space.preview_members.filter(m => ['owner', 'admin', 'moderator'].includes(m.role)) : [];
+    const staffMembers = (space.preview_members || []).filter(m =>
+        STAFF_ROLES.includes(m.role)
+    );
+
+    const getActionLabel = () => {
+        if (isLoading) return t('common.loading');
+        if (space.is_member) return t('spaces.leave');
+        if (isPending) return t('spaces.members_requests');
+        if (isClosed) return t('spaces.request_join');
+        return t('spaces.join');
+    };
+
+    const showJoinButton = !isOwner && space.is_member !== null && (!isPrivate || space.is_member || isPending);
 
     return (
         <div className="flex flex-col gap-[10px]">
-            <div className="bg-bg-box border border-border p-[5px]">
-                <img src={space.avatar_url} alt={space.name} className="w-full aspect-square block border border-border object-cover" />
-            </div>
-
-            <div className="flex flex-col border border-border bg-bg-box">
-                <Link to={spaceUrl} className={getLinkClass('wall')}>{t('spaces.tab_wall')}</Link>
-                <Link to={`${spaceUrl}?tab=members`} className={getLinkClass('members')}>{t('spaces.tab_members')}</Link>
-                <Link to={`${spaceUrl}?tab=rules`} className={getLinkClass('rules')}>{t('spaces.tab_rules')}</Link>
-
-                {isAdmin && (
-                    <>
-                        <Link to={`${spaceUrl}?tab=settings`} className={getLinkClass('settings')}>{t('spaces.tab_settings')}</Link>
-                        <Link to={`${spaceUrl}?tab=invites`} className={getLinkClass('invites')}>{t('spaces.tab_invites')}</Link>
-                        <Link to={`${spaceUrl}?tab=stats`} className={getLinkClass('stats')}>{t('spaces.tab_stats')}</Link>
-                    </>
-                )}
-
-                {/* ФІКС: Кнопка "Приєднатися/Вийти" більше не відображається власнику */}
-                {!isOwner && (
+            <div className="bg-bg-box border border-border p-[4px] flex flex-col gap-[4px]">
+                <Avatar
+                    user={space}
+                    className="w-full aspect-square block border border-border object-cover"
+                />
+                {showJoinButton && (
                     <button
-                        className="block p-[6px_8px] text-theme-link text-[11px] font-bold text-center w-full hover:bg-bg-page transition-colors bg-transparent border-none cursor-pointer"
+                        type="button"
+                        className="block py-[5px] px-[8px] bg-theme-header-bg hover:bg-theme-link hover:text-white text-theme-link border border-border text-[11px] font-bold text-center w-full transition-colors cursor-pointer disabled:opacity-60"
                         onClick={handleMembershipToggle}
-                        disabled={isLoading}
+                        disabled={isLoading || isPending}
                     >
-                        {isLoading ? t('common.loading') : (space.is_member ? t('spaces.leave') : t('spaces.join'))}
+                        {getActionLabel()}
                     </button>
                 )}
             </div>
 
+            {canViewContent && (
+                <div className="flex flex-col border border-border bg-bg-box">
+                    <Link to={spaceUrl} className={getLinkClass('wall')}>
+                        {t('spaces.tab_wall')}
+                    </Link>
+                    <Link to={`${spaceUrl}?tab=members`} className={getLinkClass('members')}>
+                        {t('spaces.tab_members')}
+                    </Link>
+                    <Link to={`${spaceUrl}?tab=rules`} className={getLinkClass('rules')}>
+                        {t('spaces.tab_rules')}
+                    </Link>
+
+                    {canManageSettings && (
+                        <Link to={`${spaceUrl}?tab=settings`} className={getLinkClass('settings')}>
+                            {t('spaces.tab_settings')}
+                        </Link>
+                    )}
+
+                    {canManageInvites && (
+                        <Link to={`${spaceUrl}?tab=invites`} className={getLinkClass('invites')}>
+                            {t('spaces.tab_invites')}
+                        </Link>
+                    )}
+
+                    {canManageMembers && (
+                        <Link to={`${spaceUrl}?tab=stats`} className={getLinkClass('stats')}>
+                            {t('spaces.tab_stats')}
+                        </Link>
+                    )}
+                </div>
+            )}
+            
             {staffMembers.length > 0 && (
                 <div className="bg-bg-box border border-border">
-                    <div className="bg-theme-header-bg text-theme-link p-[6px_8px] text-[11px] font-bold border-b border-border">
+                    <div className="bg-theme-header-bg text-theme-link p-[4px_8px] text-[11px] font-bold border-b border-border border-t-[2px] border-t-theme-link">
                         {t('spaces.blocks_staff')}
                     </div>
-                    <div className="p-[5px] flex flex-col gap-[5px]">
+                    <div className="p-[6px] flex flex-col gap-[6px]">
                         {staffMembers.map(staff => (
-                            <Link key={staff.username} to={`/${staff.username}`} className="flex items-center gap-[8px] hover:bg-bg-page p-[4px] transition-colors no-underline border border-transparent hover:border-border">
-                                <img src={staff.avatar} alt={staff.username} className="w-[24px] h-[24px] object-cover border border-border" />
-                                <div className="flex flex-col overflow-hidden">
+                            <Link
+                                key={staff.username}
+                                to={`/${staff.username}`}
+                                className="flex items-center gap-[8px] hover:bg-bg-page p-[2px] transition-colors no-underline"
+                            >
+                                <Avatar
+                                    user={staff}
+                                    className="w-[32px] h-[32px] object-cover border border-border shrink-0"
+                                />
+                                <div className="flex flex-col min-w-0">
                                     <span className="text-[11px] font-bold text-theme-link hover:underline truncate">
                                         {staff.first_name || staff.username}
                                     </span>
-                                    {/* ФІКС: Виводимо кастомний бейджик або системну роль */}
-                                    <span className="text-[9px] text-text-muted truncate mt-[-2px]">
+                                    <span className="text-[10px] text-text-muted truncate">
                                         {staff.custom_title || t(`spaces.role_${staff.role}`)}
                                     </span>
                                 </div>
@@ -99,22 +170,28 @@ const SpaceRightSidebar = ({ currentTab }) => {
             )}
 
             <div className="bg-bg-box border border-border">
-                <div className="bg-theme-header-bg text-theme-link p-[6px_8px] text-[11px] font-bold border-b border-border">
+                <div className="bg-theme-header-bg text-theme-link p-[4px_8px] text-[11px] font-bold border-b border-border border-t-[2px] border-t-theme-link">
                     {t('spaces.privacy')}
                 </div>
-                <div className="p-[10px] text-text-muted text-[11px] leading-[1.4]">
+                <div className="p-[8px] text-text-muted text-[11px] leading-[1.4]">
                     {t(`spaces.privacy_desc_${space.privacy_type}`)}
                 </div>
             </div>
 
-            {space.links && space.links.length > 0 && (
+            {space.links?.length > 0 && (
                 <div className="bg-bg-box border border-border">
-                    <div className="bg-theme-header-bg text-theme-link p-[6px_8px] text-[11px] font-bold border-b border-border">
+                    <div className="bg-theme-header-bg text-theme-link p-[4px_8px] text-[11px] font-bold border-b border-border border-t-[2px] border-t-theme-link">
                         {t('spaces.friends_links')}
                     </div>
-                    <div className="flex flex-col p-[5px]">
+                    <div className="flex flex-col">
                         {space.links.map((link, idx) => (
-                            <a key={idx} href={link.url} target="_blank" rel="noreferrer" className="p-[5px] text-[11px] text-theme-link hover:underline block truncate">
+                            <a
+                                key={idx}
+                                href={link.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="p-[5px_8px] text-[11px] text-theme-link hover:bg-bg-page hover:underline block truncate border-b last:border-b-0 border-border"
+                            >
                                 {link.title}
                             </a>
                         ))}

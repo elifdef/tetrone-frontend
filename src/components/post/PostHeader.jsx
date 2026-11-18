@@ -31,7 +31,8 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
     const isScheduled = post.is_published === false;
     const isPinned = post.is_pinned === true;
 
-    const isAuthor = currentUsername && (currentUsername === author.username);
+    const isRealCreator = currentUsername && post.creator?.username === currentUsername;
+    const isAuthor = currentUsername && (currentUsername === author.username || isRealCreator);
 
     const wallOwnerUsername = target ? target.username : author.username;
     const isWallOwner = currentUsername && (currentUsername === wallOwnerUsername);
@@ -39,7 +40,7 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
     const canEdit = onEdit && (isAdmin || (isAuthor && !isAvatarUpdate && !readonly));
     const canDelete = onDelete && (isAdmin || ((isAuthor || isOwner) && !readonly));
     const canReport = onReport && !isAuthor && !readonly;
-    const canPin = onPinToggle && isWallOwner;
+    const canPin = onPinToggle && (isWallOwner || (targetIsSpace && isOwner));
 
     const showActions = canEdit || canDelete || canReport || isScheduled || canPin;
 
@@ -69,13 +70,28 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
                 <div className="flex flex-col text-[11px] flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-x-[4px] leading-[1.4]">
                         {authorIsSpace ? (
-                            <Link
-                                to={authorLink}
-                                className="font-bold text-[12px] no-underline hover:underline text-theme-link"
-                                onClick={handleLinkClick}
-                            >
-                                {author.name}
-                            </Link>
+                            <>
+                                <Link
+                                    to={authorLink}
+                                    className="font-bold text-[12px] no-underline hover:underline text-theme-link"
+                                    onClick={handleLinkClick}
+                                >
+                                    {author.name}
+                                </Link>
+                                {post.creator && (
+                                    <span className="text-[11px] text-text-muted flex items-center gap-[3px]">
+                                        <span>({t('post.posted_by')}:</span>
+                                        <Link
+                                            to={`/${post.creator.username}`}
+                                            className="text-theme-link hover:underline no-underline"
+                                            onClick={handleLinkClick}
+                                        >
+                                            <UserDisplayName user={post.creator} showUsername={false} className="text-[11px]" />
+                                        </Link>
+                                        <span>)</span>
+                                    </span>
+                                )}
+                            </>
                         ) : (
                             <Link
                                 to={authorLink}
@@ -176,4 +192,8 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
     );
 };
 
-export default memo(PostHeader, (prev, next) => prev.post.id === next.post.id);
+export default memo(PostHeader, (prev, next) => (
+    prev.post.id === next.post.id
+    && prev.post.is_pinned === next.post.is_pinned
+    && prev.post.updated_at === next.post.updated_at
+));

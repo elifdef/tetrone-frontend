@@ -25,6 +25,10 @@
     --theme-input-bg: #ffffff;
     --theme-input-border: #C0CAD5;
 
+    /* --- Скролбар --- */
+    --theme-scrollbar-thumb: rgba(69, 104, 142, 0.26);
+    --theme-scrollbar-thumb-hover: rgba(69, 104, 142, 0.52);
+
     /* --- Навігація --- */
     --theme-nav-hover: #E1E5EB;
     --theme-nav-active: #E1E5EB;
@@ -148,6 +152,9 @@
 
     --theme-input-bg: #222222;
     --theme-input-border: #555555;
+
+    --theme-scrollbar-thumb: rgba(255, 255, 255, 0.16);
+    --theme-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
 
     --theme-nav-hover: rgba(255, 255, 255, 0.05);
     --theme-nav-active: rgba(255, 255, 255, 0.1);
@@ -318,6 +325,45 @@
         font-family: var(--font-tahoma);
         font-size: var(--font-size-base);
         margin: 0;
+    }
+
+    /* Chrome, Edge, Safari */
+    *::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background-color: var(--theme-scrollbar-thumb);
+        border-radius: 9999px;
+        border: 1px solid transparent;
+        background-clip: content-box;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+        background-color: var(--theme-scrollbar-thumb-hover);
+    }
+
+    *::-webkit-scrollbar-button {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    *::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    /* Firefox */
+    @supports not selector(::-webkit-scrollbar) {
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--theme-scrollbar-thumb) transparent;
+        }
     }
 }
 

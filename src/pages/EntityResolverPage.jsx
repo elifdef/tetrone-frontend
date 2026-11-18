@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import EntityService from '../services/entity.service';
-import ProfilePage from './ProfilePage';
-import SpacePage from './SpacePage';
-import NotFoundPage from './NotFoundPage';
+import EntityService from '@/services/entity.service';
+import ProfilePage from '@/pages/ProfilePage';
+import SpacePage from '@/pages/SpacePage';
+import NotFoundPage from '@/pages/NotFoundPage';
 
 const EntityResolverPage = () =>
 {

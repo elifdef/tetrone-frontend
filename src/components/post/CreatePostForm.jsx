@@ -1,18 +1,20 @@
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useCreatePost } from "./hooks/useCreatePost";
-import { useImageEditor } from "../../hooks/useImageEditor";
-import StickerService from '../../services/sticker.service';
-import SmartEditor from '../editor/SmartEditor';
-import IdentitySwitcher from '../editor/IdentitySwitcher';
-import PublishButton from '../editor/PublishButton';
-import AttachBar from './components/AttachBar';
-import MediaPreviews from './components/MediaPreviews';
-import YouTubePreviews from './components/YouTubePreviews';
-import PollCreatorModal from '../modals/PollCreatorModal';
-import MediaEditorModal from '../common/MediaEditorModal';
-import { PollIcon, CloseIcon } from '../ui/Icons';
+import { useCreatePost } from '@/components/post/hooks/useCreatePost';
+import { useImageEditor } from '@/hooks/useImageEditor';
+import StickerService from '@/services/sticker.service';
+import SpaceService from '@/services/space.service';
+import SmartEditor from '@/components/editor/SmartEditor';
+import IdentitySwitcher from '@/components/editor/IdentitySwitcher';
+import PublishButton from '@/components/editor/PublishButton';
+import AttachBar from '@/components/post/components/AttachBar';
+import MediaPreviews from '@/components/post/components/MediaPreviews';
+import YouTubePreviews from '@/components/post/components/YouTubePreviews';
+import PollCreatorModal from '@/components/modals/PollCreatorModal';
+import MediaEditorModal from '@/components/common/MediaEditorModal';
+import Avatar from '@/components/ui/Avatar';
+import { PollIcon, CloseIcon } from '@/components/ui/Icons';
 
 export default function CreatePostForm({
     onSubmitSuccess,
@@ -26,6 +28,12 @@ export default function CreatePostForm({
 }) {
     const { t } = useTranslation();
     const [authorUsername, setAuthorUsername] = useState(currentUser?.username || '');
+
+    useEffect(() => {
+        if (!authorUsername && currentUser?.username) {
+            setAuthorUsername(currentUser.username);
+        }
+    }, [currentUser?.username, authorUsername]);
 
     const {
         content, setContent, pollData, setPollData, showPollCreator, setShowPollCreator,
@@ -70,7 +78,35 @@ export default function CreatePostForm({
         }
     };
 
-    const ownedSpaces = isSpaceAdmin && space ? [space] : [];
+    const { data: managedSpaces = [] } = useQuery({
+        queryKey: ['my_managed_spaces', currentUser?.username],
+        queryFn: () => new Promise((resolve) => {
+            SpaceService.getSpacesList({ tab: 'managed', per_page: 50 })
+                .onSuccess((res) => {
+                    const list = Array.isArray(res.spaces)
+                        ? res.spaces
+                        : (res.spaces?.data || []);
+                    resolve(list);
+                })
+                .onError(() => resolve([]));
+        }),
+        enabled: !!currentUser?.username,
+        staleTime: 5 * 60 * 1000
+    });
+
+    const ownedSpaces = useMemo(() => {
+        const map = new Map();
+        if (isSpaceAdmin && space?.username) {
+            map.set(space.username, space);
+        }
+        managedSpaces.forEach((s) => {
+            if (s?.username && !map.has(s.username)) {
+                map.set(s.username, s);
+            }
+        });
+        return Array.from(map.values());
+    }, [isSpaceAdmin, space, managedSpaces]);
+
     const editorPlaceholder = isDragging ? t('wall.drop_files_here') : (placeholder || t('action.write_post'));
 
     return (
@@ -84,7 +120,7 @@ export default function CreatePostForm({
             <div className="flex items-start gap-[12px]">
 
                 <div className="shrink-0 mt-[1px]">
-                    {isSpaceAdmin && currentUser ? (
+                    {currentUser && ownedSpaces.length > 0 ? (
                         <IdentitySwitcher
                             currentUser={currentUser}
                             ownedSpaces={ownedSpaces}
@@ -93,7 +129,7 @@ export default function CreatePostForm({
                         />
                     ) : currentUser ? (
                         <div className="w-[40px] h-[40px] border border-border overflow-hidden">
-                            <img src={currentUser.avatar || '/default-avatar.png'} alt={currentUser.username} className="w-full h-full object-cover" />
+                            <Avatar user={currentUser} className="w-full h-full object-cover" />
                         </div>
                     ) : null}
                 </div>

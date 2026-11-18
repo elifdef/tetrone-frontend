@@ -1,55 +1,154 @@
-import { useContext } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useContext, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { SpaceProvider, SpaceContext } from '../context/SpaceContext';
-import { usePageTitle } from '../hooks/usePageTitle';
+import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import SpaceRightSidebar from '@/components/spaces/SpaceRightSidebar';
+import SpaceWallTab from '@/components/spaces/SpaceWallTab';
+import SpaceSettingsTab from '@/components/spaces/SpaceSettingsTab';
+import SpaceStatsTab from '@/components/spaces/SpaceStatsTab';
+import SpaceMembersTab from '@/components/spaces/SpaceMembersTab';
+import SpaceInvitesTab from '@/components/spaces/SpaceInvitesTab';
+import SpaceRulesTab from '@/components/spaces/SpaceRulesTab';
+import SpaceHeaderInfo from '@/components/spaces/SpaceHeaderInfo';
+import SpaceService from '@/services/space.service';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import { notifyError, notifySuccess } from '@/components/common/Notify';
+import { SpaceContext, SpaceProvider } from '@/context/SpaceContext';
 
-import SpaceRightSidebar from '../components/spaces/SpaceRightSidebar';
-import SpaceHeaderInfo from '../components/spaces/SpaceHeaderInfo';
-import SpaceMembersMini from '../components/spaces/SpaceMembersMini';
-import SpaceWall from '../components/spaces/SpaceWall';
+const ForbiddenBox = ({ message }) => (
+    <div className="p-[20px] bg-bg-box border border-border text-center text-text-muted">
+        {message}
+    </div>
+);
 
-import SpaceSettingsTab from '../components/spaces/SpaceSettingsTab';
-import SpaceStatsTab from '../components/spaces/SpaceStatsTab';
-import SpaceMembersTab from '../components/spaces/SpaceMembersTab';
-import SpaceInvitesTab from "../components/spaces/SpaceInvitesTab";
-import SpaceRulesTab from "../components/spaces/SpaceRulesTab";
+const RestrictedSpaceBox = () => {
+    const { t } = useTranslation();
+    const { space, updateSpace } = useContext(SpaceContext);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [inviteToken, setInviteToken] = useState(searchParams.get('invite') || '');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    if (!space) return null;
+
+    const isPending = space.membership_status === 'pending';
+    const isPrivate = space.privacy_type === 'private';
+
+    const handleJoinSubmit = (e) => {
+        if (e) e.preventDefault();
+        if (isSubmitting || isPending) return;
+
+        const cleanToken = inviteToken.trim().split('/').pop();
+        if (isPrivate && !cleanToken) return;
+
+        setIsSubmitting(true);
+        SpaceService.joinSpace(space.username, isPrivate ? cleanToken : null)
+            .onSuccess((res) => {
+                notifySuccess(t(`api.success.${res.code}`));
+                if (res.code === 'JOIN_REQUEST_SENT') {
+                    updateSpace({ is_member: false, membership_status: 'pending' });
+                } else {
+                    SpaceService.getSpace(space.username)
+                        .onSuccess((spaceRes) => {
+                            if (spaceRes.space) {
+                                updateSpace(spaceRes.space);
+                            }
+                            if (searchParams.has('invite')) {
+                                searchParams.delete('invite');
+                                setSearchParams(searchParams, { replace: true });
+                            }
+                        });
+                }
+            })
+            .onError((err) => {
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            })
+            .onFinally(() => {
+                setIsSubmitting(false);
+            });
+    };
+
+    return (
+        <div className="flex flex-col gap-[10px]">
+            <SpaceHeaderInfo />
+
+            <div className="bg-bg-box border border-border p-[20px] flex flex-col items-center text-center gap-[10px]">
+                <div className="text-[12px] font-bold text-theme-link">
+                    {t(`spaces.privacy_${space.privacy_type}`)}
+                </div>
+
+                <p className="m-0 text-text-muted max-w-[440px] leading-[1.45]">
+                    {isPending
+                        ? t('spaces.request_sent_info')
+                        : t(`spaces.privacy_desc_${space.privacy_type}`)}
+                </p>
+
+                {space.is_member !== null && !isPending && (
+                    isPrivate ? (
+                        <form onSubmit={handleJoinSubmit} className="flex items-center gap-[6px] w-full max-w-[340px] mt-[4px]">
+                            <div className="flex-1">
+                                <Input
+                                    type="text"
+                                    value={inviteToken}
+                                    onChange={(e) => setInviteToken(e.target.value)}
+                                    placeholder={t('spaces.invite_token_placeholder')}
+                                />
+                            </div>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={isSubmitting || !inviteToken.trim()}
+                            >
+                                {isSubmitting ? t('common.loading') : t('spaces.accept_invite')}
+                            </Button>
+                        </form>
+                    ) : (
+                        <Button
+                            type="button"
+                            variant="primary"
+                            disabled={isSubmitting}
+                            onClick={handleJoinSubmit}
+                        >
+                            {isSubmitting ? t('common.loading') : t('spaces.request_join')}
+                        </Button>
+                    )
+                )}
+            </div>
+        </div>
+    );
+};
 
 const SpacePageLayout = () => {
     const { t } = useTranslation();
-    const { space, isAdmin } = useContext(SpaceContext);
+    const { space, canManageSettings, canManageInvites, canManageMembers } = useContext(SpaceContext);
     const [searchParams] = useSearchParams();
 
-    // 1. Динамічний Title сайту
     usePageTitle(space ? space.name : t('common.loading'));
 
     if (!space) return null;
 
     const currentTab = searchParams.get('tab') || 'wall';
+    const canViewContent = space.can_view_content !== false;
 
     const renderContent = () => {
+        if (!canViewContent) {
+            return <RestrictedSpaceBox />;
+        }
+
         switch (currentTab) {
-            case 'settings': return isAdmin ? <SpaceSettingsTab /> : <div className="p-[15px] bg-bg-box border border-border text-center text-text-muted">{t('error.forbidden')}</div>;
-            case 'stats': return isAdmin ? <SpaceStatsTab /> : <div className="p-[15px] bg-bg-box border border-border text-center text-text-muted">{t('error.forbidden')}</div>;
-            case 'invites': return isAdmin ? <SpaceInvitesTab /> : <div className="p-[15px] bg-bg-box border border-border text-center text-text-muted">{t('error.forbidden')}</div>;
-            case 'rules': return <SpaceRulesTab />;
-            case 'members': return <SpaceMembersTab />;
+            case 'settings':
+                return canManageSettings ? <SpaceSettingsTab /> : <ForbiddenBox message={t('error.forbidden')} />;
+            case 'stats':
+                return canManageMembers ? <SpaceStatsTab /> : <ForbiddenBox message={t('error.forbidden')} />;
+            case 'invites':
+                return canManageInvites ? <SpaceInvitesTab /> : <ForbiddenBox message={t('error.forbidden')} />;
+            case 'rules':
+                return <SpaceRulesTab />;
+            case 'members':
+                return <SpaceMembersTab />;
             case 'wall':
             default:
-                return (
-                    <div className="flex flex-col gap-[10px]">
-                        <SpaceHeaderInfo />
-                        <SpaceMembersMini />
-                        <div className="bg-bg-box border border-border">
-                            <div className="bg-theme-header-bg text-theme-link p-[6px_8px] text-[11px] font-bold border-b border-border">
-                                {t('spaces.blocks_wall')}
-                            </div>
-                            <div className="p-[10px] bg-bg-page">
-                                <SpaceWall space={space} />
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <SpaceWallTab />;
         }
     };
 
@@ -58,19 +157,17 @@ const SpacePageLayout = () => {
             <main className="flex-1 flex flex-col gap-[10px] min-w-0 w-full">
                 {renderContent()}
             </main>
-            <aside className="w-[200px] shrink-0 flex flex-col gap-[10px] max-md:w-full">
+            <aside className="w-[210px] shrink-0 flex flex-col gap-[10px] max-md:w-full">
                 <SpaceRightSidebar currentTab={currentTab} />
             </aside>
         </div>
     );
 };
 
-const SpacePage = ({ initialSpaceData }) => {
-    return (
-        <SpaceProvider initialSpace={initialSpaceData}>
-            <SpacePageLayout />
-        </SpaceProvider>
-    );
-};
+const SpacePage = ({ initialSpaceData }) => (
+    <SpaceProvider initialSpace={initialSpaceData}>
+        <SpacePageLayout />
+    </SpaceProvider>
+);
 
 export default SpacePage;

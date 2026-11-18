@@ -5,73 +5,75 @@ import SpaceService from '../../services/space.service';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { notifyError, notifySuccess } from '../common/Notify';
-// Припускаємо, що ти додав ці методи в space.service.js:
-// getInvites(username), createInvite(username, data), revokeInvite(username, token), revokeOthers(username, token)
 
 const SpaceInvitesTab = () => {
     const { t } = useTranslation();
-    const { space, isAdmin } = useContext(SpaceContext);
+    const { space, canManageInvites } = useContext(SpaceContext);
 
     const [invites, setInvites] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
 
-    // Форма створення
     const [maxUses, setMaxUses] = useState('');
     const [expiresAt, setExpiresAt] = useState('');
     const [targetUsername, setTargetUsername] = useState('');
 
-    const fetchInvites = useCallback(async () => {
+    const fetchInvites = useCallback(() => {
         setLoading(true);
-        try {
-            const res = await SpaceService.getInvites(space.username);
-            if (res.invites) {
-                setInvites(res.invites);
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    }, [space.username]);
+        SpaceService.getInvites(space.username)
+            .onSuccess((res) => {
+                if (res.invites) setInvites(res.invites);
+            })
+            .onError((err) => {
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            })
+            .onFinally(() => {
+                setLoading(false);
+            });
+    }, [space.username, t]);
 
     useEffect(() => {
-        if (isAdmin) fetchInvites();
-    }, [isAdmin, fetchInvites]);
+        if (canManageInvites) fetchInvites();
+    }, [canManageInvites, fetchInvites]);
 
-    const handleCreate = async (e) => {
+    const handleCreate = (e) => {
         e.preventDefault();
         setIsCreating(true);
-        try {
-            const payload = {};
-            if (maxUses) payload.max_uses = parseInt(maxUses, 10);
-            if (expiresAt) payload.expires_at = new Date(expiresAt).toISOString();
-            if (targetUsername) payload.target_username = targetUsername;
 
-            const res = await SpaceService.createInvite(space.username, payload);
-            if (res.invite) {
-                setInvites([res.invite, ...invites]);
-                setMaxUses('');
-                setExpiresAt('');
-                setTargetUsername('');
-                notifySuccess(t('spaces.invite_created'));
-            }
-        } catch (error) {
-            notifyError(error.response?.data?.message || t('error.server'));
-        } finally {
-            setIsCreating(false);
-        }
+        const payload = {};
+        if (maxUses) payload.max_uses = parseInt(maxUses, 10);
+        if (expiresAt) payload.expires_at = new Date(expiresAt).toISOString();
+        if (targetUsername.trim()) payload.target_username = targetUsername.trim();
+
+        SpaceService.createInvite(space.username, payload)
+            .onSuccess((res) => {
+                if (res.invite) {
+                    setInvites(prev => [res.invite, ...prev]);
+                    setMaxUses('');
+                    setExpiresAt('');
+                    setTargetUsername('');
+                }
+                notifySuccess(t(`api.success.${res.code}`));
+            })
+            .onError((err) => {
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            })
+            .onFinally(() => {
+                setIsCreating(false);
+            });
     };
 
-    const handleRevoke = async (token) => {
+    const handleRevoke = (token) => {
         if (!window.confirm(t('common.confirm_action'))) return;
-        try {
-            await SpaceService.revokeInvite(space.username, token);
-            setInvites(invites.filter(inv => inv.token !== token));
-            notifySuccess(t('spaces.invite_revoked'));
-        } catch (error) {
-            console.error(error);
-        }
+
+        SpaceService.revokeInvite(space.username, token)
+            .onSuccess((res) => {
+                setInvites(prev => prev.filter(inv => inv.token !== token));
+                notifySuccess(t(`api.success.${res.code}`));
+            })
+            .onError((err) => {
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            });
     };
 
     const handleCopy = (token) => {
@@ -80,19 +82,18 @@ const SpaceInvitesTab = () => {
         notifySuccess(t('common.copied'));
     };
 
-    if (!isAdmin) return null;
+    if (!canManageInvites) return null;
 
     return (
-        <div className="flex flex-col gap-[15px]">
-            {/* Форма створення інвайту */}
+        <div className="flex flex-col gap-[10px]">
             <div className="bg-bg-box border border-border">
-                <div className="bg-theme-header-bg text-theme-link p-[8px_12px] text-[12px] font-bold border-b border-border">
+                <div className="bg-theme-header-bg text-theme-link p-[5px_10px] text-[11px] font-bold border-b border-border border-t-[2px] border-t-theme-link">
                     {t('spaces.invites_create_title')}
                 </div>
-                <form className="p-[15px] flex flex-col gap-[15px]" onSubmit={handleCreate}>
+                <form className="p-[12px] flex flex-col gap-[12px]" onSubmit={handleCreate}>
                     <div className="grid grid-cols-3 gap-[10px] max-md:grid-cols-1">
                         <div>
-                            <label className="block font-bold text-[11px] mb-[6px] text-text-muted">
+                            <label className="block font-bold text-[11px] mb-[4px] text-text-muted">
                                 {t('spaces.invite_max_uses')}
                             </label>
                             <Input
@@ -104,7 +105,7 @@ const SpaceInvitesTab = () => {
                             />
                         </div>
                         <div>
-                            <label className="block font-bold text-[11px] mb-[6px] text-text-muted">
+                            <label className="block font-bold text-[11px] mb-[4px] text-text-muted">
                                 {t('spaces.invite_expires_at')}
                             </label>
                             <Input
@@ -114,7 +115,7 @@ const SpaceInvitesTab = () => {
                             />
                         </div>
                         <div>
-                            <label className="block font-bold text-[11px] mb-[6px] text-text-muted">
+                            <label className="block font-bold text-[11px] mb-[4px] text-text-muted">
                                 {t('spaces.invite_target_user')}
                             </label>
                             <Input
@@ -133,28 +134,41 @@ const SpaceInvitesTab = () => {
                 </form>
             </div>
 
-            {/* Список активних інвайтів */}
             <div className="bg-bg-box border border-border">
-                <div className="bg-theme-header-bg text-theme-link p-[8px_12px] text-[12px] font-bold border-b border-border">
+                <div className="bg-theme-header-bg text-theme-link p-[5px_10px] text-[11px] font-bold border-b border-border border-t-[2px] border-t-theme-link">
                     {t('spaces.invites_active_list')}
                 </div>
-                <div className="p-[10px] flex flex-col gap-[10px]">
+                <div className="p-[10px] flex flex-col gap-[8px]">
                     {loading ? (
                         <div className="text-center text-text-muted py-[20px]">{t('common.loading')}</div>
                     ) : invites.length === 0 ? (
                         <div className="text-center text-text-muted py-[20px]">{t('spaces.list_empty')}</div>
                     ) : (
                         invites.map(invite => (
-                            <div key={invite.token} className="border border-border p-[10px] bg-bg-page flex justify-between items-center max-md:flex-col max-md:items-start max-md:gap-[10px]">
-                                <div className="flex flex-col gap-[4px] text-[11px]">
-                                    <div className="font-bold text-theme-link text-[12px]">
+                            <div
+                                key={invite.token}
+                                className="border border-border p-[10px] bg-bg-page flex justify-between items-center gap-[10px] max-md:flex-col max-md:items-start"
+                            >
+                                <div className="flex flex-col gap-[4px] text-[11px] min-w-0">
+                                    <div className="font-bold text-theme-link text-[12px] truncate">
                                         {window.location.origin}/join/{invite.token}
                                     </div>
-                                    <div className="text-text-muted">
-                                        {t('spaces.invite_created_by')}: <span className="font-bold text-text-main">{invite.creator?.username || t('common.unknown')}</span>
-                                    </div>
-                                    <div className="text-text-muted">
-                                        {t('spaces.invite_uses')}: {invite.uses_count} / {invite.max_uses || '∞'}
+                                    <div className="flex flex-wrap gap-x-[12px] gap-y-[2px] text-text-muted">
+                                        <span>
+                                            {t('spaces.invite_created_by')}:{' '}
+                                            <strong className="text-text-main">
+                                                {invite.creator?.username || t('common.unknown')}
+                                            </strong>
+                                        </span>
+                                        <span>
+                                            {t('spaces.invite_uses')}: {invite.uses_count} / {invite.max_uses || '∞'}
+                                        </span>
+                                        {invite.target_user && (
+                                            <span>
+                                                {t('spaces.invite_target_user')}:{' '}
+                                                <strong className="text-theme-link">@{invite.target_user.username}</strong>
+                                            </span>
+                                        )}
                                     </div>
                                     {invite.expires_at && (
                                         <div className="text-text-muted">
@@ -162,7 +176,8 @@ const SpaceInvitesTab = () => {
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex gap-[10px] shrink-0">
+
+                                <div className="flex gap-[6px] shrink-0">
                                     <Button variant="secondary" onClick={() => handleCopy(invite.token)}>
                                         {t('action.copy')}
                                     </Button>
