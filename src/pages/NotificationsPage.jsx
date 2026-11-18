@@ -28,6 +28,12 @@ export default function NotificationsPage() {
     const navigate = useNavigate();
     const [selectedReport, setSelectedReport] = useState(null);
 
+    const handleMarkRead = (notif) => {
+        if (!notif.read_at) {
+            markAsRead(notif.id);
+        }
+    };
+
     const handleNotificationClick = (notif, payload, isSystemReport, linkUrl) => {
         if (!notif.read_at) {
             markAsRead(notif.id);
@@ -89,6 +95,7 @@ export default function NotificationsPage() {
                             key={notif.id}
                             notif={notif}
                             handleNotificationClick={handleNotificationClick}
+                            handleMarkRead={handleMarkRead}
                             getConfig={getConfig}
                             formatDate={formatDate}
                         />

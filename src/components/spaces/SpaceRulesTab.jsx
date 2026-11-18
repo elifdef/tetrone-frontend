@@ -2,10 +2,23 @@ import { useState, useContext, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SpaceContext } from '../../context/SpaceContext';
 import SpaceService from '../../services/space.service';
-import RichText from '../common/RichText';
+import RichText, { decodeTipTapContent } from '../common/RichText';
 import Button from '../ui/Button';
 import SmartEditor from '../editor/SmartEditor.jsx';
 import { notifySuccess, notifyError } from '../common/Notify';
+
+const hasTipTapContent = (value) => {
+    const doc = decodeTipTapContent(value);
+    if (!doc || typeof doc !== 'object' || !Array.isArray(doc.content)) return false;
+
+    return doc.content.some((node) => {
+        if (node.type === 'customSticker' || node.type === 'image') return true;
+        if (Array.isArray(node.content) && node.content.length > 0) {
+            return node.content.some((child) => (child.text && child.text.trim().length > 0) || child.type !== 'text');
+        }
+        return false;
+    });
+};
 
 const SpaceRulesTab = () => {
     const { t } = useTranslation();
@@ -29,6 +42,8 @@ const SpaceRulesTab = () => {
     const handleSave = () => {
         setIsLoading(true);
 
+        const nextRules = hasTipTapContent(rulesContent) ? rulesContent : null;
+
         const payload = {
             name: space.name,
             privacy_type: space.privacy_type,
@@ -36,13 +51,15 @@ const SpaceRulesTab = () => {
             is_members_hidden: Boolean(space.is_members_hidden),
             links: space.links || null,
             description: space.description || null,
-            rules: rulesContent || null
+            rules: nextRules
         };
 
         SpaceService.updateSpace(space.username, payload)
             .onSuccess((res) => {
                 if (res.space) {
                     updateSpace(res.space);
+                } else {
+                    updateSpace({ rules: nextRules });
                 }
                 setIsEditing(false);
                 notifySuccess(t(`api.success.${res.code}`));
@@ -54,6 +71,8 @@ const SpaceRulesTab = () => {
                 setIsLoading(false);
             });
     };
+
+    const rulesExist = hasTipTapContent(space.rules);
 
     return (
         <div className="bg-bg-box border border-border">
@@ -73,11 +92,13 @@ const SpaceRulesTab = () => {
             <div className="p-[14px]">
                 {isEditing ? (
                     <div className="flex flex-col gap-[12px]">
-                        <SmartEditor
+                        <div className="border border-input-border bg-input-bg">
+                            <SmartEditor
                                 preset="default"
                                 value={rulesContent}
                                 onChange={setRulesContent}
                             />
+                        </div>
                         <div className="flex gap-[8px] justify-end">
                             <Button variant="secondary" onClick={handleCancel}>
                                 {t('action.cancel')}
@@ -87,9 +108,9 @@ const SpaceRulesTab = () => {
                             </Button>
                         </div>
                     </div>
-                ) : space.rules ? (
+                ) : rulesExist ? (
                     <div className="text-[12px] leading-[1.45]">
-                        <RichText content={space.rules} />
+                        <RichText text={space.rules} limit={8192} />
                     </div>
                 ) : (
                     <div className="text-center text-text-muted text-[11px] py-[20px]">

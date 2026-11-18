@@ -122,14 +122,14 @@ const CreateSpaceModal = ({ onClose }) => {
             desc: t('spaces.privacy_desc_public')
         },
         {
-            value: 'closed',
-            label: t('spaces.privacy_closed'),
-            desc: t('spaces.privacy_desc_closed')
-        },
-        {
             value: 'private',
             label: t('spaces.privacy_private'),
             desc: t('spaces.privacy_desc_private')
+        },
+        {
+            value: 'closed',
+            label: t('spaces.privacy_closed'),
+            desc: t('spaces.privacy_desc_closed')
         }
     ];
 

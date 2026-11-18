@@ -1,4 +1,3 @@
-// src/components/spaces/SpaceMembersTab.jsx
 import { useState, useEffect, useContext, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -17,11 +16,25 @@ const SpaceMembersTab = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [counts, setCounts] = useState({
+        approved: space?.members_count ?? 0,
+        staff: 0,
+        pending: space?.pending_requests_count ?? 0,
+    });
+
+    useEffect(() => {
+        setCounts((prev) => ({
+            ...prev,
+            approved: space?.members_count ?? prev.approved,
+            pending: space?.pending_requests_count ?? prev.pending,
+        }));
+    }, [space?.members_count, space?.pending_requests_count]);
 
     const fetchMembers = useCallback(() => {
         setLoading(true);
         const queryStatus = activeTab === 'pending' ? 'pending' : 'approved';
         const params = { status: queryStatus };
+        if (activeTab === 'staff') params.role = 'staff';
         if (searchQuery.trim()) params['filter[name]'] = searchQuery.trim();
 
         SpaceService.getSpaceMembers(space.username, params)
@@ -30,6 +43,20 @@ const SpaceMembersTab = () => {
                     ? res.members
                     : (res.members?.data || []);
                 setMembers(items);
+
+                if (res.counts) {
+                    setCounts({
+                        approved: res.counts.approved ?? 0,
+                        staff: res.counts.staff ?? 0,
+                        pending: res.counts.pending ?? 0,
+                    });
+                    updateSpace({
+                        members_count: res.counts.approved ?? space.members_count,
+                        pending_requests_count: res.counts.pending ?? space.pending_requests_count,
+                    });
+                } else if (typeof res.members?.total === 'number') {
+                    setCounts((prev) => ({ ...prev, [activeTab]: res.members.total }));
+                }
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
@@ -58,18 +85,32 @@ const SpaceMembersTab = () => {
 
         if (newRole === member.role && normalizedTitle === currentTitle) return;
 
+        const wasStaff = STAFF_ROLES.includes(member.role);
+        const willBeStaff = STAFF_ROLES.includes(newRole);
+
         SpaceService.updateMemberRole(space.username, member.user.username, {
             role: newRole,
             custom_title: normalizedTitle
         })
             .onSuccess((res) => {
-                setMembers(prev =>
-                    prev.map(m =>
+                setMembers((prev) => {
+                    const updated = prev.map((m) =>
                         m.user.username === member.user.username
                             ? { ...m, role: newRole, custom_title: normalizedTitle }
                             : m
-                    )
-                );
+                    );
+                    return activeTab === 'staff' && !willBeStaff
+                        ? updated.filter((m) => m.user.username !== member.user.username)
+                        : updated;
+                });
+
+                if (wasStaff !== willBeStaff) {
+                    setCounts((prev) => ({
+                        ...prev,
+                        staff: Math.max(0, prev.staff + (willBeStaff ? 1 : -1)),
+                    }));
+                }
+
                 notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
@@ -77,14 +118,27 @@ const SpaceMembersTab = () => {
             });
     };
 
-    const handleKick = (targetUsername) => {
+    const handleKick = (member) => {
         if (!window.confirm(t('common.confirm_action'))) return;
+
+        const targetUsername = member.user.username;
+        const isTargetStaff = STAFF_ROLES.includes(member.role);
 
         SpaceService.kickMember(space.username, targetUsername)
             .onSuccess((res) => {
-                setMembers(prev => prev.filter(m => m.user.username !== targetUsername));
-                if (activeTab !== 'pending') {
-                    updateSpace({ members_count: Math.max(0, (space.members_count || 1) - 1) });
+                setMembers((prev) => prev.filter((m) => m.user.username !== targetUsername));
+                if (activeTab === 'pending') {
+                    const nextPending = Math.max(0, counts.pending - 1);
+                    setCounts((prev) => ({ ...prev, pending: nextPending }));
+                    updateSpace({ pending_requests_count: nextPending });
+                } else {
+                    const nextApproved = Math.max(0, counts.approved - 1);
+                    setCounts((prev) => ({
+                        ...prev,
+                        approved: nextApproved,
+                        staff: isTargetStaff ? Math.max(0, prev.staff - 1) : prev.staff,
+                    }));
+                    updateSpace({ members_count: nextApproved });
                 }
                 notifySuccess(t(`api.success.${res.code}`));
             })
@@ -96,8 +150,32 @@ const SpaceMembersTab = () => {
     const handleApprove = (targetUsername) => {
         SpaceService.approveMember(space.username, targetUsername)
             .onSuccess((res) => {
-                setMembers(prev => prev.filter(m => m.user.username !== targetUsername));
-                updateSpace({ members_count: (space.members_count || 0) + 1 });
+                setMembers((prev) => prev.filter((m) => m.user.username !== targetUsername));
+                const nextApproved = counts.approved + 1;
+                const nextPending = Math.max(0, counts.pending - 1);
+                setCounts((prev) => ({
+                    ...prev,
+                    approved: nextApproved,
+                    pending: nextPending,
+                }));
+                updateSpace({
+                    members_count: nextApproved,
+                    pending_requests_count: nextPending,
+                });
+                notifySuccess(t(`api.success.${res.code}`));
+            })
+            .onError((err) => {
+                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            });
+    };
+
+    const handleReject = (targetUsername) => {
+        SpaceService.rejectMember(space.username, targetUsername)
+            .onSuccess((res) => {
+                setMembers((prev) => prev.filter((m) => m.user.username !== targetUsername));
+                const nextPending = Math.max(0, counts.pending - 1);
+                setCounts((prev) => ({ ...prev, pending: nextPending }));
+                updateSpace({ pending_requests_count: nextPending });
                 notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
@@ -111,12 +189,8 @@ const SpaceMembersTab = () => {
         { value: 'admin', label: t('spaces.role_admin') }
     ];
 
-    const displayMembers = activeTab === 'staff'
-        ? members.filter(m => STAFF_ROLES.includes(m.role))
-        : members;
-
     const getTabClass = (tab) =>
-        `flex-1 py-[8px] text-[11px] font-bold border-r last:border-r-0 border-border transition-colors cursor-pointer ${
+        `flex-1 py-[8px] px-[6px] text-[11px] font-bold border-r last:border-r-0 border-border transition-colors cursor-pointer flex items-center justify-center gap-[5px] ${
             activeTab === tab
                 ? 'bg-bg-box text-theme-link'
                 : 'text-text-muted hover:bg-bg-box'
@@ -130,14 +204,21 @@ const SpaceMembersTab = () => {
 
             <div className="flex border-b border-border bg-bg-page">
                 <button type="button" className={getTabClass('approved')} onClick={() => setActiveTab('approved')}>
-                    {t('spaces.members_all')}
+                    <span>{t('spaces.members_all')}</span>
+                    <span className="text-[10px] font-normal text-text-muted">({counts.approved})</span>
                 </button>
                 <button type="button" className={getTabClass('staff')} onClick={() => setActiveTab('staff')}>
-                    {t('spaces.blocks_staff')}
+                    <span>{t('spaces.blocks_staff')}</span>
+                    <span className="text-[10px] font-normal text-text-muted">({counts.staff})</span>
                 </button>
                 {canManageMembers && space.privacy_type !== 'public' && (
                     <button type="button" className={getTabClass('pending')} onClick={() => setActiveTab('pending')}>
-                        {t('spaces.members_requests')}
+                        <span>{t('spaces.members_requests')}</span>
+                        {counts.pending > 0 && (
+                            <span className="px-[5px] py-[0px] bg-theme-link text-white text-[10px] font-bold leading-[15px]">
+                                +{counts.pending}
+                            </span>
+                        )}
                     </button>
                 )}
             </div>
@@ -154,10 +235,10 @@ const SpaceMembersTab = () => {
             <div className="p-[10px] flex flex-col gap-[8px]">
                 {loading ? (
                     <div className="text-center text-text-muted py-[20px]">{t('common.loading')}</div>
-                ) : displayMembers.length === 0 ? (
+                ) : members.length === 0 ? (
                     <div className="text-center text-text-muted py-[20px]">{t('spaces.list_empty')}</div>
                 ) : (
-                    displayMembers.map(member => (
+                    members.map(member => (
                         <div
                             key={member.user.username}
                             className="flex items-center gap-[10px] p-[10px] border border-border bg-bg-page max-md:flex-col"
@@ -196,7 +277,7 @@ const SpaceMembersTab = () => {
                                             <Button
                                                 variant="danger"
                                                 className="text-[10px]"
-                                                onClick={() => handleKick(member.user.username)}
+                                                onClick={() => handleReject(member.user.username)}
                                             >
                                                 {t('action.reject')}
                                             </Button>
@@ -213,7 +294,7 @@ const SpaceMembersTab = () => {
                                                 </div>
                                                 <Button
                                                     variant="danger"
-                                                    onClick={() => handleKick(member.user.username)}
+                                                    onClick={() => handleKick(member)}
                                                 >
                                                     {t('spaces.kick')}
                                                 </Button>

@@ -76,7 +76,6 @@ const StickerShopPage = () =>
         setSearchParams(searchParams);
     };
 
-    // Формуємо масив для твого компонента Tabs
     const tabList = [
         {id: 'catalog', label: t('stickers.tab_catalog')},
         {id: 'my', label: t('stickers.tab_my')}
@@ -84,14 +83,12 @@ const StickerShopPage = () =>
 
     return (
         <div className="w-full max-w-[800px] mx-auto box-border p-[20px] bg-bg-page border border-border text-[11px] text-text-main max-md:p-[10px]">
-            {/* Точна копія шапки з NotificationsPage */}
             <div className="bg-theme-header-bg text-theme-link text-[11px] font-bold p-[8px_10px] -mt-[20px] -mx-[20px] mb-[15px] border-b border-border flex justify-between items-center max-md:-mt-[10px] max-md:-mx-[10px]">
                 <div className="flex items-center gap-[6px]">
                     <span>{t('stickers.shop_title')}</span>
                 </div>
             </div>
 
-            {/* Використовуємо твій компонент (CSS з XP автоматично зробить його правильним) */}
             <Tabs
                 tabs={tabList}
                 activeTab={currentTab}

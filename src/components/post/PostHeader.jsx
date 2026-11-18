@@ -51,7 +51,6 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
     const showTarget = !!target && !isPostedOnOwnWall && !isViewingTargetWall && !isAvatarUpdate;
 
     const avatarUpdateText = author.gender === 2 ? t('post.updated_avatar_female') : t('post.updated_avatar_male');
-    const wroteOnWallText = t(`post.wrote_on_wall_${author.gender === 2 ? 'female' : 'male'}`);
 
     const menuItemClass = "w-full text-left px-[8px] py-[6px] flex items-center gap-[6px] text-text-main hover:bg-bg-page hover:text-theme-link hover:underline cursor-pointer border-none bg-transparent outline-none text-[11px] font-normal transition-none";
     const dangerItemClass = "w-full text-left px-[8px] py-[6px] flex items-center gap-[6px] text-theme-error hover:bg-[rgba(255,51,71,0.1)] hover:text-theme-error hover:underline cursor-pointer border-none bg-transparent outline-none text-[11px] font-normal transition-none";
@@ -68,30 +67,15 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
                 </Link>
 
                 <div className="flex flex-col text-[11px] flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-x-[4px] leading-[1.4]">
+                    <div className="flex flex-wrap items-center gap-x-[5px] leading-[1.4]">
                         {authorIsSpace ? (
-                            <>
-                                <Link
-                                    to={authorLink}
-                                    className="font-bold text-[12px] no-underline hover:underline text-theme-link"
-                                    onClick={handleLinkClick}
-                                >
-                                    {author.name}
-                                </Link>
-                                {post.creator && (
-                                    <span className="text-[11px] text-text-muted flex items-center gap-[3px]">
-                                        <span>({t('post.posted_by')}:</span>
-                                        <Link
-                                            to={`/${post.creator.username}`}
-                                            className="text-theme-link hover:underline no-underline"
-                                            onClick={handleLinkClick}
-                                        >
-                                            <UserDisplayName user={post.creator} showUsername={false} className="text-[11px]" />
-                                        </Link>
-                                        <span>)</span>
-                                    </span>
-                                )}
-                            </>
+                            <Link
+                                to={authorLink}
+                                className="font-bold text-[12px] no-underline hover:underline text-theme-link"
+                                onClick={handleLinkClick}
+                            >
+                                {author.name}
+                            </Link>
                         ) : (
                             <Link
                                 to={authorLink}
@@ -106,40 +90,57 @@ const PostHeader = ({ post, isOwner, onEdit, onDelete, onReport, currentUsername
                             <span className="text-text-main">{avatarUpdateText}</span>
                         )}
 
-                        {showTarget && targetIsUser && (
-                            <span className="text-text-main flex items-center gap-[4px]">
-                                {wroteOnWallText}
-                                <Link to={`/${target.username}`} className="no-underline hover:underline text-theme-link" onClick={handleLinkClick}>
-                                    <UserDisplayName user={target} showUsername={false} />
-                                </Link>
-                            </span>
-                        )}
-
-                        {showTarget && targetIsSpace && (
-                            <span className="text-text-main flex items-center gap-[4px]">
-                                <span className="text-[10px] text-text-muted">▶</span>
-                                <Link to={`/${target.username}`} className="text-theme-link font-bold hover:underline" onClick={handleLinkClick}>
-                                    {target.name}
-                                </Link>
+                        {showTarget && (targetIsUser || targetIsSpace) && (
+                            <span className="text-text-main flex items-center gap-[5px]">
+                                <span className="text-[9px] text-text-muted">▶</span>
+                                {targetIsSpace ? (
+                                    <Link
+                                        to={`/${target.username}`}
+                                        className="text-theme-link font-bold text-[12px] no-underline hover:underline"
+                                        onClick={handleLinkClick}
+                                    >
+                                        {target.name}
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        to={`/${target.username}`}
+                                        className="no-underline hover:underline text-theme-link"
+                                        onClick={handleLinkClick}
+                                    >
+                                        <UserDisplayName user={target} showUsername={false} className="text-[12px]" />
+                                    </Link>
+                                )}
                             </span>
                         )}
                     </div>
 
-                    <div className="flex items-center gap-[4px] mt-[2px] text-[10px] text-text-muted">
-
+                    <div className="flex flex-wrap items-center gap-x-[5px] mt-[2px] text-[10px] text-text-muted">
                         <Link to={`/post/${post.id}`} className="text-text-muted hover:underline no-underline" onClick={handleLinkClick}>
                             {formatDate(post.created_at)}
                         </Link>
 
+                        {authorIsSpace && post.creator && (
+                            <span className="flex items-center gap-[3px]">
+                                <span>·</span>
+                                <span>{t('post.posted_by')}</span>
+                                <Link
+                                    to={`/${post.creator.username}`}
+                                    className="text-text-muted hover:text-theme-link hover:underline no-underline"
+                                    onClick={handleLinkClick}
+                                >
+                                    <UserDisplayName user={post.creator} showUsername={false} className="text-[10px]" />
+                                </Link>
+                            </span>
+                        )}
+
                         {isEdited && !isScheduled && (
                             <span
                                 className="italic text-text-muted cursor-help"
-                                title={`${t('common.edited')} ${formatDate(post.updated_at)}`} // Виправлено зайву дужку тут
+                                title={`${t('common.edited')} ${formatDate(post.updated_at)}`}
                             >
                                 ({t('common.edited')})
                             </span>
                         )}
-
                     </div>
                 </div>
 

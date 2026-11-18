@@ -55,7 +55,7 @@ const parseInputToIso = (text, locale) => {
     return `${yearNum}-${mm}-${dd}`;
 };
 
-const DateInput = forwardRef(({ label, error, className = "", value = "", onChange, name, id, disabled, required, ...props }, ref) => {
+const DateInput = forwardRef(({ label, error, className = "", value = "", onChange, name, id, disabled, required, minYear, maxYear, minDate, ...props }, ref) => {
     const { t, i18n } = useTranslation();
     const containerRef = useRef(null);
 
@@ -127,7 +127,10 @@ const DateInput = forwardRef(({ label, error, className = "", value = "", onChan
     };
 
     const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+    const resolvedMaxYear = maxYear ?? currentYear;
+    const resolvedMinYear = minYear ?? (resolvedMaxYear - 99);
+    const yearsCount = Math.max(1, resolvedMaxYear - resolvedMinYear + 1);
+    const years = Array.from({ length: yearsCount }, (_, i) => resolvedMaxYear - i);
 
     const monthNames = [
         t('date.months.jan'), t('date.months.feb'), t('date.months.mar'),
@@ -198,6 +201,12 @@ const DateInput = forwardRef(({ label, error, className = "", value = "", onChan
             Number(selectedParts[1]) === m + 1 &&
             Number(selectedParts[2]) === d
         );
+    };
+
+    const isDisabledDate = (y, m, d) => {
+        if (!minDate) return false;
+        const cellIso = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        return cellIso < minDate;
     };
 
     return (
@@ -293,18 +302,21 @@ const DateInput = forwardRef(({ label, error, className = "", value = "", onChan
                         {calendarCells.map((cell, idx) => {
                             const selected = isSelected(cell.year, cell.month, cell.day);
                             const currentDay = isToday(cell.year, cell.month, cell.day);
+                            const dateDisabled = isDisabledDate(cell.year, cell.month, cell.day);
 
                             return (
                                 <button
                                     key={idx}
                                     type="button"
-                                    onClick={() => handleSelectDate(cell.year, cell.month, cell.day)}
+                                    disabled={dateDisabled}
+                                    onClick={() => !dateDisabled && handleSelectDate(cell.year, cell.month, cell.day)}
                                     className={`
-                                        w-[28px] h-[20px] leading-[20px] text-[11px] rounded-none border border-transparent cursor-pointer p-0 select-none
+                                        w-[28px] h-[20px] leading-[20px] text-[11px] rounded-none border border-transparent p-0 select-none
+                                        ${dateDisabled ? 'text-text-muted opacity-25 cursor-not-allowed' : 'cursor-pointer'}
                                         ${selected ? '!bg-theme-link !text-white !font-bold !border-theme-link' : ''}
                                         ${!selected && currentDay ? '!border-border font-bold' : ''}
-                                        ${!selected && cell.isCurrentMonth ? 'text-text-main hover:bg-header-bg hover:text-theme-link' : ''}
-                                        ${!selected && !cell.isCurrentMonth ? 'text-text-muted opacity-30 hover:bg-header-bg' : ''}
+                                        ${!selected && !dateDisabled && cell.isCurrentMonth ? 'text-text-main hover:bg-header-bg hover:text-theme-link' : ''}
+                                        ${!selected && !dateDisabled && !cell.isCurrentMonth ? 'text-text-muted opacity-30 hover:bg-header-bg' : ''}
                                     `}
                                 >
                                     {cell.day}

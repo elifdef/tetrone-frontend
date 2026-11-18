@@ -69,7 +69,16 @@ export default function Notification({ notification, onClose }) {
         'content_restored'
     ].includes(type);
 
-    const isSystem = !isChatMessage && (actor.username === 'system' || !actor.username || isSystemReport);
+    const hasSpaceSubject = !isChatMessage && !actor?.username && Boolean(payload.space_username);
+    const subjectEntity = hasSpaceSubject
+        ? {
+            username: payload.space_username,
+            first_name: payload.space_name,
+            avatar: payload.space_avatar,
+        }
+        : actor;
+
+    const isSystem = !isChatMessage && !hasSpaceSubject && (actor.username === 'system' || !actor.username || isSystemReport);
 
     const titleName = isChatMessage
         ? t('notifications.new_message')
@@ -77,7 +86,9 @@ export default function Notification({ notification, onClose }) {
 
     const senderName = isSystem
         ? t('common.moderation')
-        : `${actor.first_name || ''} ${actor.last_name || ''}`.trim() || actor.username;
+        : hasSpaceSubject
+            ? payload.space_name
+            : `${actor.first_name || ''} ${actor.last_name || ''}`.trim() || actor.username;
 
     const chatMsg = notification.message;
     const chatBadges = [];
@@ -121,7 +132,7 @@ export default function Notification({ notification, onClose }) {
         mediaPreview,
         isReaction,
         mediaPosition
-    } = getConfig(type, actor, target);
+    } = getConfig(type, actor, target, payload);
 
     const targetLink = notification.link || linkUrl;
 
@@ -165,7 +176,7 @@ export default function Notification({ notification, onClose }) {
                 </div>
 
                 <div className="flex gap-[10px] px-[10px] pb-[8px] pt-[6px] items-start">
-                    <NotificationAvatar user={actor} isSystem={isSystem} />
+                    <NotificationAvatar user={subjectEntity} isSystem={isSystem} />
 
                     <div className="flex flex-col text-[11px] leading-[1.3] flex-1 min-w-0 text-text-main">
                         {isChatMessage ? (

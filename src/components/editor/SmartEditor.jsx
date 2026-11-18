@@ -24,10 +24,15 @@ export default function SmartEditor({
 }) {
     const { t } = useTranslation();
 
+    const initialContent = useMemo(() => decodeTipTapContent(value), []);
+
     const [showFormatMenu, setShowFormatMenu] = useState(false);
     const [showPicker, setShowPicker] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [isEmpty, setIsEmpty] = useState(true);
+    const [isEmpty, setIsEmpty] = useState(() => {
+        if (!initialContent || typeof initialContent !== 'object') return true;
+        return !Array.isArray(initialContent.content) || initialContent.content.length === 0;
+    });
 
     const pickerRef = useRef(null);
 
@@ -44,7 +49,6 @@ export default function SmartEditor({
     useEffect(() => { onPasteFilesRef.current = onPasteFiles; }, [onPasteFiles]);
 
     const extensions = useEditorExtensions({ preset, placeholder, onEnterRef });
-    const initialContent = useMemo(() => decodeTipTapContent(value), []);
 
     const editor = useEditor({
         extensions,
@@ -61,6 +65,9 @@ export default function SmartEditor({
                 return false;
             },
         },
+        onCreate: ({ editor }) => {
+            setIsEmpty(editor.isEmpty);
+        },
         onUpdate: ({ editor }) => {
             onChangeRef.current(editor.getJSON());
             setIsEmpty(editor.isEmpty);
@@ -68,9 +75,20 @@ export default function SmartEditor({
     }, [preset]);
 
     useEffect(() => {
-        if (editor && (!value || Object.keys(value).length === 0) && !editor.isDestroyed) {
-            editor.commands.clearContent();
+        if (!editor || editor.isDestroyed) return;
+
+        if (!value || Object.keys(value).length === 0) {
+            if (!editor.isEmpty) {
+                editor.commands.clearContent();
+            }
             setIsEmpty(true);
+            return;
+        }
+
+        const decoded = decodeTipTapContent(value);
+        if (JSON.stringify(editor.getJSON()) !== JSON.stringify(decoded)) {
+            editor.commands.setContent(decoded, false);
+            setIsEmpty(editor.isEmpty);
         }
     }, [value, editor]);
 

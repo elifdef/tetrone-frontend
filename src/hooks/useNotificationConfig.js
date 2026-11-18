@@ -11,9 +11,9 @@ export const useNotificationConfig = () =>
     const { user: currentUser } = useContext(AuthContext);
     const formatDate = useDateFormatter(); // ДОДАНО ФОРМАТЕР
 
-    const getConfig = (type, actor, target) =>
+    const getConfig = (type, actor, target, payload = {}) =>
     {
-        if (!actor || !target)
+        if (!target)
         {
             return {
                 actionText: '',
@@ -25,7 +25,8 @@ export const useNotificationConfig = () =>
             };
         }
 
-        const genderId = actor.gender || 1;
+        const safeActor = actor || {};
+        const genderId = safeActor.gender || 1;
         const phrase = getGenderMap(t)[genderId] || {};
 
         let snippetText = target.preview_text || null;
@@ -191,6 +192,47 @@ export const useNotificationConfig = () =>
                     date: target.ticket_date ? formatDate(target.ticket_date) : ''
                 }),
                 linkUrl: `/support?view=ticket_detail&ticket_id=${target.ticket_id}&message_id=${target.message_id}`,
+                snippetText: null,
+                mediaPreview: null
+            }),
+            new_space_post: () => ({
+                actionText: phrase.published_in_space,
+                linkText: payload.space_name || '',
+                linkUrl: `/post/${target.sub_target_id || payload.post_id}`,
+                mediaPosition: 'left'
+            }),
+            space_request_approved: () => ({
+                actionText: t('notifications.space_request_approved'),
+                linkText: payload.space_name || '',
+                linkUrl: payload.space_username ? `/${payload.space_username}` : null,
+                snippetText: null,
+                mediaPreview: null
+            }),
+            space_request_rejected: () => ({
+                actionText: t('notifications.space_request_rejected'),
+                linkText: payload.space_name || '',
+                linkUrl: payload.space_username ? `/${payload.space_username}` : null,
+                snippetText: null,
+                mediaPreview: null
+            }),
+            space_member_kicked: () => ({
+                actionText: phrase.kicked_from_space,
+                linkText: payload.space_name || '',
+                linkUrl: payload.space_username ? `/${payload.space_username}` : null,
+                snippetText: null,
+                mediaPreview: null
+            }),
+            space_role_changed: () => ({
+                actionText: `${phrase.changed_space_role} ${payload.new_role ? t(`spaces.role_${payload.new_role}`) : ''} ${t('notifications.in_space')}`,
+                linkText: payload.space_name || '',
+                linkUrl: payload.space_username ? `/${payload.space_username}` : null,
+                snippetText: null,
+                mediaPreview: null
+            }),
+            space_role_removed: () => ({
+                actionText: phrase.removed_space_role,
+                linkText: payload.space_name || '',
+                linkUrl: payload.space_username ? `/${payload.space_username}` : null,
                 snippetText: null,
                 mediaPreview: null
             })

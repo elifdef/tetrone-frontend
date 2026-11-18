@@ -1,8 +1,9 @@
 import fetchClient from '../api/client';
 
 const EntityService = {
-    resolveHandle: (handle) => {
-        return fetchClient(`/${handle}`);
+    resolveHandle: (handle, params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return fetchClient(`/${handle}${query ? `?${query}` : ''}`);
     }
 };
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useParams, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import EntityService from '@/services/entity.service';
 import ProfilePage from '@/pages/ProfilePage';
@@ -9,6 +9,8 @@ import NotFoundPage from '@/pages/NotFoundPage';
 const EntityResolverPage = () =>
 {
     const { handle } = useParams();
+    const [searchParams] = useSearchParams();
+    const inviteToken = searchParams.get('invite');
     const { t } = useTranslation();
 
     const [entityInfo, setEntityInfo] = useState(null);
@@ -21,7 +23,8 @@ const EntityResolverPage = () =>
             try
             {
                 setLoading(true);
-                const res = await EntityService.resolveHandle(handle);
+                const params = inviteToken ? { invite: inviteToken } : {};
+                const res = await EntityService.resolveHandle(handle, params);
 
                 if (res)
                 {
@@ -55,7 +58,7 @@ const EntityResolverPage = () =>
         };
 
         fetchEntity();
-    }, [handle]);
+    }, [handle, inviteToken]);
 
     if (loading)
     {

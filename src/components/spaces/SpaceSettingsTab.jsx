@@ -84,6 +84,13 @@ const SpaceSettingsTab = () => {
         formData.append('description', form.description ? JSON.stringify(form.description) : '');
         formData.append('rules', space.rules ? JSON.stringify(space.rules) : '');
 
+        if (Array.isArray(space.links) && space.links.length > 0) {
+            space.links.forEach((link, idx) => {
+                if (link?.title) formData.append(`links[${idx}][title]`, link.title);
+                if (link?.url) formData.append(`links[${idx}][url]`, link.url);
+            });
+        }
+
         if (avatarFile instanceof File || avatarFile instanceof Blob) {
             formData.append('avatar_file', avatarFile);
         }

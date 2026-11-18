@@ -12,15 +12,19 @@ class NotificationSettingsService {
         return fetchClient('/settings/notifications/overrides');
     }
 
-    updateOverride(targetUserId, data) {
-        return fetchClient(`/settings/notifications/overrides/${targetUserId}`, {
+    updateOverride(username, data, targetType = 'user') {
+        return fetchClient('/settings/notifications/overrides', {
             method: 'PUT',
-            body: data
+            body: {
+                target_type: targetType,
+                username,
+                ...data
+            }
         });
     }
 
-    deleteOverride(targetUserId) {
-        return fetchClient(`/settings/notifications/overrides/${targetUserId}`, {
+    deleteOverride(username, targetType = 'user') {
+        return fetchClient(`/settings/notifications/overrides/${targetType}/${username}`, {
             method: 'DELETE'
         });
     }

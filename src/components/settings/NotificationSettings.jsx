@@ -28,9 +28,20 @@ const NotificationSettings = () =>
 
     useEffect(() =>
     {
-        if (user && user.notification_settings)
+        if (user)
         {
-            setSettings(user.notification_settings);
+            const userSettings = user.notification_settings || {};
+            const normalized = {};
+
+            SETTING_ITEMS.forEach(({type}, index) =>
+            {
+                normalized[type] = {
+                    is_enabled: userSettings[type]?.is_enabled ?? true,
+                    sound_id: userSettings[type]?.sound_id ?? (index + 1)
+                };
+            });
+
+            setSettings(normalized);
         }
         setLoading(false);
     }, [user]);
@@ -39,7 +50,11 @@ const NotificationSettings = () =>
     {
         setSettings(prev => ({
             ...prev,
-            [type]: {...prev[type], is_enabled: !prev[type]?.is_enabled}
+            [type]: {
+                sound_id: prev[type]?.sound_id ?? 1,
+                ...prev[type],
+                is_enabled: !prev[type]?.is_enabled
+            }
         }));
     };
 

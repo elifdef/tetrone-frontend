@@ -2,6 +2,7 @@ import { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import SpaceService from '@/services/space.service';
+import NotificationSettingsService from '@/services/notification.settings.service';
 import { SpaceContext, STAFF_ROLES } from '@/context/SpaceContext';
 import { notifyError, notifySuccess } from '@/components/common/Notify';
 import Avatar from '@/components/ui/Avatar';
@@ -10,6 +11,7 @@ const SpaceRightSidebar = ({ currentTab }) => {
     const { t } = useTranslation();
     const { space, updateSpace, isOwner, canManageSettings, canManageInvites, canManageMembers } = useContext(SpaceContext);
     const [isLoading, setIsLoading] = useState(false);
+    const [isMuteLoading, setIsMuteLoading] = useState(false);
 
     if (!space) return null;
 
@@ -82,11 +84,42 @@ const SpaceRightSidebar = ({ currentTab }) => {
         if (isLoading) return t('common.loading');
         if (space.is_member) return t('spaces.leave');
         if (isPending) return t('spaces.members_requests');
-        if (isClosed) return t('spaces.request_join');
+        if (isPrivate) return t('spaces.request_join');
         return t('spaces.join');
     };
 
-    const showJoinButton = !isOwner && space.is_member !== null && (!isPrivate || space.is_member || isPending);
+    const handleNotificationsToggle = () => {
+        if (isMuteLoading || !space.is_member) return;
+        setIsMuteLoading(true);
+
+        if (space.is_notifications_muted) {
+            NotificationSettingsService.deleteOverride(space.username, 'space')
+                .onSuccess((res) => {
+                    updateSpace({ is_notifications_muted: false });
+                    notifySuccess(t(`api.success.${res.code}`));
+                })
+                .onError((err) => {
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                })
+                .onFinally(() => {
+                    setIsMuteLoading(false);
+                });
+        } else {
+            NotificationSettingsService.updateOverride(space.username, { is_muted: true }, 'space')
+                .onSuccess((res) => {
+                    updateSpace({ is_notifications_muted: true });
+                    notifySuccess(t(`api.success.${res.code}`));
+                })
+                .onError((err) => {
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                })
+                .onFinally(() => {
+                    setIsMuteLoading(false);
+                });
+        }
+    };
+
+    const showJoinButton = !isOwner && space.is_member !== null && (!isClosed || space.is_member || isPending);
 
     return (
         <div className="flex flex-col gap-[10px]">
@@ -105,6 +138,20 @@ const SpaceRightSidebar = ({ currentTab }) => {
                         {getActionLabel()}
                     </button>
                 )}
+                {space.is_member && (
+                    <button
+                        type="button"
+                        className="block py-[5px] px-[8px] bg-bg-page hover:bg-theme-header-bg text-text-muted hover:text-theme-link border border-border text-[11px] text-center w-full transition-colors cursor-pointer disabled:opacity-60"
+                        onClick={handleNotificationsToggle}
+                        disabled={isMuteLoading}
+                    >
+                        {isMuteLoading
+                            ? t('common.loading')
+                            : space.is_notifications_muted
+                                ? t('spaces.unmute_notifications')
+                                : t('spaces.mute_notifications')}
+                    </button>
+                )}
             </div>
 
             {canViewContent && (
@@ -112,8 +159,13 @@ const SpaceRightSidebar = ({ currentTab }) => {
                     <Link to={spaceUrl} className={getLinkClass('wall')}>
                         {t('spaces.tab_wall')}
                     </Link>
-                    <Link to={`${spaceUrl}?tab=members`} className={getLinkClass('members')}>
-                        {t('spaces.tab_members')}
+                    <Link to={`${spaceUrl}?tab=members`} className={`${getLinkClass('members')} flex items-center justify-between`}>
+                        <span>{t('spaces.tab_members')}</span>
+                        {canManageMembers && space.pending_requests_count > 0 && (
+                            <span className="px-[5px] bg-theme-link text-white text-[10px] font-bold leading-[14px]">
+                                +{space.pending_requests_count}
+                            </span>
+                        )}
                     </Link>
                     <Link to={`${spaceUrl}?tab=rules`} className={getLinkClass('rules')}>
                         {t('spaces.tab_rules')}

@@ -32,17 +32,27 @@ const RestrictedSpaceBox = () => {
     if (!space) return null;
 
     const isPending = space.membership_status === 'pending';
-    const isPrivate = space.privacy_type === 'private';
+    const isClosed = space.privacy_type === 'closed';
 
-    const handleJoinSubmit = (e) => {
-        if (e) e.preventDefault();
+    const extractCleanToken = (raw) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return '';
+        try {
+            const url = new URL(trimmed);
+            const queryInvite = url.searchParams.get('invite');
+            if (queryInvite) return queryInvite.trim();
+            return url.pathname.split('/').filter(Boolean).pop() || '';
+        } catch {
+            return trimmed.split('invite=').pop().split('/').pop().trim();
+        }
+    };
+
+    const submitJoin = (tokenToUse = null) => {
         if (isSubmitting || isPending) return;
-
-        const cleanToken = inviteToken.trim().split('/').pop();
-        if (isPrivate && !cleanToken) return;
+        if (isClosed && !tokenToUse) return;
 
         setIsSubmitting(true);
-        SpaceService.joinSpace(space.username, isPrivate ? cleanToken : null)
+        SpaceService.joinSpace(space.username, tokenToUse || null)
             .onSuccess((res) => {
                 notifySuccess(t(`api.success.${res.code}`));
                 if (res.code === 'JOIN_REQUEST_SENT') {
@@ -57,6 +67,9 @@ const RestrictedSpaceBox = () => {
                                 searchParams.delete('invite');
                                 setSearchParams(searchParams, { replace: true });
                             }
+                        })
+                        .onError((err) => {
+                            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
                         });
                 }
             })
@@ -66,6 +79,13 @@ const RestrictedSpaceBox = () => {
             .onFinally(() => {
                 setIsSubmitting(false);
             });
+    };
+
+    const handleInviteFormSubmit = (e) => {
+        e.preventDefault();
+        const cleanToken = extractCleanToken(inviteToken);
+        if (!cleanToken) return;
+        submitJoin(cleanToken);
     };
 
     return (
@@ -84,8 +104,19 @@ const RestrictedSpaceBox = () => {
                 </p>
 
                 {space.is_member !== null && !isPending && (
-                    isPrivate ? (
-                        <form onSubmit={handleJoinSubmit} className="flex items-center gap-[6px] w-full max-w-[340px] mt-[4px]">
+                    <div className="flex flex-col items-center gap-[10px] w-full max-w-[360px] mt-[4px]">
+                        {!isClosed && !inviteToken.trim() && (
+                            <Button
+                                type="button"
+                                variant="primary"
+                                disabled={isSubmitting}
+                                onClick={() => submitJoin(null)}
+                            >
+                                {isSubmitting ? t('common.loading') : t('spaces.request_join')}
+                            </Button>
+                        )}
+
+                        <form onSubmit={handleInviteFormSubmit} className="flex items-center gap-[6px] w-full">
                             <div className="flex-1">
                                 <Input
                                     type="text"
@@ -96,22 +127,13 @@ const RestrictedSpaceBox = () => {
                             </div>
                             <Button
                                 type="submit"
-                                variant="primary"
+                                variant={isClosed || inviteToken.trim() ? 'primary' : 'secondary'}
                                 disabled={isSubmitting || !inviteToken.trim()}
                             >
                                 {isSubmitting ? t('common.loading') : t('spaces.accept_invite')}
                             </Button>
                         </form>
-                    ) : (
-                        <Button
-                            type="button"
-                            variant="primary"
-                            disabled={isSubmitting}
-                            onClick={handleJoinSubmit}
-                        >
-                            {isSubmitting ? t('common.loading') : t('spaces.request_join')}
-                        </Button>
-                    )
+                    </div>
                 )}
             </div>
         </div>
@@ -137,11 +159,11 @@ const SpacePageLayout = () => {
 
         switch (currentTab) {
             case 'settings':
-                return canManageSettings ? <SpaceSettingsTab /> : <ForbiddenBox message={t('error.forbidden')} />;
+                return canManageSettings ? <SpaceSettingsTab /> : <ForbiddenBox message={t('api.error.ERR_FORBIDDEN')} />;
             case 'stats':
-                return canManageMembers ? <SpaceStatsTab /> : <ForbiddenBox message={t('error.forbidden')} />;
+                return canManageMembers ? <SpaceStatsTab /> : <ForbiddenBox message={t('api.error.ERR_FORBIDDEN')} />;
             case 'invites':
-                return canManageInvites ? <SpaceInvitesTab /> : <ForbiddenBox message={t('error.forbidden')} />;
+                return canManageInvites ? <SpaceInvitesTab /> : <ForbiddenBox message={t('api.error.ERR_FORBIDDEN')} />;
             case 'rules':
                 return <SpaceRulesTab />;
             case 'members':

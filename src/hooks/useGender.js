@@ -23,6 +23,10 @@ export const useGender = (genderValue) =>
             accepted_friend: t('notifications.accepted_friend_male'),
             voted: t('notifications.voted_male'),
             replied: t('notifications.replied_male'),
+            published_in_space: t('notifications.published_in_space_male'),
+            kicked_from_space: t('notifications.kicked_from_space_male'),
+            changed_space_role: t('notifications.changed_space_role_male'),
+            removed_space_role: t('notifications.removed_space_role_male'),
         },
 
         2: {
@@ -43,6 +47,10 @@ export const useGender = (genderValue) =>
             accepted_friend: t('notifications.accepted_friend_female'),
             voted: t('notifications.voted_female'),
             replied: t('notifications.replied_female'),
+            published_in_space: t('notifications.published_in_space_female'),
+            kicked_from_space: t('notifications.kicked_from_space_female'),
+            changed_space_role: t('notifications.changed_space_role_female'),
+            removed_space_role: t('notifications.removed_space_role_female'),
         }
     });
 
