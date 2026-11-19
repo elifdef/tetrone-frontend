@@ -280,7 +280,7 @@ const SpaceInvitesTab = () => {
                                     key={invite.token}
                                     className="border border-border p-[10px] bg-bg-page flex justify-between items-start gap-[10px] max-md:flex-col"
                                 >
-                                    <div className="flex flex-col gap-[5px] text-[11px] min-w-0 flex-1">
+                                    <div className="flex flex-col gap-[5px] text-[11px] min-w-0 flex-1 max-md:w-full">
                                         {rules.note && (
                                             <div className="font-bold text-text-main text-[11px]">
                                                 {rules.note}

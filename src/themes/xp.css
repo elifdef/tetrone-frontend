@@ -448,6 +448,13 @@
     min-height: calc(100vh - 30px);
 }
 
+@media (max-width: 767px) {
+    :root[data-style="xp"] main {
+        margin-top: 0;
+        padding: 60px 10px 10px 10px;
+    }
+}
+
 :root[data-style="xp"] footer {
     margin: 20px 15px 15px 15px;
     border-top-width: 1px;

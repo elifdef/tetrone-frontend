@@ -18,7 +18,15 @@ const LeftSidebar = () => {
     const navigate = useNavigate();
 
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const isMobile = useIsMobile();
+    const [isCompact, setIsCompact] = useState(() => window.innerWidth < 1024);
+
+    useEffect(() => {
+        const mq = window.matchMedia("(max-width: 1023px)");
+        const onChange = (e) => setIsCompact(e.matches);
+        setIsCompact(mq.matches);
+        mq.addEventListener("change", onChange);
+        return () => mq.removeEventListener("change", onChange);
+    }, []);
 
     useEffect(() => {
         setIsMobileOpen(false);
@@ -74,12 +82,13 @@ const LeftSidebar = () => {
             />
 
             {/* Саме меню */}
-            <aside className={`w-[10%] min-w-[170px] shrink-0 py-[15px] sticky top-4 h-screen box-border flex flex-col bg-[var(--theme-bg-page)] max-md:w-full max-md:min-w-auto max-md:h-auto max-md:max-h-[75vh] max-md:fixed max-md:top-0 max-md:left-0 max-md:z-[2000] max-md:bg-bg-box max-md:border-b max-md:border-border max-md:pt-[55px] max-md:px-[10px] max-md:pb-[15px] max-md:transition-transform max-md:duration-300 max-md:overflow-y-auto max-md:shadow-none ${isMobileOpen ? 'max-md:translate-y-0 max-md:shadow-[0_4px_20px_rgba(0,0,0,0.5)]' : 'max-md:-translate-y-full'}`}>                <Link to="/" className="block font-bold text-[20px] text-text-main no-underline mb-[25px] pl-[10px] max-md:hidden" onClick={closeMenu}>
+            <aside className={`w-[10%] min-w-[170px] max-lg:w-[210px] shrink-0 py-[15px] sticky top-4 h-screen box-border flex flex-col bg-[var(--theme-bg-page)] max-md:w-full max-md:min-w-auto max-md:h-auto max-md:max-h-[75vh] max-md:fixed max-md:top-0 max-md:left-0 max-md:z-[2000] max-md:bg-bg-box max-md:border-b max-md:border-border max-md:pt-[55px] max-md:px-[10px] max-md:pb-[15px] max-md:transition-transform max-md:duration-300 max-md:overflow-y-auto max-md:shadow-none ${isMobileOpen ? 'max-md:translate-y-0 max-md:shadow-[0_4px_20px_rgba(0,0,0,0.5)]' : 'max-md:-translate-y-full'}`}>
+                <Link to="/" className="block font-bold text-[20px] text-text-main no-underline mb-[25px] pl-[10px] max-md:hidden" onClick={closeMenu}>
                     {APP_NAME}
                 </Link>
 
-                {isMobile && (
-                    <div className="block w-full mb-[10px] box-border [&_.tetrone-global-player]:mb-0 [&_.tetrone-global-player]:border-l-0 [&_.tetrone-global-player]:border-r-0 [&_.tetrone-global-player]:bg-bg-page">
+                {isCompact && (
+                    <div className="block w-full mb-[10px] box-border [&_.tetrone-global-player]:mb-0 max-md:[&_.tetrone-global-player]:border-l-0 max-md:[&_.tetrone-global-player]:border-r-0 [&_.tetrone-global-player]:bg-bg-page">
                         <GlobalAudioPlayer />
                     </div>
                 )}

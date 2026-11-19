@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import SpaceRightSidebar from '@/components/spaces/SpaceRightSidebar';
+import SpaceMobileHeader from '@/components/spaces/SpaceMobileHeader';
 import SpaceWallTab from '@/components/spaces/SpaceWallTab';
 import SpaceSettingsTab from '@/components/spaces/SpaceSettingsTab';
 import SpaceStatsTab from '@/components/spaces/SpaceStatsTab';
@@ -175,11 +176,12 @@ const SpacePageLayout = () => {
     };
 
     return (
-        <div className="w-full max-w-[960px] mx-auto p-[15px] flex items-start gap-[15px] max-md:flex-col font-tahoma text-[11px] text-text-main">
-            <main className="flex-1 flex flex-col gap-[10px] min-w-0 w-full">
+        <div className="w-full flex items-start gap-[15px] font-tahoma text-[11px] text-text-main">
+            <div className="flex-1 flex flex-col gap-[10px] min-w-0">
+                <SpaceMobileHeader currentTab={currentTab} />
                 {renderContent()}
-            </main>
-            <aside className="w-[210px] shrink-0 flex flex-col gap-[10px] max-md:w-full">
+            </div>
+            <aside className="w-[210px] shrink-0 flex flex-col gap-[10px] max-lg:hidden">
                 <SpaceRightSidebar currentTab={currentTab} />
             </aside>
         </div>

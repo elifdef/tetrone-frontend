@@ -190,7 +190,7 @@ const SpaceRightSidebar = ({ currentTab }) => {
                     )}
                 </div>
             )}
-            
+
             {staffMembers.length > 0 && (
                 <div className="bg-bg-box border border-border">
                     <div className="bg-theme-header-bg text-theme-link p-[4px_8px] text-[11px] font-bold border-b border-border border-t-[2px] border-t-theme-link">

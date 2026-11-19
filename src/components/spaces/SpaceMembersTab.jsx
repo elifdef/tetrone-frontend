@@ -241,24 +241,24 @@ const SpaceMembersTab = () => {
                     members.map(member => (
                         <div
                             key={member.user.username}
-                            className="flex items-center gap-[10px] p-[10px] border border-border bg-bg-page max-md:flex-col"
+                            className="flex items-center gap-[10px] p-[10px] border border-border bg-bg-page max-md:flex-wrap"
                         >
                             <Link to={`/${member.user.username}`} className="shrink-0">
                                 <img
                                     src={member.user.avatar}
                                     alt={member.user.username}
-                                    className="w-[48px] h-[48px] object-cover border border-border"
+                                    className="w-[48px] h-[48px] max-md:w-[40px] max-md:h-[40px] object-cover border border-border"
                                 />
                             </Link>
 
-                            <div className="flex-1 min-w-0 max-md:text-center">
+                            <div className="flex-1 min-w-0">
                                 <Link
                                     to={`/${member.user.username}`}
-                                    className="font-bold text-theme-link hover:underline text-[12px]"
+                                    className="font-bold text-theme-link hover:underline text-[12px] block truncate"
                                 >
                                     {member.user.first_name || member.user.username}
                                 </Link>
-                                <div className="text-[10px] text-text-muted mt-[2px]">
+                                <div className="text-[10px] text-text-muted mt-[2px] truncate">
                                     {member.custom_title || t(`spaces.role_${member.role}`)}
                                 </div>
                             </div>
