@@ -6,6 +6,7 @@ import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
 import Footer from "./Footer";
 import EmailVerificationBanner from "./EmailVerificationBanner";
+import MediaDebugModal from "../modals/MediaDebugModal";
 
 export default function MainLayout() {
     const { user } = useContext(AuthContext);
@@ -22,6 +23,7 @@ export default function MainLayout() {
                 <RightSidebar />
             </div>
             <Footer />
+            <MediaDebugModal />
         </AudioProvider>
     );
 }

@@ -1,69 +1,71 @@
-/* Базові стилі плеєра, які адаптуються під поточну тему через CSS-змінні */
 .app-video-player {
-    --plyr-color-main: var(--theme-link);
-    --plyr-video-background: #000000;
-    --plyr-menu-background: var(--theme-bg-box);
-    --plyr-menu-color: var(--theme-text-main);
-    --plyr-control-radius: 0px;
-    --plyr-menu-radius: 0px;
-    --plyr-tooltip-radius: 0px;
-    --plyr-badge-border-radius: 0px;
-}
-
-/* Рамка і тінь самого плеєра */
-.app-video-player.plyr,
-.app-video-player .plyr {
     background: #000;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-    width: 100%;
     outline: none;
+    --media-accent-color: var(--theme-link);
+    --media-primary-color: #ffffff;
+    --media-controls: rgba(10, 10, 12, 0.72);
+    --media-popover: rgba(14, 14, 18, 0.86);
+    --media-backdrop-filter-surface: blur(12px) saturate(140%);
+    --media-backdrop-filter-indicator: blur(10px);
+    --media-border-color: rgba(255, 255, 255, 0.16);
+    --media-border-radius: 0px;
+    --media-video-border-radius: 0px;
+    --media-control-radius: 0px;
+    --media-controls-radius: 0px;
+    --media-dialog-radius: 0px;
+    --media-menu-item-radius: 0px;
+    --media-popup-radius: 0px;
+    --media-control-corner-shape: square;
+}
+
+.app-video-player,
+.app-video-player *,
+.app-video-player *::before,
+.app-video-player *::after,
+[data-theme="default"][data-preset="video"],
+[data-theme="default"][data-preset="video"] *,
+[data-theme="default"][data-preset="video"] *::before,
+[data-theme="default"][data-preset="video"] *::after {
     border-radius: 0 !important;
-    overflow: hidden;
 }
 
-/* Панель керування */
-.app-video-player .plyr__controls {
-    border-top: 1px solid #444;
-    padding: 5px 10px !important;
+.app-video-player .app-vjs-skin {
+    width: 100%;
+    height: auto;
+    aspect-ratio: auto !important;
+    background: #000;
 }
 
-/* Кастомний квадратний повзунок */
-.app-video-player input[type='range']::-webkit-slider-thumb {
-    background: #fff !important;
-    border: 1px solid #999 !important;
-    height: 12px !important;
-    width: 8px !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    -webkit-appearance: none;
-    margin-top: -4px;
+.app-video-player video {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 72vh;
+    object-fit: contain;
+    background: #000;
 }
 
-.app-video-player input[type='range']::-moz-range-thumb {
-    background: #fff !important;
-    border: 1px solid #999 !important;
-    height: 12px !important;
-    width: 8px !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+.app-video-player.in-modal video {
+    max-height: 78vh;
 }
 
-/* Велика кнопка Play по центру */
-.app-video-player .plyr__control--overlaid {
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid #fff;
-    padding: 15px 25px;
-    border-radius: 0 !important;
-    transition: all 0.2s ease;
+.app-vjs-wip-btn {
+    padding: 2px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 10px;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: background-color 0.12s ease, border-color 0.12s ease;
 }
 
-.app-video-player .plyr__control--overlaid:hover {
-    background: var(--theme-link);
+.app-vjs-wip-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.app-vjs-wip-btn.is-active {
     border-color: var(--theme-link);
-}
-
-/* Меню налаштувань */
-.app-video-player .plyr__menu__container {
-    border: 1px solid var(--theme-border) !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    background: color-mix(in srgb, var(--theme-link) 35%, transparent);
+    color: #fff;
 }

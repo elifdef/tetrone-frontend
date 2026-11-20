@@ -21,15 +21,20 @@ export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, o
     }, [local.images, local.videos, external.youtube]);
 
     useEffect(() => {
-        if (!mediaId || mediaFiles.length === 0) return;
-        const index = mediaFiles.findIndex(m => m.id === mediaId || m.videoId === mediaId);
-        setCurrentIndex(index !== -1 ? index : 0);
-    }, [mediaId, mediaFiles]);
+        updateLocalPost(post);
+    }, [post]);
 
     useEffect(() => {
-        updateLocalPost(post);
-        setCurrentIndex(0);
-    }, [post]);
+        if (mediaId == null || mediaFiles.length === 0) {
+            setCurrentIndex(0);
+            return;
+        }
+        const target = String(mediaId);
+        const index = mediaFiles.findIndex(
+            m => String(m.id) === target || String(m.videoId) === target || m.url === mediaId
+        );
+        setCurrentIndex(index !== -1 ? index : 0);
+    }, [mediaId, mediaFiles]);
 
     const handleNext = useCallback((e) => {
         if (e) e.stopPropagation();
@@ -109,15 +114,15 @@ export default function PhotoModal({ isOpen, mediaId, post, onClose, onUpdate, o
                         </>
                     )}
 
-                    <div className="max-w-full max-h-[80vh] flex items-center justify-center">
+                    <div className="w-full max-h-[80vh] flex items-center justify-center">
                         {currentMedia?.type === 'image' && (
                             <img src={currentMedia.url} className="max-w-full max-h-[80vh] object-contain block m-auto" alt="" />
                         )}
                         {currentMedia?.type === 'video' && (
-                            <VideoPlayer src={currentMedia.url} controls className="max-w-full max-h-[80vh]" />
+                            <VideoPlayer src={currentMedia.url} poster={currentMedia.cover_url || ''} className="w-full" />
                         )}
                         {currentMedia?.videoId && (
-                            <VideoPlayer src={currentMedia.videoId} provider="youtube" className="max-w-full max-h-[80vh]" />
+                            <VideoPlayer src={currentMedia.videoId} provider="youtube" className="w-full max-w-[900px]" />
                         )}
                     </div>
                 </div>
