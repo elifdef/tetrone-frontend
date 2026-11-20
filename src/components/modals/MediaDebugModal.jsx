@@ -3,25 +3,7 @@ import { useTranslation } from 'react-i18next';
 import Modal from './Modal';
 import { useSocket } from '../../context/SocketContext';
 import { notifySuccess } from '../common/Notify';
-
-const isTetroneDebugEnabled = () => {
-    try {
-        const val = localStorage.getItem('tetrone_debug');
-        return val !== null && val !== '' && val !== '0' && val !== 'false';
-    } catch {
-        return false;
-    }
-};
-
-const extractDebugAttachments = (payload) => {
-    if (!payload || typeof payload !== 'object') return [];
-    const postObj = payload.post || payload.data || payload;
-    const attachments = Array.isArray(postObj?.attachments) ? postObj.attachments : [];
-
-    return attachments.filter(
-        (a) => a && ['image', 'video', 'audio'].includes(a.type) && a.meta
-    );
-};
+import { isTetroneDebugEnabled } from '../../utils/debug';
 
 export default function MediaDebugModal() {
     const { t } = useTranslation();
@@ -44,42 +26,20 @@ export default function MediaDebugModal() {
     }, [isOpen, items]);
 
     useEffect(() => {
-        if (window.__tetroneMediaDebugPatched) return undefined;
-        window.__tetroneMediaDebugPatched = true;
-
-        const origFetch = window.fetch;
-        window.fetch = async function (...args) {
-            const response = await origFetch.apply(this, args);
-
-            try {
-                if (isTetroneDebugEnabled() && response.ok) {
-                    const reqInfo = args[0];
-                    const reqInit = args[1] || {};
-                    const url = typeof reqInfo === 'string' ? reqInfo : (reqInfo?.url || '');
-                    const method = String(
-                        reqInit.method || (typeof reqInfo === 'object' ? reqInfo?.method : '') || 'GET'
-                    ).toUpperCase();
-
-                    if (['POST', 'PUT', 'PATCH'].includes(method) && url.includes('/api/')) {
-                        const cloned = response.clone();
-                        cloned.json().then((data) => {
-                            const mediaList = extractDebugAttachments(data);
-                            if (mediaList.length > 0) {
-                                window.dispatchEvent(
-                                    new CustomEvent('tetrone:media-debug-batch', { detail: mediaList })
-                                );
-                            }
-                        }).catch(() => {});
-                    }
-                }
-            } catch {
-                // ignore
+        const handleOpenSingle = (event) => {
+            const att = event.detail;
+            if (!att) return;
+            if (att.id) {
+                trackedIdsRef.current.add(att.id);
             }
-
-            return response;
+            setItems([att]);
+            setActiveIndex(0);
+            setNowTs(Date.now());
+            setIsOpen(true);
         };
 
-        return undefined;
+        window.addEventListener('tetrone:media-debug-open', handleOpenSingle);
+        return () => window.removeEventListener('tetrone:media-debug-open', handleOpenSingle);
     }, []);
 
     useEffect(() => {
@@ -314,7 +274,7 @@ export default function MediaDebugModal() {
                             <>
                                 <div>
                                     <span className="text-text-muted">{t('debug.profile')}</span>{' '}
-                                    <b>{conversion.target_key ? t(conversion.target_key) : '—'}</b>
+                                    <b>{conversion.target_key ? t(conversion.target_key, conversion.target_params || {}) : '—'}</b>
                                 </div>
                                 <div><span className="text-text-muted">{t('debug.output_format')}</span> <b>{conversion.output_format}</b></div>
                                 {conversion.output_res && (
@@ -339,6 +299,27 @@ export default function MediaDebugModal() {
                                     <span className="text-text-muted">{t('debug.conversion_time')}</span>{' '}
                                     <b>{conversion.elapsed_seconds} {t('debug.seconds_unit')}</b>
                                 </div>
+                                {conversion.output_video && (
+                                    <div className="mt-[4px] pt-[4px] border-t border-dashed border-border">
+                                        <div className="text-text-muted">{t('debug.video_stream')}</div>
+                                        <div className="font-bold">
+                                            {conversion.output_video.codec}
+                                            {conversion.output_video.profile ? ` (${conversion.output_video.profile})` : ''}
+                                            {conversion.output_video.fps ? ` • ${conversion.output_video.fps} fps` : ''}
+                                            {conversion.output_video.pix_fmt ? ` • ${conversion.output_video.pix_fmt}` : ''}
+                                        </div>
+                                    </div>
+                                )}
+                                {conversion.output_audio && (
+                                    <div className="mt-[4px] pt-[4px] border-t border-dashed border-border">
+                                        <div className="text-text-muted">{t('debug.audio_stream')}</div>
+                                        <div className="font-bold">
+                                            {conversion.output_audio.codec}
+                                            {conversion.output_audio.sample_rate ? ` • ${conversion.output_audio.sample_rate} Hz` : ''}
+                                            {conversion.output_audio.channels ? ` • ${conversion.output_audio.channels} ch` : ''}
+                                        </div>
+                                    </div>
+                                )}
                             </>
                         ) : (
                             <div className="text-text-muted italic py-[12px]">

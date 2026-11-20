@@ -1,4 +1,5 @@
 import {API_URL, APP_ENV} from "../config.js";
+import {extractDebugAttachments, isTetroneDebugEnabled} from "../utils/debug.js";
 
 class ApiRequest
 {
@@ -51,6 +52,12 @@ export default function fetchClient(endpoint, {
 } = {})
 {
     const headers = {'Accept': 'application/json'};
+    const debugEnabled = isTetroneDebugEnabled();
+
+    if (debugEnabled)
+    {
+        headers['X-Tetrone-Debug'] = '1';
+    }
 
     if (body && !(body instanceof FormData))
     {
@@ -91,6 +98,17 @@ export default function fetchClient(endpoint, {
 
         // ФІКС: Додали ok: response.ok
         const Data = {...data, status: response.status, ok: response.ok};
+
+        if (debugEnabled && Data.ok && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase()))
+        {
+            const mediaList = extractDebugAttachments(Data);
+            if (mediaList.length > 0)
+            {
+                window.dispatchEvent(
+                    new CustomEvent('tetrone:media-debug-batch', {detail: mediaList})
+                );
+            }
+        }
 
         if (!silentAuth)
         {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ImagePreviewModal from '../ui/ImagePreviewModal';
 import VideoPlayer from '../ui/VideoPlayer';
 import AudioTrack from '../ui/AudioTrack';
+import MediaAttachmentDebugBar from '../ui/MediaAttachmentDebugBar';
 import FileTypeIcon from '../ui/FileTypeIcon';
 import { isImageFile, isVideoFile, isAudioFile, getVideoMimeType } from '../../utils/fileTypes';
 
@@ -35,12 +36,15 @@ export default function MessageAttachmentsList({ files = [], activeChat = null }
                     // Повноцінне відео через VideoPlayer
                     if (isVideoFile(file)) {
                         return (
-                            <div key={idx} className="w-full max-w-[420px] border border-border overflow-hidden bg-black rounded-none">
-                                <VideoPlayer
-                                    src={file.url}
-                                    type={getVideoMimeType(file)}
-                                    className="w-full"
-                                />
+                            <div key={idx} className="w-full max-w-[420px] flex flex-col">
+                                <div className="w-full border border-border overflow-hidden bg-black rounded-none">
+                                    <VideoPlayer
+                                        src={file.url}
+                                        type={getVideoMimeType(file)}
+                                        className="w-full"
+                                    />
+                                </div>
+                                <MediaAttachmentDebugBar attachment={file} />
                             </div>
                         );
                     }
@@ -63,7 +67,8 @@ export default function MessageAttachmentsList({ files = [], activeChat = null }
                                         size: fileSize,
                                         file_size: fileSize,
                                         cover_url: file.cover_url || null,
-                                        status: 'ready'
+                                        status: file.status || 'ready',
+                                        meta: file.meta || null,
                                     }}
                                     sourceInfo={{
                                         type: 'chat',
