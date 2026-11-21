@@ -163,6 +163,7 @@ const PostItem = ({
                     likesCount={postData.likes_count}
                     commentsCount={postData.comments_count}
                     repostsCount={postData.reposts_count}
+                    recentComments={postData.recent_comments}
                     onToggleReaction={handleToggleReaction}
                     reactions={postData.reactions}
                     onLike={toggleLike}
@@ -196,5 +197,6 @@ export default memo(PostItem, (prevProps, nextProps) => {
     if (JSON.stringify(prevProps.post.reactions) !== JSON.stringify(nextProps.post.reactions)) return false;
     if (JSON.stringify(prevProps.post.content) !== JSON.stringify(nextProps.post.content)) return false;
     if (prevProps.post.attachments !== nextProps.post.attachments) return false;
+    if (prevProps.post.recent_comments !== nextProps.post.recent_comments) return false;
     return true;
 });

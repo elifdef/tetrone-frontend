@@ -51,4 +51,36 @@
     .depth-3 > .comment-children > .comment-thread {
         @apply pl-0;
     }
+
+    /* Компактне дерево для прев'ю коментарів під постом */
+    .comment-preview .comment-item {
+        @apply py-[4px];
+    }
+    .comment-preview .comment-item.has-children::before {
+        @apply top-[32px] left-[13px]; /* 4px padding + 28px аватарка; центр = 13px */
+    }
+    .comment-preview .depth-2 > .has-children::before {
+        @apply top-[28px] left-[11px]; /* 4px padding + 24px аватарка; центр = 11px */
+    }
+    .comment-preview .comment-children {
+        @apply ml-[13px];
+    }
+    .comment-preview .depth-2 > .comment-children {
+        @apply ml-[11px];
+    }
+    .comment-preview .depth-3 > .comment-children {
+        @apply ml-0;
+    }
+    .comment-preview .comment-children > .comment-thread {
+        @apply pl-[12px];
+    }
+    .comment-preview .comment-children > .comment-thread:last-child::before {
+        @apply h-[16px]; /* 4px padding + половина 24px аватарки */
+    }
+    .comment-preview .comment-children > .comment-thread::after {
+        @apply top-[16px] w-[10px];
+    }
+    .comment-preview .depth-3 > .comment-children > .comment-thread {
+        @apply pl-0;
+    }
 }
