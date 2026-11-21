@@ -7,6 +7,7 @@ import RightSidebar from "./RightSidebar";
 import Footer from "./Footer";
 import EmailVerificationBanner from "./EmailVerificationBanner";
 import MediaDebugModal from "../modals/MediaDebugModal";
+import RequestProfilerDrawer from "../modals/RequestProfilerDrawer";
 
 export default function MainLayout() {
     const { user } = useContext(AuthContext);
@@ -24,6 +25,7 @@ export default function MainLayout() {
             </div>
             <Footer />
             <MediaDebugModal />
+            <RequestProfilerDrawer />
         </AudioProvider>
     );
 }

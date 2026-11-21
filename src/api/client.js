@@ -96,6 +96,24 @@ export default function fetchClient(endpoint, {
             }
         }
 
+        const traceId = response.headers.get('X-Tetrone-Trace-Id');
+        const traceMs = response.headers.get('X-Tetrone-Trace-Ms');
+
+        if (debugEnabled && traceId && !endpoint.startsWith('/debug/traces'))
+        {
+            window.dispatchEvent(
+                new CustomEvent('tetrone:trace-captured', {
+                    detail: {
+                        trace_id: traceId,
+                        method: method.toUpperCase(),
+                        path: `/v1${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`,
+                        status: response.status,
+                        duration_ms: traceMs ? Number(traceMs) : null,
+                    }
+                })
+            );
+        }
+
         // ФІКС: Додали ok: response.ok
         const Data = {...data, status: response.status, ok: response.ok};
 

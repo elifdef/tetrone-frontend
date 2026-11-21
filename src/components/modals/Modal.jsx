@@ -60,6 +60,8 @@ export default function Modal({
     let widthClass = "w-[500px]";
     if (sizeClass === "modal-sm") widthClass = "w-[350px]";
     if (sizeClass === "modal-lg") widthClass = "w-[700px]";
+    if (sizeClass === "modal-xl") widthClass = "w-[1150px]";
+    if (sizeClass === "modal-full") widthClass = "w-[96vw] max-w-[1440px]";
 
     return (
         <div
@@ -71,7 +73,7 @@ export default function Modal({
                 onMouseDown={(e) => e.stopPropagation()}
             >
                 {!hideHeader && (
-                    <div className="bg-modal-header-bg text-modal-header-text border-b border-border py-[8px] px-[12px] flex justify-between items-center">
+                    <div className="shrink-0 bg-modal-header-bg text-modal-header-text border-b border-border py-[8px] px-[12px] flex justify-between items-center">
                         {title ? <h3 className="m-0 text-[12px] font-bold text-modal-header-text">{title}</h3> : <div></div>}
                         <button
                             className="bg-transparent border-none text-modal-header-text text-[14px] leading-none cursor-pointer p-0 opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center outline-none"
@@ -87,12 +89,12 @@ export default function Modal({
                     </div>
                 )}
 
-                <div className={`p-[15px] overflow-y-auto bg-bg-box ${bodyClassName}`}>
+                <div className={`flex-1 min-h-0 p-[15px] overflow-y-auto bg-bg-box ${bodyClassName}`}>
                     {children}
                 </div>
 
                 {footer && (
-                    <div className="bg-bg-page border-t border-border py-[10px] px-[15px] flex justify-end items-center gap-[10px]">
+                    <div className="shrink-0 bg-bg-page border-t border-border py-[10px] px-[15px] flex justify-end items-center gap-[10px]">
                         {footer}
                     </div>
                 )}

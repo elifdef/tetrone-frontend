@@ -10,7 +10,16 @@ export default function PostAttachmentsDebugList({ attachments = [] }) {
     const [items, setItems] = useState(attachments);
 
     useEffect(() => {
-        setItems(Array.isArray(attachments) ? attachments : []);
+        const next = Array.isArray(attachments) ? attachments : [];
+        setItems((prev) =>
+            next.map((att) => {
+                const existing = prev.find((p) => p.id === att.id);
+                if (existing && existing.status === 'ready' && att.status === 'processing') {
+                    return existing;
+                }
+                return att;
+            })
+        );
     }, [attachments]);
 
     useEffect(() => {

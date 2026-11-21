@@ -102,7 +102,16 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
     const [trackData, setTrackData] = useState(doc);
 
     useEffect(() => {
-        setTrackData(doc);
+        if (!doc) {
+            setTrackData(doc);
+            return;
+        }
+        setTrackData((prev) => {
+            if (prev && prev.id === doc.id && prev.status === 'ready' && doc.status === 'processing') {
+                return prev;
+            }
+            return doc;
+        });
     }, [doc]);
 
     useEffect(() => {

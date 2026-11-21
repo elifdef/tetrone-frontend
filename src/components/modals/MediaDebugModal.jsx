@@ -1,14 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from './Modal';
 import { useSocket } from '../../context/SocketContext';
+import { AuthContext } from '../../context/AuthContext';
 import { notifySuccess } from '../common/Notify';
 import { isTetroneDebugEnabled } from '../../utils/debug';
+
+function resolveClientTier(user, metaTier) {
+    if (metaTier === 'creator' || metaTier === 'admin' || metaTier === 'user') {
+        return metaTier;
+    }
+    const role = user?.role;
+    if (!role) return 'user';
+    const roleStr = String(role).toLowerCase();
+    if (['creator', 'owner', 'superadmin', 'super_admin', 'developer', '4'].includes(roleStr)) {
+        return 'creator';
+    }
+    if (['admin', 'administrator', 'moderator', '2', '3'].includes(roleStr)) {
+        return 'admin';
+    }
+    return 'user';
+}
 
 export default function MediaDebugModal() {
     const { t } = useTranslation();
     const socketContext = useSocket();
     const socket = socketContext?.socket;
+    const auth = useContext(AuthContext);
+    const currentUser = auth?.user || null;
 
     const [isOpen, setIsOpen] = useState(false);
     const [items, setItems] = useState([]);
@@ -126,7 +145,8 @@ export default function MediaDebugModal() {
     const current = items[activeIndex] || items[0];
     const source = current.meta?.source || {};
     const conversion = current.meta?.conversion || null;
-    const logs = current.meta?.logs || [];
+    const tier = resolveClientTier(currentUser, current.meta?.debug_tier);
+    const isAdminOrCreator = tier === 'admin' || tier === 'creator';
 
     const liveElapsed = current.status === 'processing'
         ? ((nowTs - (current._clientStartedAt || nowTs)) / 1000).toFixed(1)
@@ -210,12 +230,14 @@ export default function MediaDebugModal() {
                     <div>
                         {current.status === 'processing' && (
                             <span className="text-theme-brand font-bold">
-                                {t('debug.status_processing', { seconds: liveElapsed })}
+                                {isAdminOrCreator
+                                    ? t('debug.status_processing', { seconds: liveElapsed })
+                                    : 'Processing...'}
                             </span>
                         )}
                         {current.status === 'ready' && (
                             <span className="text-green-500 font-bold">
-                                {liveElapsed !== null
+                                {isAdminOrCreator && liveElapsed !== null
                                     ? t('debug.status_ready_timed', { seconds: liveElapsed })
                                     : t('debug.status_ready')}
                             </span>
@@ -295,10 +317,12 @@ export default function MediaDebugModal() {
                                 {conversion.segments_count !== undefined && (
                                     <div><span className="text-text-muted">{t('debug.hls_segments')}</span> <b>{conversion.segments_count}</b></div>
                                 )}
-                                <div>
-                                    <span className="text-text-muted">{t('debug.conversion_time')}</span>{' '}
-                                    <b>{conversion.elapsed_seconds} {t('debug.seconds_unit')}</b>
-                                </div>
+                                {isAdminOrCreator && conversion.elapsed_seconds !== undefined && (
+                                    <div>
+                                        <span className="text-text-muted">{t('debug.conversion_time')}</span>{' '}
+                                        <b>{conversion.elapsed_seconds} {t('debug.seconds_unit')}</b>
+                                    </div>
+                                )}
                                 {conversion.output_video && (
                                     <div className="mt-[4px] pt-[4px] border-t border-dashed border-border">
                                         <div className="text-text-muted">{t('debug.video_stream')}</div>
@@ -326,25 +350,6 @@ export default function MediaDebugModal() {
                                 {current.status === 'processing'
                                     ? t('debug.processing_hint', { seconds: liveElapsed })
                                     : t('debug.no_conversion_data')}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="border border-border bg-bg-page p-[8px]">
-                    <div className="font-bold border-b border-border pb-[4px] mb-[6px] text-text-main">
-                        {t('debug.section_logs')}
-                    </div>
-                    <div className="flex flex-col gap-[3px] font-mono text-[10px] max-h-[140px] overflow-y-auto">
-                        {logs.map((entry, i) => (
-                            <div key={i} className="leading-[1.4]">
-                                <span className="text-text-muted">[{entry.time}]</span>{' '}
-                                <span>{entry.key ? t(entry.key, entry.params || {}) : ''}</span>
-                            </div>
-                        ))}
-                        {current.status === 'processing' && (
-                            <div className="text-theme-brand">
-                                {t('debug.waiting_ffmpeg', { seconds: liveElapsed })}
                             </div>
                         )}
                     </div>

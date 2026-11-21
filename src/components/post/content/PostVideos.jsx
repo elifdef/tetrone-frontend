@@ -47,7 +47,16 @@ const LocalVideoItem = ({ video }) => {
     const [videoData, setVideoData] = useState(video);
 
     useEffect(() => {
-        setVideoData(video);
+        if (!video) {
+            setVideoData(video);
+            return;
+        }
+        setVideoData((prev) => {
+            if (prev && prev.id === video.id && prev.status === 'ready' && video.status === 'processing') {
+                return prev;
+            }
+            return video;
+        });
     }, [video]);
 
     useEffect(() => {

@@ -19,6 +19,65 @@ import './VideoPlayer.css';
 const SPEED_OPTIONS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3];
 const BOOST_OPTIONS = [1, 1.5, 2];
 const FRAME_STEP = 1 / 30;
+const VIDEO_PREFS_STORAGE_KEY = 'tetrone_video_prefs';
+const VIDEO_PREFS_EVENT = 'tetrone:video-prefs-changed';
+
+const DEFAULT_VIDEO_PREFS = {
+    volume: 1,
+    muted: false,
+    playbackRate: 1,
+    loop: false,
+    boost: 1,
+    preferredQualityHeight: -1, // -1 = auto, інакше висота в px (1080, 720, 480...)
+};
+
+function readVideoPrefs() {
+    if (typeof window === 'undefined') return { ...DEFAULT_VIDEO_PREFS };
+    try {
+        const raw = window.localStorage.getItem(VIDEO_PREFS_STORAGE_KEY);
+        if (!raw) return { ...DEFAULT_VIDEO_PREFS };
+        const parsed = JSON.parse(raw);
+        return {
+            volume: typeof parsed.volume === 'number' ? Math.min(1, Math.max(0, parsed.volume)) : 1,
+            muted: Boolean(parsed.muted),
+            playbackRate: SPEED_OPTIONS.includes(parsed.playbackRate) ? parsed.playbackRate : 1,
+            loop: Boolean(parsed.loop),
+            boost: BOOST_OPTIONS.includes(parsed.boost) ? parsed.boost : 1,
+            preferredQualityHeight: typeof parsed.preferredQualityHeight === 'number' ? parsed.preferredQualityHeight : -1,
+        };
+    } catch {
+        return { ...DEFAULT_VIDEO_PREFS };
+    }
+}
+
+function updateVideoPrefs(patch) {
+    if (typeof window === 'undefined') return { ...DEFAULT_VIDEO_PREFS };
+    const current = readVideoPrefs();
+    const next = { ...current, ...patch };
+    try {
+        window.localStorage.setItem(VIDEO_PREFS_STORAGE_KEY, JSON.stringify(next));
+        window.dispatchEvent(new CustomEvent(VIDEO_PREFS_EVENT, { detail: next }));
+    } catch {
+        // Ігноруємо обмеження квоти storage
+    }
+    return next;
+}
+
+function useGlobalVideoPrefs() {
+    const [prefs, setPrefs] = useState(readVideoPrefs);
+
+    useEffect(() => {
+        const sync = () => setPrefs(readVideoPrefs());
+        window.addEventListener('storage', sync);
+        window.addEventListener(VIDEO_PREFS_EVENT, sync);
+        return () => {
+            window.removeEventListener('storage', sync);
+            window.removeEventListener(VIDEO_PREFS_EVENT, sync);
+        };
+    }, []);
+
+    return prefs;
+}
 
 function readWipFlag() {
     if (typeof window === 'undefined') return false;
@@ -73,13 +132,13 @@ function WipTelemetryHud({ videoRef, hlsLevels, currentLevel }) {
     );
 }
 
-function WipTelemetryHudInner({ player, videoRef, hlsLevels, currentLevel }) {
+function WipTelemetryHudInner({ videoRef, hlsLevels, currentLevel }) {
     const { t } = useTranslation();
     const timeState = usePlayer(selectTime);
-const bufferState = usePlayer(selectBuffer);
-const playbackState = usePlayer(selectPlayback);
-const rateState = usePlayer(selectPlaybackRate);
-const streamState = usePlayer(selectStreamType);
+    const bufferState = usePlayer(selectBuffer);
+    const playbackState = usePlayer(selectPlayback);
+    const rateState = usePlayer(selectPlaybackRate);
+    const streamState = usePlayer(selectStreamType);
     const [, setTick] = useState(0);
 
     useEffect(() => {
@@ -153,7 +212,7 @@ const streamState = usePlayer(selectStreamType);
     );
 }
 
-function WipControlsPanel({ videoRef, hlsRef, hlsLevels, currentLevel, onSelectLevel }) {
+function WipControlsPanel({ videoRef, hlsRef, hlsLevels, currentLevel, onSelectLevel, prefs, applyBoost }) {
     const player = usePlayer();
     if (!player) return null;
 
@@ -165,27 +224,25 @@ function WipControlsPanel({ videoRef, hlsRef, hlsLevels, currentLevel, onSelectL
             hlsLevels={hlsLevels}
             currentLevel={currentLevel}
             onSelectLevel={onSelectLevel}
+            prefs={prefs}
+            applyBoost={applyBoost}
         />
     );
 }
 
-function WipControlsPanelInner({ player, videoRef, hlsRef, hlsLevels, currentLevel, onSelectLevel }) {
+function WipControlsPanelInner({ player, videoRef, hlsLevels, currentLevel, onSelectLevel, prefs, applyBoost }) {
     const { t } = useTranslation();
     const rateState = usePlayer(selectPlaybackRate);
     const [showStats, setShowStats] = useState(false);
     const [showSpeedMenu, setShowSpeedMenu] = useState(false);
     const [showQualityMenu, setShowQualityMenu] = useState(false);
-    const [isLoop, setIsLoop] = useState(false);
     const [pointA, setPointA] = useState(null);
     const [pointB, setPointB] = useState(null);
-    const [boost, setBoost] = useState(1);
     const [savedBadge, setSavedBadge] = useState(false);
     const [customTrackUrl, setCustomTrackUrl] = useState(null);
 
     const fileInputRef = useRef(null);
-    const audioCtxRef = useRef(null);
-    const gainNodeRef = useRef(null);
-    const activeRate = rateState?.playbackRate ?? videoRef.current?.playbackRate ?? 1;
+    const activeRate = rateState?.playbackRate ?? prefs.playbackRate ?? 1;
 
     useEffect(() => {
         const video = videoRef.current;
@@ -207,6 +264,7 @@ function WipControlsPanelInner({ player, videoRef, hlsRef, hlsLevels, currentLev
     }, [customTrackUrl]);
 
     const handleSelectSpeed = (nextRate) => {
+        updateVideoPrefs({ playbackRate: nextRate });
         if (typeof player?.setPlaybackRate === 'function') {
             player.setPlaybackRate(nextRate);
         } else if (videoRef.current) {
@@ -224,10 +282,11 @@ function WipControlsPanelInner({ player, videoRef, hlsRef, hlsLevels, currentLev
     };
 
     const handleToggleLoop = () => {
-        const video = videoRef.current;
-        if (!video) return;
-        video.loop = !video.loop;
-        setIsLoop(video.loop);
+        const nextLoop = !prefs.loop;
+        updateVideoPrefs({ loop: nextLoop });
+        if (videoRef.current) {
+            videoRef.current.loop = nextLoop;
+        }
     };
 
     const handleTogglePip = async () => {
@@ -267,32 +326,10 @@ function WipControlsPanelInner({ player, videoRef, hlsRef, hlsLevels, currentLev
     };
 
     const handleCycleBoost = () => {
-        const video = videoRef.current;
-        if (!video) return;
-        const nextIdx = (BOOST_OPTIONS.indexOf(boost) + 1) % BOOST_OPTIONS.length;
+        const nextIdx = (BOOST_OPTIONS.indexOf(prefs.boost) + 1) % BOOST_OPTIONS.length;
         const nextBoost = BOOST_OPTIONS[nextIdx];
-
-        try {
-            if (!audioCtxRef.current && nextBoost > 1) {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                const ctx = new AudioCtx();
-                const source = ctx.createMediaElementSource(video);
-                const gainNode = ctx.createGain();
-                source.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                audioCtxRef.current = ctx;
-                gainNodeRef.current = gainNode;
-            }
-            if (audioCtxRef.current?.state === 'suspended') {
-                audioCtxRef.current.resume();
-            }
-            if (gainNodeRef.current) {
-                gainNodeRef.current.gain.value = nextBoost;
-            }
-            setBoost(nextBoost);
-        } catch {
-            setBoost(1);
-        }
+        updateVideoPrefs({ boost: nextBoost });
+        applyBoost(nextBoost);
     };
 
     const handleSetPointA = () => {
@@ -480,7 +517,7 @@ function WipControlsPanelInner({ player, videoRef, hlsRef, hlsLevels, currentLev
                         <button
                             type="button"
                             onClick={handleToggleLoop}
-                            className={`app-vjs-wip-btn ${isLoop ? 'is-active' : ''}`}
+                            className={`app-vjs-wip-btn ${prefs.loop ? 'is-active' : ''}`}
                         >
                             {t('video.loop')}
                         </button>
@@ -489,9 +526,9 @@ function WipControlsPanelInner({ player, videoRef, hlsRef, hlsLevels, currentLev
                             type="button"
                             onClick={handleCycleBoost}
                             title={t('video.wipBoost')}
-                            className={`app-vjs-wip-btn ${boost > 1 ? 'is-active' : ''}`}
+                            className={`app-vjs-wip-btn ${prefs.boost > 1 ? 'is-active' : ''}`}
                         >
-                            {Math.round(boost * 100)}%
+                            {Math.round(prefs.boost * 100)}%
                         </button>
 
                         <button
@@ -600,9 +637,14 @@ const VideoPlayer = React.memo(function VideoPlayer({
 }) {
     const { t, i18n } = useTranslation();
     const isWip = useTetroneWip();
+    const prefs = useGlobalVideoPrefs();
     const wrapperRef = useRef(null);
     const videoRef = useRef(null);
     const hlsRef = useRef(null);
+    const audioCtxRef = useRef(null);
+    const gainNodeRef = useRef(null);
+    const isApplyingPrefsRef = useRef(false);
+
     const [hlsLevels, setHlsLevels] = useState([]);
     const [currentLevel, setCurrentLevel] = useState(-1);
     const [forceStandardYoutube, setForceStandardYoutube] = useState(false);
@@ -647,6 +689,113 @@ const VideoPlayer = React.memo(function VideoPlayer({
         }
     }), [t]);
 
+    const applyBoostToVideo = (targetBoost) => {
+        const video = videoRef.current;
+        if (!video) return;
+        try {
+            if (!audioCtxRef.current && targetBoost > 1) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioCtx();
+                const source = ctx.createMediaElementSource(video);
+                const gainNode = ctx.createGain();
+                source.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                audioCtxRef.current = ctx;
+                gainNodeRef.current = gainNode;
+            }
+            if (audioCtxRef.current?.state === 'suspended') {
+                audioCtxRef.current.resume().catch(() => {});
+            }
+            if (gainNodeRef.current) {
+                gainNodeRef.current.gain.value = targetBoost;
+            }
+        } catch {
+            // Ігноруємо обмеження браузера до першої взаємодії
+        }
+    };
+
+    // Застосовуємо глобальні налаштування (гучність, mute, швидкість, повтор, буст) до елемента <video>
+    useEffect(() => {
+        if (provider === 'youtube') return undefined;
+        const video = videoRef.current;
+        if (!video) return undefined;
+
+        isApplyingPrefsRef.current = true;
+        if (Math.abs(video.volume - prefs.volume) > 0.005) {
+            video.volume = prefs.volume;
+        }
+        if (video.muted !== prefs.muted) {
+            video.muted = prefs.muted;
+        }
+        if (Math.abs(video.playbackRate - prefs.playbackRate) > 0.005) {
+            video.playbackRate = prefs.playbackRate;
+        }
+        if (video.loop !== prefs.loop) {
+            video.loop = prefs.loop;
+        }
+        applyBoostToVideo(prefs.boost);
+
+        const releaseTimer = setTimeout(() => {
+            isApplyingPrefsRef.current = false;
+        }, 0);
+
+        return () => clearTimeout(releaseTimer);
+    }, [provider, prefs.volume, prefs.muted, prefs.playbackRate, prefs.loop, prefs.boost, src]);
+
+    // Слухаємо зміни гучності / швидкості з будь-якого елемента керування плеєра та зберігаємо в localStorage
+    useEffect(() => {
+        if (provider === 'youtube') return undefined;
+        const video = videoRef.current;
+        if (!video) return undefined;
+
+        const handleVolumeChange = () => {
+            if (isApplyingPrefsRef.current) return;
+            updateVideoPrefs({
+                volume: Number(video.volume.toFixed(3)),
+                muted: Boolean(video.muted),
+            });
+        };
+
+        const handleRateChange = () => {
+            if (isApplyingPrefsRef.current) return;
+            const rate = video.playbackRate;
+            if (SPEED_OPTIONS.includes(rate)) {
+                updateVideoPrefs({ playbackRate: rate });
+            }
+        };
+
+        const handleLoadedMetadata = () => {
+            const latest = readVideoPrefs();
+            isApplyingPrefsRef.current = true;
+            video.volume = latest.volume;
+            video.muted = latest.muted;
+            video.playbackRate = latest.playbackRate;
+            video.loop = latest.loop;
+            setTimeout(() => {
+                isApplyingPrefsRef.current = false;
+            }, 0);
+        };
+
+        const handlePlay = () => {
+            const latest = readVideoPrefs();
+            if (latest.boost > 1) {
+                applyBoostToVideo(latest.boost);
+            }
+        };
+
+        video.addEventListener('volumechange', handleVolumeChange);
+        video.addEventListener('ratechange', handleRateChange);
+        video.addEventListener('loadedmetadata', handleLoadedMetadata);
+        video.addEventListener('play', handlePlay);
+
+        return () => {
+            video.removeEventListener('volumechange', handleVolumeChange);
+            video.removeEventListener('ratechange', handleRateChange);
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            video.removeEventListener('play', handlePlay);
+        };
+    }, [provider, src]);
+
     useEffect(() => {
         setForceStandardYoutube(false);
         setCopiedId(false);
@@ -677,7 +826,27 @@ const VideoPlayer = React.memo(function VideoPlayer({
             hls.loadSource(src);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
-                setHlsLevels(data?.levels || []);
+                const levels = data?.levels || [];
+                setHlsLevels(levels);
+
+                const preferredHeight = readVideoPrefs().preferredQualityHeight;
+                if (preferredHeight > 0 && levels.length > 0) {
+                    let bestIdx = -1;
+                    let minDiff = Infinity;
+                    levels.forEach((lvl, idx) => {
+                        if (lvl.height) {
+                            const diff = Math.abs(lvl.height - preferredHeight);
+                            if (diff < minDiff) {
+                                minDiff = diff;
+                                bestIdx = idx;
+                            }
+                        }
+                    });
+                    if (bestIdx >= 0) {
+                        hls.currentLevel = bestIdx;
+                        setCurrentLevel(bestIdx);
+                    }
+                }
             });
             hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
                 if (hls.autoLevelEnabled) {
@@ -697,6 +866,26 @@ const VideoPlayer = React.memo(function VideoPlayer({
             }
         };
     }, [src, type, provider]);
+
+    // Синхронізуємо зміну якості між кількома HLS-плеєрами
+    useEffect(() => {
+        const hls = hlsRef.current;
+        if (!hls || hlsLevels.length === 0) return;
+
+        if (prefs.preferredQualityHeight <= 0) {
+            if (currentLevel !== -1) {
+                hls.currentLevel = -1;
+                setCurrentLevel(-1);
+            }
+            return;
+        }
+
+        const idx = hlsLevels.findIndex((lvl) => lvl.height === prefs.preferredQualityHeight);
+        if (idx >= 0 && idx !== currentLevel) {
+            hls.currentLevel = idx;
+            setCurrentLevel(idx);
+        }
+    }, [prefs.preferredQualityHeight, hlsLevels, currentLevel]);
 
     useEffect(() => {
         const wrapper = wrapperRef.current;
@@ -722,6 +911,10 @@ const VideoPlayer = React.memo(function VideoPlayer({
         if (hlsRef.current) {
             hlsRef.current.currentLevel = levelIndex;
         }
+        const selectedHeight = levelIndex >= 0 && hlsLevels[levelIndex]?.height
+            ? hlsLevels[levelIndex].height
+            : -1;
+        updateVideoPrefs({ preferredQualityHeight: selectedHeight });
     };
 
     if (provider === 'youtube') {
@@ -791,6 +984,8 @@ const VideoPlayer = React.memo(function VideoPlayer({
                             hlsLevels={hlsLevels}
                             currentLevel={currentLevel}
                             onSelectLevel={handleSelectHlsLevel}
+                            prefs={prefs}
+                            applyBoost={applyBoostToVideo}
                         />
                     )}
                 </VjsPlayer>
