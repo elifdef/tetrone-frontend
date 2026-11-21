@@ -6,12 +6,38 @@ import { getMediaCategory } from '../../../utils/fileTypes';
 import { formatFileSize } from '../../../utils/upload';
 import { EyeOffIcon, DotsIcon, EditIcon } from "../../ui/Icons";
 
-export default function MediaPreviews({ previews, onRemove, onToggleFlag, onToggleNSFW, isExisting = false, onEditClick }) {
+export default function MediaPreviews({ previews, onRemove, onToggleFlag, onToggleNSFW, isExisting = false, onEditClick, onUpdateMediaMeta }) {
     const { t } = useTranslation();
     const [contextMenu, setContextMenu] = useState(null);
+    const [editingTitleIndex, setEditingTitleIndex] = useState(null);
+    const [editingTitleValue, setEditingTitleValue] = useState('');
+    const coverInputsRef = useRef({});
     const menuRef = useRef(null);
 
     const toggleHandler = onToggleFlag || onToggleNSFW;
+
+    const startRename = (index, currentLabel) => {
+        setEditingTitleIndex(index);
+        setEditingTitleValue(currentLabel || '');
+    };
+
+    const commitRename = (index, originalName) => {
+        if (onUpdateMediaMeta) {
+            const trimmed = editingTitleValue.trim();
+            const defaultBase = originalName.replace(/\.[^/.]+$/, '');
+            const nextTitle = trimmed && trimmed !== defaultBase && trimmed !== originalName ? trimmed : '';
+            onUpdateMediaMeta(index, { custom_title: nextTitle });
+        }
+        setEditingTitleIndex(null);
+    };
+
+    const handleVideoCoverFile = (index, e) => {
+        const file = e.target.files?.[0];
+        if (file && onUpdateMediaMeta) {
+            onUpdateMediaMeta(index, { custom_cover: file });
+        }
+        e.target.value = '';
+    };
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -32,15 +58,18 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
     previews.forEach((preview, index) => {
         if (!preview) return;
         const nameStr = String(preview.name || preview.original_name || 'File');
+        const displayTitle = String(preview.custom_title || nameStr);
         const category = getMediaCategory(preview);
         const isImage = category === 'image';
         const isFileObject = preview instanceof File || preview instanceof Blob;
 
-        const srcUrl = isFileObject ? URL.createObjectURL(preview) + (category === 'video' ? '#t=0.1' : '') : preview.url;
+        const baseUrl = preview.url || (isFileObject ? URL.createObjectURL(preview) : '');
+        const srcUrl = baseUrl + (category === 'video' && baseUrl.startsWith('blob:') ? '#t=0.1' : '');
+        const posterUrl = preview.custom_cover_url || preview.cover_url || '';
         const isSpoiler = preview.is_spoiler === true;
         const isNsfw = preview.is_nsfw === true;
 
-        const item = { preview, index, nameStr, srcUrl, isImage, isSpoiler, isNsfw };
+        const item = { preview, index, nameStr, displayTitle, srcUrl, posterUrl, isImage, isSpoiler, isNsfw };
         if (category === 'video') videos.push(item);
         else if (category === 'audio') audios.push(item);
         else others.push(item);
@@ -167,19 +196,39 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
 
             {audios.length > 0 && (
                 <div className="flex flex-col gap-[6px] mt-[10px]">
-                    {audios.map(({ preview, index, nameStr }) => {
+                    {audios.map(({ preview, index, nameStr, displayTitle }) => {
                         const removeId = isExisting ? preview.id : index;
                         const key = isExisting ? `exist-audio-${preview.id}` : `new-audio-${index}`;
                         const fileSize = preview.size || preview.file_size || 0;
+                        const isRenaming = !isExisting && editingTitleIndex === index;
 
                         return (
-                            <div key={key} className="flex items-center justify-between p-[6px_10px] bg-bg-box border border-border">
-                                <div className="flex items-center gap-[8px] min-w-0">
+                            <div key={key} className="flex items-center justify-between gap-[8px] p-[6px_10px] bg-bg-box border border-border">
+                                <div className="flex items-center gap-[8px] min-w-0 flex-1">
                                     <FileTypeIcon fileName={nameStr} size={22} />
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="text-[11px] font-bold text-text-main truncate" title={nameStr}>
-                                            {nameStr}
-                                        </span>
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                        {isRenaming ? (
+                                            <input
+                                                type="text"
+                                                value={editingTitleValue}
+                                                onChange={(e) => setEditingTitleValue(e.target.value)}
+                                                onBlur={() => commitRename(index, nameStr)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        commitRename(index, nameStr);
+                                                    } else if (e.key === 'Escape') {
+                                                        setEditingTitleIndex(null);
+                                                    }
+                                                }}
+                                                className="w-full bg-input-bg border border-theme-link text-text-main text-[11px] px-[6px] py-[2px] outline-none"
+                                                autoFocus
+                                            />
+                                        ) : (
+                                            <span className="text-[11px] font-bold text-text-main truncate" title={displayTitle}>
+                                                {displayTitle}
+                                            </span>
+                                        )}
                                         {fileSize > 0 && (
                                             <span className="text-[9px] text-text-muted">
                                                 {formatFileSize(fileSize)}
@@ -187,14 +236,27 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
                                         )}
                                     </div>
                                 </div>
-                                <button
-                                    type="button"
-                                    className="bg-transparent border-none text-text-muted hover:text-theme-error cursor-pointer text-[15px] leading-none px-[4px] outline-none"
-                                    onClick={() => onRemove(removeId)}
-                                    title={t('action.delete')}
-                                >
-                                    ×
-                                </button>
+
+                                <div className="flex items-center gap-[4px] shrink-0">
+                                    {!isExisting && onUpdateMediaMeta && !isRenaming && (
+                                        <button
+                                            type="button"
+                                            className="bg-transparent border-none text-text-muted hover:text-theme-link cursor-pointer p-[3px] flex items-center justify-center outline-none"
+                                            onClick={() => startRename(index, preview.custom_title || nameStr.replace(/\.[^/.]+$/, ''))}
+                                            title={t('post.media_rename')}
+                                        >
+                                            <EditIcon width={12} height={12} />
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        className="bg-transparent border-none text-text-muted hover:text-theme-error cursor-pointer text-[15px] leading-none px-[4px] outline-none"
+                                        onClick={() => onRemove(removeId)}
+                                        title={t('action.delete')}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
                             </div>
                         );
                     })}
@@ -203,10 +265,11 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
 
             {videos.length > 0 && (
                 <div className="flex flex-col gap-[10px] mt-[10px]">
-                    {videos.map(({ preview, index, srcUrl, isSpoiler, isNsfw }) => {
+                    {videos.map(({ preview, index, nameStr, displayTitle, srcUrl, posterUrl, isSpoiler, isNsfw }) => {
                         const removeId = isExisting ? preview.id : index;
                         const key = isExisting ? `exist-video-${preview.id}` : `new-video-${index}`;
                         const blurClass = isNsfw ? 'blur-2xl scale-110 pointer-events-none' : (isSpoiler ? 'blur-lg scale-105 pointer-events-none' : '');
+                        const isRenaming = !isExisting && editingTitleIndex === index;
 
                         return (
                             <div key={key} className="relative mt-[10px] w-full border border-border bg-black">
@@ -222,12 +285,78 @@ export default function MediaPreviews({ previews, onRemove, onToggleFlag, onTogg
                                     </button>
                                 )}
 
-                                {isNsfw && <div className="absolute bottom-[10px] left-[10px] pointer-events-none bg-theme-error text-white px-[6px] py-[2px] rounded-[2px] z-20 font-bold text-[12px] tracking-wider shadow-sm">{t('post.nsfw_badge')}</div>}
-                                {isSpoiler && !isNsfw && <div className="absolute bottom-[10px] left-[10px] pointer-events-none bg-[rgba(0,0,0,0.6)] text-white p-[6px] rounded-[2px] z-20"><EyeOffIcon width={16} height={16} /></div>}
+                                {isNsfw && <div className="absolute bottom-[40px] left-[10px] pointer-events-none bg-theme-error text-white px-[6px] py-[2px] rounded-[2px] z-20 font-bold text-[12px] tracking-wider shadow-sm">{t('post.nsfw_badge')}</div>}
+                                {isSpoiler && !isNsfw && <div className="absolute bottom-[40px] left-[10px] pointer-events-none bg-[rgba(0,0,0,0.6)] text-white p-[6px] rounded-[2px] z-20"><EyeOffIcon width={16} height={16} /></div>}
 
                                 <div className={`overflow-hidden w-full transition-all ${blurClass}`}>
-                                    <VideoPlayer src={srcUrl} provider="html5" />
+                                    <VideoPlayer src={srcUrl} poster={posterUrl} provider="html5" />
                                 </div>
+
+                                {!isExisting && onUpdateMediaMeta && (
+                                    <div className="flex flex-wrap items-center justify-between gap-[8px] px-[8px] py-[6px] bg-bg-box border-t border-border text-[11px]">
+                                        <div className="flex items-center gap-[6px] min-w-0 flex-1">
+                                            {isRenaming ? (
+                                                <input
+                                                    type="text"
+                                                    value={editingTitleValue}
+                                                    onChange={(e) => setEditingTitleValue(e.target.value)}
+                                                    onBlur={() => commitRename(index, nameStr)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            commitRename(index, nameStr);
+                                                        } else if (e.key === 'Escape') {
+                                                            setEditingTitleIndex(null);
+                                                        }
+                                                    }}
+                                                    className="w-full bg-input-bg border border-theme-link text-text-main text-[11px] px-[6px] py-[2px] outline-none"
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <>
+                                                    <span className="font-bold text-text-main truncate" title={displayTitle}>
+                                                        {displayTitle}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => startRename(index, preview.custom_title || nameStr.replace(/\.[^/.]+$/, ''))}
+                                                        className="bg-transparent border-none text-text-muted hover:text-theme-link cursor-pointer p-[2px] flex items-center shrink-0 outline-none"
+                                                        title={t('post.media_rename')}
+                                                    >
+                                                        <EditIcon width={12} height={12} />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center gap-[6px] shrink-0">
+                                            <input
+                                                ref={(el) => { coverInputsRef.current[index] = el; }}
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => handleVideoCoverFile(index, e)}
+                                                className="hidden"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => coverInputsRef.current[index]?.click()}
+                                                className="px-[6px] py-[2px] bg-bg-page border border-border text-theme-link hover:border-theme-link cursor-pointer text-[10px]"
+                                            >
+                                                {posterUrl ? t('post.video_cover_change') : t('post.video_cover_select')}
+                                            </button>
+                                            {posterUrl && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onUpdateMediaMeta(index, { custom_cover: null })}
+                                                    className="px-[5px] py-[2px] bg-transparent border border-border text-theme-error hover:bg-theme-error/10 cursor-pointer text-[10px]"
+                                                    title={t('post.video_cover_remove')}
+                                                >
+                                                    ×
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         );
                     })}

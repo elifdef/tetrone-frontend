@@ -13,6 +13,7 @@ import MediaPreviews from '@/components/post/components/MediaPreviews';
 import YouTubePreviews from '@/components/post/components/YouTubePreviews';
 import PollCreatorModal from '@/components/modals/PollCreatorModal';
 import MediaEditorModal from '@/components/common/MediaEditorModal';
+import MediaUploadSetupModal from '@/components/modals/MediaUploadSetupModal';
 import Avatar from '@/components/ui/Avatar';
 import { PollIcon, CloseIcon } from '@/components/ui/Icons';
 
@@ -39,7 +40,8 @@ export default function CreatePostForm({
         content, setContent, pollData, setPollData, showPollCreator, setShowPollCreator,
         removedPreviews, toggleYouTubePreview, external, handleSubmit, files, previews,
         isDragging, handleDragOver, handleDragLeave, handleDrop, handleFileSelect,
-        handlePaste, removeFile, replaceFile, isSubmitting, toggleMediaFlag
+        handlePaste, removeFile, replaceFile, isSubmitting, toggleMediaFlag,
+        pendingMediaSetup, applyPendingMediaSetup, dismissPendingMediaSetup, updateMediaMeta
     } = useCreatePost(onSubmitSuccess, {
         author_username: authorUsername,
         target_username: targetUsername || null
@@ -193,6 +195,7 @@ export default function CreatePostForm({
                     previews={previews} 
                     onRemove={removeFile} 
                     onToggleFlag={toggleMediaFlag}
+                    onUpdateMediaMeta={updateMediaMeta}
                     onEditClick={(index) => {
                         openEditor(files[index] || previews[index], index);
                     }} 
@@ -200,11 +203,17 @@ export default function CreatePostForm({
                 <YouTubePreviews youtubeLinks={external.youtube} removedPreviews={removedPreviews} onToggle={toggleYouTubePreview} />
             </div>
 
+            <MediaUploadSetupModal
+                items={pendingMediaSetup}
+                onApply={applyPendingMediaSetup}
+                onClose={dismissPendingMediaSetup}
+            />
+
             <PollCreatorModal
                 isOpen={showPollCreator}
                 onClose={() => setShowPollCreator(false)}
                 pollData={pollData}
-                onSave={(data) => { setPollData(data); setShowPollCreator(false); }}
+                onSave={(data) => { setPollData(data); setPollCreator(false); }}
             />
             
             {isEditorOpen && (

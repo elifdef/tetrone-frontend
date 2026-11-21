@@ -158,6 +158,7 @@ const PostItem = ({
             {!isInner && !isScheduled && (
                 <PostFooter
                     postId={postData.id}
+                    attachments={postData.attachments}
                     isLiked={postData.is_liked}
                     likesCount={postData.likes_count}
                     commentsCount={postData.comments_count}
@@ -194,5 +195,6 @@ export default memo(PostItem, (prevProps, nextProps) => {
     if (prevProps.post.is_pinned !== nextProps.post.is_pinned) return false;
     if (JSON.stringify(prevProps.post.reactions) !== JSON.stringify(nextProps.post.reactions)) return false;
     if (JSON.stringify(prevProps.post.content) !== JSON.stringify(nextProps.post.content)) return false;
+    if (prevProps.post.attachments !== nextProps.post.attachments) return false;
     return true;
 });

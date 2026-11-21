@@ -11,6 +11,7 @@ import PostService from '../../services/post.service';
 import StickerService from '../../services/sticker.service';
 import {notifySuccess, notifyError} from '../common/Notify';
 import Modal from '../modals/Modal';
+import MediaUploadSetupModal from './MediaUploadSetupModal';
 import Tabs from '../ui/Tabs';
 import {useModal} from "../../context/ModalContext.jsx";
 import Checkbox from '../ui/Checkbox';
@@ -53,6 +54,7 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         removedPreviews, toggleYouTubePreview,
         external, handleSave,
         previews: newPreviews, isDragging,
+        pendingMediaSetup, applyPendingMediaSetup, dismissPendingMediaSetup, updateMediaMeta,
         handleDragOver, handleDragLeave, handleDrop,
         handleFileSelect, handlePaste, removeFile: removeNewFile
     } = useEditPost(post, async (postId, editData) =>
@@ -237,7 +239,12 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
                         </div>
 
                         <MediaPreviews previews={existingMedia} onRemove={removeExistingMedia} isExisting={true}/>
-                        <MediaPreviews previews={newPreviews} onRemove={removeNewFile}/>
+                        <MediaPreviews previews={newPreviews} onRemove={removeNewFile} onUpdateMediaMeta={updateMediaMeta}/>
+                        <MediaUploadSetupModal
+                            items={pendingMediaSetup}
+                            onApply={applyPendingMediaSetup}
+                            onClose={dismissPendingMediaSetup}
+                        />
                         <YouTubePreviews youtubeLinks={external.youtube} removedPreviews={removedPreviews} onToggle={toggleYouTubePreview}/>
                     </>
                 )}

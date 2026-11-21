@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../../context/SocketContext';
 import VideoPlayer from '../../ui/VideoPlayer';
 import ProcessingSkeleton from './ProcessingSkeleton';
-import MediaAttachmentDebugBar from '../../ui/MediaAttachmentDebugBar';
 import { EyeOffIcon } from '../../ui/Icons.jsx';
 
 const ProtectedVideo = ({ video, children }) => {
@@ -82,33 +81,22 @@ const LocalVideoItem = ({ video }) => {
 
     if (status === 'failed') {
         return (
-            <div className="w-full flex flex-col">
-                <div className="relative w-full aspect-video bg-bg-box border border-border flex items-center justify-center p-[12px] text-[11px] text-theme-error">
-                    {t('api.error.ERR_UNKNOWN')}
-                </div>
-                <MediaAttachmentDebugBar attachment={videoData} />
+            <div className="relative w-full aspect-video bg-bg-box border border-border flex items-center justify-center p-[12px] text-[11px] text-theme-error">
+                {t('api.error.ERR_UNKNOWN')}
             </div>
         );
     }
 
     if (status === 'processing' && !isReady) {
-        return (
-            <div className="w-full flex flex-col">
-                <ProcessingSkeleton type="media" />
-                <MediaAttachmentDebugBar attachment={videoData} />
-            </div>
-        );
+        return <ProcessingSkeleton type="media" />;
     }
 
     return (
-        <div className="w-full flex flex-col">
-            <ProtectedVideo video={videoData}>
-                <div className="relative w-full bg-black border border-border overflow-hidden">
-                    <VideoPlayer src={videoUrl} poster={videoData.cover_url || ''} className="w-full" />
-                </div>
-            </ProtectedVideo>
-            <MediaAttachmentDebugBar attachment={videoData} />
-        </div>
+        <ProtectedVideo video={videoData}>
+            <div className="relative w-full bg-black border border-border overflow-hidden">
+                <VideoPlayer src={videoUrl} poster={videoData.cover_url || ''} className="w-full" />
+            </div>
+        </ProtectedVideo>
     );
 };
 

@@ -1251,7 +1251,19 @@
     "confirm_publish_now": "Опублікувати цей запис зараз?",
     "will_be_published": "Буде опубліковано о",
     "pinned": "Прикріплено",
-    "posted_by": "від"
+    "posted_by": "від",
+    "media_setup_title": "Налаштування медіафайлу",
+    "media_setup_desc": "Ви можете залишити стандартну назву файлу або вказати власну (вона також використається для збереження файлу).",
+    "media_custom_name_label": "Назва файлу",
+    "media_custom_name_placeholder": "Введіть назву...",
+    "media_use_default": "За замовчуванням",
+    "media_reset_default": "Скинути до стандартної",
+    "media_rename": "Змінити назву",
+    "video_cover_label": "Прев'ю (обкладинка) відео",
+    "video_cover_auto": "Авто з кадру відео",
+    "video_cover_select": "+ Прев'ю відео",
+    "video_cover_change": "Змінити прев'ю",
+    "video_cover_remove": "Видалити прев'ю"
   },
   "privacy": {
     "account_is_private": "Цей акаунт закритий",
@@ -2296,5 +2308,11 @@
     "log_video_start": "Початок конвертації відео (вага: {{size}}, формат: {{format}}, відео: {{video}}, аудіо: {{audio}})",
     "log_video_done": "Закінчено конвертацію за {{seconds}} с -> {{size}} ({{segments}} сегментів .ts, стиснення: {{diff}})",
     "log_video_failed": "Помилка конвертації: {{reason}}"
+  },
+  "file": {
+    "byte": "{{size}} Байт",
+    "kb": "{{size}} КБ",
+    "mb": "{{size}} МБ",
+    "gb": "{{size}} ГБ"
   }
 }

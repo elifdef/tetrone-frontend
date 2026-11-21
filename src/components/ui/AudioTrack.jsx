@@ -4,7 +4,6 @@ import { AudioContext } from "../../context/AudioContext";
 import { useSocket } from "../../context/SocketContext";
 import { formatFileSize } from "../../utils/upload";
 import ProcessingSkeleton from "../post/content/ProcessingSkeleton";
-import MediaAttachmentDebugBar from "./MediaAttachmentDebugBar";
 import { useTranslation } from "react-i18next";
 
 const MiniPlayIcon = () => (
@@ -110,12 +109,17 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
         if (!socket || trackData?.status !== 'processing') return;
 
         const handleReady = (data) => {
-            if (data && (data.id === trackData.id || data.post_id === trackData.post_id)) {
+            if (data && data.id === trackData.id) {
+                const nextUrl = data.file_url || data.url;
                 setTrackData(prev => ({
                     ...prev,
                     status: data.status || 'ready',
                     file_path: data.file_path ?? prev.file_path,
-                    file_url: data.file_url || data.url || prev.file_url,
+                    file_url: nextUrl || prev.file_url,
+                    url: nextUrl || prev.url,
+                    cover_url: data.cover_url ?? prev.cover_url,
+                    file_name: data.file_name ?? prev.file_name,
+                    original_name: data.original_name ?? prev.original_name,
                     file_size: data.file_size || prev.file_size || data.size,
                     meta: data.meta ?? prev.meta,
                 }));
@@ -124,7 +128,7 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
 
         socket.on('attachment.ready', handleReady);
         return () => { socket.off('attachment.ready', handleReady); };
-    }, [socket, trackData?.id, trackData?.post_id, trackData?.status]);
+    }, [socket, trackData?.id, trackData?.status]);
 
     if (!trackData) return null;
 
@@ -138,21 +142,13 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
     const isFailed = status === 'failed';
 
     if (isProcessing) {
-        return (
-            <div className="w-full flex flex-col">
-                <ProcessingSkeleton type="audio" doc={trackData} />
-                <MediaAttachmentDebugBar attachment={trackData} />
-            </div>
-        );
+        return <ProcessingSkeleton type="audio" doc={trackData} />;
     }
 
     if (isFailed) {
         return (
-            <div className="w-full flex flex-col">
-                <div className="flex items-center py-[4px] px-[8px] text-theme-error text-[11px] italic bg-theme-error/10 border border-theme-error/20 rounded-none">
-                    {t('post.audio_processing_failed')}
-                </div>
-                <MediaAttachmentDebugBar attachment={trackData} />
+            <div className="flex items-center py-[4px] px-[8px] text-theme-error text-[11px] italic bg-theme-error/10 border border-theme-error/20 rounded-none">
+                {t('post.audio_processing_failed')}
             </div>
         );
     }
@@ -193,45 +189,42 @@ const AudioTrack = ({ doc, sourceInfo, onSourceClick }) => {
         }
     };
 
-    return (
-        <div className="w-full flex flex-col">
-            <div className={`w-full flex items-center p-[6px] border rounded-none transition-colors ${isActiveTrack ? 'bg-bg-box border-theme-brand' : 'bg-bg-page border-border hover:border-theme-brand/60'}`}>
-                <button
-                    type="button"
-                    className={`w-[36px] h-[36px] shrink-0 relative border flex items-center justify-center cursor-pointer outline-none rounded-none p-0 group/cover overflow-hidden mr-[8px] ${isActiveTrack ? 'border-theme-brand text-white' : 'border-border bg-bg-box text-theme-brand hover:border-theme-brand'}`}
-                    onClick={handlePlayClick}
-                >
-                    {trackData.cover_url ? (
-                        <>
-                            <img src={trackData.cover_url} alt="cover" className="w-full h-full object-cover block rounded-none" />
-                            <div className={`absolute inset-0 flex items-center justify-center bg-black/60 text-white transition-opacity ${isActiveTrack && isPlaying ? 'opacity-100' : 'opacity-0 group-hover/cover:opacity-100'}`}>
-                                {isActiveTrack && isPlaying ? <MiniPauseIcon /> : <MiniPlayIcon />}
-                            </div>
-                        </>
-                    ) : (
-                        <div className={`flex items-center justify-center w-full h-full ${isActiveTrack ? 'bg-theme-brand text-white' : 'bg-bg-box text-text-muted hover:text-theme-brand'}`}>
+return (
+        <div className={`w-full flex items-center p-[6px] border rounded-none transition-colors ${isActiveTrack ? 'bg-bg-box border-theme-brand' : 'bg-bg-page border-border hover:border-theme-brand/60'}`}>
+            <button
+                type="button"
+                className={`w-[36px] h-[36px] shrink-0 relative border flex items-center justify-center cursor-pointer outline-none rounded-none p-0 group/cover overflow-hidden mr-[8px] ${isActiveTrack ? 'border-theme-brand text-white' : 'border-border bg-bg-box text-theme-brand hover:border-theme-brand'}`}
+                onClick={handlePlayClick}
+            >
+                {trackData.cover_url ? (
+                    <>
+                        <img src={trackData.cover_url} alt="cover" className="w-full h-full object-cover block rounded-none" />
+                        <div className={`absolute inset-0 flex items-center justify-center bg-black/60 text-white transition-opacity ${isActiveTrack && isPlaying ? 'opacity-100' : 'opacity-0 group-hover/cover:opacity-100'}`}>
                             {isActiveTrack && isPlaying ? <MiniPauseIcon /> : <MiniPlayIcon />}
                         </div>
-                    )}
-                </button>
+                    </>
+                ) : (
+                    <div className={`flex items-center justify-center w-full h-full ${isActiveTrack ? 'bg-theme-brand text-white' : 'bg-bg-box text-text-muted hover:text-theme-brand'}`}>
+                        {isActiveTrack && isPlaying ? <MiniPauseIcon /> : <MiniPlayIcon />}
+                    </div>
+                )}
+            </button>
 
-                <div className="flex flex-col min-w-0 flex-1 justify-center">
-                    <span
-                        className={`text-[11px] font-bold truncate cursor-pointer hover:underline ${isActiveTrack ? 'text-theme-brand' : 'text-text-main hover:text-theme-brand'}`}
-                        title={trackName}
-                        onClick={handleTitleClick}
-                    >
-                        {trackName}
-                    </span>
+            <div className="flex flex-col min-w-0 flex-1 justify-center">
+                <span
+                    className={`text-[11px] font-bold truncate cursor-pointer hover:underline ${isActiveTrack ? 'text-theme-brand' : 'text-text-main hover:text-theme-brand'}`}
+                    title={trackName}
+                    onClick={handleTitleClick}
+                >
+                    {trackName}
+                </span>
 
-                    <TrackProgressBar audioRef={audioRef} isActiveTrack={isActiveTrack} />
+                <TrackProgressBar audioRef={audioRef} isActiveTrack={isActiveTrack} />
 
-                    <span className="text-[9px] text-text-muted mt-[1px]">
-                        {trackSize > 0 ? formatFileSize(trackSize) : ''}
-                    </span>
-                </div>
+                <span className="text-[9px] text-text-muted mt-[1px]">
+                    {trackSize > 0 ? formatFileSize(trackSize) : ''}
+                </span>
             </div>
-            <MediaAttachmentDebugBar attachment={trackData} />
         </div>
     );
 };

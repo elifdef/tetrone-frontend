@@ -2,10 +2,12 @@ import { Link } from "react-router";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import StickerPicker from "../editor/StickerPicker";
+import PostAttachmentsDebugList from './PostAttachmentsDebugList';
 import { LikeIcon, CommentIcon, RepostIcon } from "../ui/Icons";
 
 export default function PostFooter({
     postId,
+    attachments = [],
     isLiked,
     likesCount,
     commentsCount,
@@ -158,9 +160,12 @@ export default function PostFooter({
                                 )}
                             </div>
                         )}
+                        
                     </div>
                 )}
             </div>
+
+            <PostAttachmentsDebugList attachments={attachments} />
         </div>
     );
 }

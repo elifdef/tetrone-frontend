@@ -36,6 +36,14 @@ class PostService
                 formData.append('media[]', file);
                 formData.append(`media_spoiler[${index}]`, file.is_spoiler ? '1' : '0');
                 formData.append(`media_nsfw[${index}]`, file.is_nsfw ? '1' : '0');
+                if (file.custom_title && file.custom_title.trim() !== '')
+                {
+                    formData.append(`media_titles[${index}]`, file.custom_title.trim());
+                }
+                if (file.custom_cover instanceof File || file.custom_cover instanceof Blob)
+                {
+                    formData.append(`media_covers[${index}]`, file.custom_cover, file.custom_cover.name || 'cover.jpg');
+                }
             });
 
             return fetchClient('/posts', {method: 'POST', body: formData});
@@ -64,6 +72,14 @@ class PostService
                 formData.append('media[]', file);
                 formData.append(`media_spoiler[${index}]`, file.is_spoiler ? '1' : '0');
                 formData.append(`media_nsfw[${index}]`, file.is_nsfw ? '1' : '0');
+                if (file.custom_title && file.custom_title.trim() !== '')
+                {
+                    formData.append(`media_titles[${index}]`, file.custom_title.trim());
+                }
+                if (file.custom_cover instanceof File || file.custom_cover instanceof Blob)
+                {
+                    formData.append(`media_covers[${index}]`, file.custom_cover, file.custom_cover.name || 'cover.jpg');
+                }
             });
         }
 

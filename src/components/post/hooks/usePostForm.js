@@ -1,14 +1,20 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { notifyError } from "../../common/Notify";
+import { notifyError } from "@common/Notify";
 import { MAX_FILE_SIZE_KB } from "../../../config";
-import { isForbiddenFile, isImageFile } from "../../../utils/fileTypes";
+import { getMediaCategory, isForbiddenFile, isImageFile } from "@utils/fileTypes";
+
+const stripExtension = (filename = '') => {
+    const idx = filename.lastIndexOf('.');
+    return idx > 0 ? filename.slice(0, idx) : filename;
+};
 
 export const usePostForm = (initialFilesCount = 0) => {
     const { t } = useTranslation();
     const [files, setFiles] = useState([]);
     const [previews, setPreviews] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
+    const [pendingMediaSetup, setPendingMediaSetup] = useState([]);
 
     const addFiles = useCallback((filesList) => {
         if (!filesList || filesList.length === 0) return;
@@ -50,25 +56,47 @@ export const usePostForm = (initialFilesCount = 0) => {
 
         if (validFiles.length === 0) return;
 
-        setFiles(prev => [...prev, ...validFiles]);
+        const startIndex = files.length;
+        const setupBatch = [];
 
-        const newPreviews = validFiles.map(f => {
+        const newPreviews = validFiles.map((f, idx) => {
             let fileUrl = '';
             try {
                 fileUrl = URL.createObjectURL(f);
             } catch (e) {
                 console.error("Помилка створення URL", e);
             }
+
+            const category = getMediaCategory(f);
+            if (category === 'audio' || category === 'video') {
+                setupBatch.push({
+                    index: startIndex + idx,
+                    category,
+                    originalName: f.name || (category === 'video' ? 'video' : 'audio'),
+                    defaultTitle: stripExtension(f.name || ''),
+                    size: f.size || 0,
+                });
+            }
+
             return {
                 url: fileUrl,
                 type: f.type || '',
                 name: f.name || 'Pasted_Image.png',
+                size: f.size || 0,
+                custom_title: '',
+                custom_cover: null,
+                custom_cover_url: '',
                 is_spoiler: false,
                 is_nsfw: false
             };
         });
 
+        setFiles(prev => [...prev, ...validFiles]);
         setPreviews(prev => [...prev, ...newPreviews]);
+
+        if (setupBatch.length > 0) {
+            setPendingMediaSetup(setupBatch);
+        }
     }, [initialFilesCount, files.length, t]);
 
     const handleDragOver = useCallback((e) => { e.preventDefault(); setIsDragging(true); }, []);
@@ -114,13 +142,67 @@ export const usePostForm = (initialFilesCount = 0) => {
         }
     }, [addFiles]);
 
+    const updateMediaMeta = useCallback((indexToUpdate, patch) => {
+        setFiles(prev => {
+            const updated = [...prev];
+            const target = updated[indexToUpdate];
+            if (!target) return prev;
+            if (Object.prototype.hasOwnProperty.call(patch, 'custom_title')) {
+                target.custom_title = patch.custom_title || '';
+            }
+            if (Object.prototype.hasOwnProperty.call(patch, 'custom_cover')) {
+                target.custom_cover = patch.custom_cover || null;
+            }
+            return updated;
+        });
+
+        setPreviews(prev => {
+            const updated = [...prev];
+            const current = updated[indexToUpdate];
+            if (!current) return prev;
+
+            const nextItem = { ...current };
+
+            if (Object.prototype.hasOwnProperty.call(patch, 'custom_title')) {
+                nextItem.custom_title = patch.custom_title || '';
+            }
+
+            if (Object.prototype.hasOwnProperty.call(patch, 'custom_cover')) {
+                if (nextItem.custom_cover_url && nextItem.custom_cover_url.startsWith('blob:')) {
+                    URL.revokeObjectURL(nextItem.custom_cover_url);
+                }
+                nextItem.custom_cover = patch.custom_cover || null;
+                nextItem.custom_cover_url = patch.custom_cover
+                    ? URL.createObjectURL(patch.custom_cover)
+                    : '';
+            }
+
+            updated[indexToUpdate] = nextItem;
+            return updated;
+        });
+    }, []);
+
+    const applyPendingMediaSetup = useCallback((updatesByIndex) => {
+        Object.entries(updatesByIndex || {}).forEach(([idxStr, patch]) => {
+            updateMediaMeta(Number(idxStr), patch);
+        });
+        setPendingMediaSetup([]);
+    }, [updateMediaMeta]);
+
+    const dismissPendingMediaSetup = useCallback(() => {
+        setPendingMediaSetup([]);
+    }, []);
+
     const removeFile = useCallback((indexToRemove) => {
         setFiles(prev => prev.filter((_, idx) => idx !== indexToRemove));
         setPreviews(prev => {
             const updated = [...prev];
             const removedItem = updated.splice(indexToRemove, 1)[0];
-            if (removedItem && removedItem.url) {
+            if (removedItem?.url && removedItem.url.startsWith('blob:')) {
                 URL.revokeObjectURL(removedItem.url);
+            }
+            if (removedItem?.custom_cover_url && removedItem.custom_cover_url.startsWith('blob:')) {
+                URL.revokeObjectURL(removedItem.custom_cover_url);
             }
             return updated;
         });
@@ -164,12 +246,16 @@ export const usePostForm = (initialFilesCount = 0) => {
         setFiles([]);
         previews.forEach(p => {
             if (p && p.url && p.url.startsWith('blob:')) URL.revokeObjectURL(p.url);
+            if (p && p.custom_cover_url && p.custom_cover_url.startsWith('blob:')) URL.revokeObjectURL(p.custom_cover_url);
         });
         setPreviews([]);
+        setPendingMediaSetup([]);
     }, [previews]);
 
     return {
-        files, previews, isDragging,
+        files, setFiles, previews, setPreviews, isDragging,
+        pendingMediaSetup, applyPendingMediaSetup, dismissPendingMediaSetup,
+        updateMediaMeta,
         handleDragOver, handleDragLeave, handleDrop,
         handleFileSelect, handlePaste, removeFile, replaceFile, clearFiles
     };
