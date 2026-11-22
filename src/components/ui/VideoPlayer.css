@@ -1,47 +1,115 @@
+
 .app-video-player {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    max-width: 100%;
     background: #000;
     outline: none;
-    --media-accent-color: var(--theme-link);
-    --media-primary-color: #ffffff;
-    --media-controls: rgba(10, 10, 12, 0.72);
-    --media-popover: rgba(14, 14, 18, 0.86);
-    --media-backdrop-filter-surface: blur(12px) saturate(140%);
-    --media-backdrop-filter-indicator: blur(10px);
-    --media-border-color: rgba(255, 255, 255, 0.16);
-    --media-border-radius: 0px;
-    --media-video-border-radius: 0px;
-    --media-control-radius: 0px;
-    --media-controls-radius: 0px;
-    --media-dialog-radius: 0px;
-    --media-menu-item-radius: 0px;
-    --media-popup-radius: 0px;
-    --media-control-corner-shape: square;
+    overflow: hidden;
+    user-select: none;
+
+    --lg-accent: var(--theme-link);
+    --lg-glass-bg: rgba(12, 14, 18, 0.76);
+    --lg-glass-popover: rgba(10, 12, 16, 0.9);
+    --lg-glass-border: rgba(255, 255, 255, 0.18);
+    --lg-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
+/* Єдина геометрія всіх елементів */
 .app-video-player,
 .app-video-player *,
 .app-video-player *::before,
-.app-video-player *::after,
-[data-theme="default"][data-preset="video"],
-[data-theme="default"][data-preset="video"] *,
-[data-theme="default"][data-preset="video"] *::before,
-[data-theme="default"][data-preset="video"] *::after {
+.app-video-player *::after {
+    box-sizing: border-box;
     border-radius: 0 !important;
 }
 
-.app-video-player .app-vjs-skin {
-    width: 100%;
-    height: auto;
-    aspect-ratio: auto !important;
-    background: #000;
+/* Захист від глобальних стилів теми XP */
+:root[data-style="xp"] .app-video-player button,
+:root[data-style="xp"] .app-video-player button:hover,
+:root[data-style="xp"] .app-video-player button:active,
+:root[data-style="xp"] .app-video-player button:focus {
+    font-family: inherit;
+    box-shadow: none;
 }
 
+:root[data-style="xp"] .app-video-player .lg-icon-btn {
+    padding: 0;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-style="xp"] .app-video-player .lg-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+:root[data-style="xp"] .app-video-player .lg-icon-btn.is-active {
+    background: color-mix(in srgb, var(--lg-accent) 32%, transparent);
+    border-color: var(--lg-accent);
+    color: #fff;
+}
+
+:root[data-style="xp"] .app-video-player .lg-center-play {
+    padding: 0;
+    background: var(--lg-glass-bg);
+    border: 1px solid var(--lg-glass-border);
+    box-shadow: var(--lg-glass-highlight);
+    color: #fff;
+}
+
+:root[data-style="xp"] .app-video-player .lg-menu-item,
+:root[data-style="xp"] .app-video-player .lg-chip-btn,
+:root[data-style="xp"] .app-video-player .lg-tab-btn {
+    padding: 3px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-style="xp"] .app-video-player .lg-menu-item.is-active,
+:root[data-style="xp"] .app-video-player .lg-chip-btn.is-active,
+:root[data-style="xp"] .app-video-player .lg-tab-btn.is-active {
+    border-color: var(--lg-accent);
+    background: color-mix(in srgb, var(--lg-accent) 36%, transparent);
+    color: #fff;
+}
+
+/* Фокус клавіатурою */
+.app-video-player button:focus-visible,
+.app-video-player input:focus-visible {
+    outline: 2px solid var(--lg-accent);
+    outline-offset: 2px;
+}
+
+:root[data-style="xp"] .app-video-player button:focus-visible {
+    outline: 2px solid var(--lg-accent);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   VIDEO STAGE
+   ========================================================= */
+
+.lg-video-stage {
+    position: relative;
+    display: block;
+    width: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+/* Звичайний режим */
 .app-video-player video {
     display: block;
     width: 100%;
     height: auto;
+    max-width: 100%;
     max-height: 72vh;
     object-fit: contain;
+    object-position: center center;
     background: #000;
 }
 
@@ -49,23 +117,467 @@
     max-height: 78vh;
 }
 
-.app-vjs-wip-btn {
-    padding: 2px 6px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.06);
+/* =========================================================
+   FULLSCREEN
+   Основне виправлення чорної смуги знизу
+   ========================================================= */
+
+.app-video-player:fullscreen,
+.app-video-player:-webkit-full-screen {
+    position: relative !important;
+
+    display: block !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+
+    overflow: hidden !important;
+    background: #000 !important;
+}
+
+/* Чорний фон за повноекранним елементом */
+.app-video-player:fullscreen::backdrop,
+.app-video-player:-webkit-full-screen::backdrop {
+    background: #000;
+}
+
+/*
+ * Сцена займає весь екран.
+ * Вона більше не залежить від висоти відео
+ * або розмірів панелі керування.
+ */
+.app-video-player:fullscreen .lg-video-stage,
+.app-video-player:-webkit-full-screen .lg-video-stage {
+    position: absolute !important;
+
+    inset: 0 !important;
+
+    display: block !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: hidden !important;
+    background: #000 !important;
+}
+
+/*
+ * Саме відео займає всю площу сцени.
+ * object-fit: contain зберігає пропорції.
+ */
+.app-video-player:fullscreen video,
+.app-video-player:-webkit-full-screen video {
+    position: absolute !important;
+
+    inset: 0 !important;
+
+    display: block !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    object-fit: contain !important;
+    object-position: center center !important;
+
+    background: #000 !important;
+}
+
+/*
+ * Режим заповнення екрана.
+ * При цьому частина кадру може обрізатися.
+ */
+.app-video-player.is-fill:fullscreen video,
+.app-video-player.is-fill:-webkit-full-screen video {
+    object-fit: cover !important;
+}
+
+/* =========================================================
+   LIQUID GLASS
+   ========================================================= */
+
+.lg-glass-bar {
+    background: linear-gradient(
+        180deg,
+        rgba(14, 16, 22, 0.74) 0%,
+        rgba(8, 10, 14, 0.92) 100%
+    );
+
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+
+    border-top: 1px solid var(--lg-glass-border);
+    box-shadow: var(--lg-glass-highlight);
+}
+
+.lg-glass-popover {
+    background: var(--lg-glass-popover);
+
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+
+    border: 1px solid var(--lg-glass-border);
+
+    box-shadow:
+        var(--lg-glass-highlight),
+        0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   CENTER PLAY BUTTON
+   ========================================================= */
+
+.lg-center-play {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+
+    padding: 0;
+
+    background: var(--lg-glass-bg);
+
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+
+    border: 1px solid rgba(255, 255, 255, 0.24);
+
+    box-shadow:
+        var(--lg-glass-highlight),
+        0 6px 20px rgba(0, 0, 0, 0.55);
+
+    color: #fff;
+    cursor: pointer;
+
+    transition:
+        background-color 0.14s ease,
+        border-color 0.14s ease;
+}
+
+.lg-center-play:hover {
+    background: color-mix(
+        in srgb,
+        var(--lg-accent) 44%,
+        rgba(12, 14, 18, 0.8)
+    );
+
+    border-color: var(--lg-accent);
+}
+
+/* =========================================================
+   ICON BUTTONS
+   ========================================================= */
+
+.lg-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 26px;
+    height: 26px;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    border: 1px solid transparent;
+    background: transparent;
+
+    color: rgba(255, 255, 255, 0.94);
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.12s ease,
+        border-color 0.12s ease,
+        color 0.12s ease;
+}
+
+.lg-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.24);
+    color: #fff;
+}
+
+.lg-icon-btn.is-active {
+    background: color-mix(
+        in srgb,
+        var(--lg-accent) 34%,
+        transparent
+    );
+
+    border-color: var(--lg-accent);
+    color: #fff;
+}
+
+/* =========================================================
+   CHIP / MENU / TAB BUTTONS
+   ========================================================= */
+
+.lg-chip-btn,
+.lg-menu-item,
+.lg-tab-btn {
+    padding: 3px 7px;
+
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.05);
+
     color: rgba(255, 255, 255, 0.9);
+
     font-size: 10px;
     line-height: 1.3;
+
     cursor: pointer;
-    transition: background-color 0.12s ease, border-color 0.12s ease;
+
+    transition:
+        background-color 0.12s ease,
+        border-color 0.12s ease;
 }
 
-.app-vjs-wip-btn:hover {
-    background: rgba(255, 255, 255, 0.16);
+.lg-chip-btn:hover,
+.lg-menu-item:hover,
+.lg-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.28);
 }
 
-.app-vjs-wip-btn.is-active {
-    border-color: var(--theme-link);
-    background: color-mix(in srgb, var(--theme-link) 35%, transparent);
+.lg-chip-btn.is-active,
+.lg-menu-item.is-active,
+.lg-tab-btn.is-active {
+    border-color: var(--lg-accent);
+
+    background: color-mix(
+        in srgb,
+        var(--lg-accent) 38%,
+        transparent
+    );
+
     color: #fff;
+    font-weight: 700;
+}
+
+/* =========================================================
+   VOLUME SLIDER
+   ========================================================= */
+
+.lg-volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+
+    width: 62px;
+    height: 4px;
+
+    padding: 0;
+
+    background: rgba(255, 255, 255, 0.24);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+
+    outline: none;
+    cursor: pointer;
+}
+
+.lg-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+
+    width: 8px;
+    height: 12px;
+
+    background: #fff;
+    border: 1px solid var(--lg-accent);
+
+    cursor: pointer;
+}
+
+.lg-volume-slider::-moz-range-thumb {
+    width: 8px;
+    height: 12px;
+
+    background: #fff;
+    border: 1px solid var(--lg-accent);
+
+    cursor: pointer;
+}
+
+/* =========================================================
+   PLAYER CONTROL DOCK
+   ВАЖЛИВО: панель тепер накладається поверх відео,
+   а не займає місце під ним.
+   ========================================================= */
+
+.lg-glass-dock {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 25;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+
+    margin: 0;
+    padding: 5px 4px max(2px, env(safe-area-inset-bottom, 0px));
+
+    background: linear-gradient(
+        180deg,
+        rgba(14, 16, 22, 0) 0%,
+        rgba(8, 10, 14, 0.56) 35%,
+        rgba(8, 10, 14, 0.9) 100%
+    );
+
+    border: 0;
+    box-shadow: none;
+
+    line-height: normal;
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Не дозволяємо елементам дока розтягувати його */
+.lg-glass-dock > * {
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   VIDEO SUBTITLES
+   ========================================================= */
+
+.app-video-player video::cue {
+    background: rgba(10, 12, 16, 0.82);
+    color: #fff;
+
+    font-family: "Tahoma", "Verdana", sans-serif;
+    font-size: 13px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 480px) {
+    .lg-volume-slider {
+        width: 46px;
+    }
+
+    .lg-icon-btn {
+        width: 24px;
+        height: 24px;
+    }
+
+    .lg-center-play {
+        width: 44px;
+        height: 44px;
+    }
+
+    .lg-glass-dock {
+        padding-left: 3px;
+        padding-right: 3px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .app-video-player *,
+    .app-video-player *::before,
+    .app-video-player *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+/* Сам відеопотік */
+.app-video-player.is-fullscreen video,
+.app-video-player:fullscreen video,
+.app-video-player:-webkit-full-screen video {
+    position: absolute !important;
+
+    inset: 0 !important;
+
+    display: block !important;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    object-fit: contain !important;
+    object-position: center !important;
+
+    background: #000 !important;
+}
+
+/* Заповнення всього екрана */
+.app-video-player.is-fullscreen.is-fill video,
+.app-video-player:fullscreen.is-fill video,
+.app-video-player:-webkit-full-screen.is-fill video {
+    object-fit: cover !important;
+}
+
+/* Панель керування */
+.app-video-player.is-fullscreen .lg-glass-dock,
+.app-video-player:fullscreen .lg-glass-dock,
+.app-video-player:-webkit-full-screen .lg-glass-dock {
+    position: absolute !important;
+
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+
+    width: 100% !important;
+
+    z-index: 100 !important;
+}
+
+/* Повноекранний фон */
+.app-video-player.is-fullscreen::backdrop,
+.app-video-player:fullscreen::backdrop,
+.app-video-player:-webkit-full-screen::backdrop {
+    background: #000 !important;
 }
