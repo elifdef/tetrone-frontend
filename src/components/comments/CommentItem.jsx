@@ -15,7 +15,7 @@ import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
 import StickerPicker from '../editor/StickerPicker';
 import ReportModal from '../modals/ReportModal';
-import ShareToChatModal from '../modals/ShareToChatModal';
+import ShareToChatModal from '@features/chat/components/modals/ShareToChatModal';
 
 export default function CommentItem({ comment, currentUser, onDelete, onEdit, onAddComment, depth = 1 }) {
     const { t } = useTranslation();

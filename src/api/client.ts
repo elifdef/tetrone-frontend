@@ -1,4 +1,6 @@
+import i18next from 'i18next';
 import { API_URL, APP_ENV } from '../config';
+import { notifyError, notifySuccess } from '../components/common/Notify';
 import { extractDebugAttachments, isTetroneDebugEnabled } from '../utils/debug';
 import type { ApiErrorResponse, ApiRequestHandle, ApiResponse } from '@/types/api';
 
@@ -6,6 +8,43 @@ export interface FetchClientOptions extends Omit<RequestInit, 'body' | 'headers'
     body?: Record<string, unknown> | FormData | string | null;
     headers?: Record<string, string>;
     silentAuth?: boolean;
+    silent?: boolean;
+    silentSuccess?: boolean;
+    silentError?: boolean;
+    showSuccessToast?: boolean;
+}
+
+const PASSIVE_SUCCESS_CODES = new Set([
+    'CHAT_READ',
+    'ALL_CHATS_READ',
+    'NOTIFICATION_READ',
+    'SCREEN_TIME_SYNCED',
+    'ALIAS_AVAILABLE',
+    'MESSAGE_SENT',
+]);
+
+function resolveErrorMessage(code?: string, fallbackMessage?: string): string {
+    if (code && i18next.isInitialized) {
+        if (i18next.exists(`code.${code}`)) {
+            return i18next.t(`code.${code}`);
+        }
+    }
+    if (fallbackMessage && fallbackMessage.trim()) {
+        return fallbackMessage;
+    }
+    return i18next.isInitialized ? i18next.t('error.action_failed') : 'error.action_failed';
+}
+
+function resolveSuccessMessage(code?: string, forceFallback = false): string | null {
+    if (code && i18next.isInitialized) {
+        if (i18next.exists(`code.${code}`)) {
+            return i18next.t(`code.${code}`);
+        }
+    }
+    if (!forceFallback) {
+        return null;
+    }
+    return i18next.isInitialized ? i18next.t('success.changes_saved') : 'success.changes_saved';
 }
 
 class ApiRequest<T extends object = Record<string, unknown>> implements ApiRequestHandle<T> {
@@ -58,8 +97,19 @@ class ApiRequest<T extends object = Record<string, unknown>> implements ApiReque
 
 export default function fetchClient<T extends object = Record<string, unknown>>(
     endpoint: string,
-    { method = 'GET', body, headers: customHeaders, silentAuth = false, ...customConfig }: FetchClientOptions = {}
+    {
+        method = 'GET',
+        body,
+        headers: customHeaders,
+        silentAuth = false,
+        silent = false,
+        silentSuccess = false,
+        silentError = false,
+        showSuccessToast = false,
+        ...customConfig
+    }: FetchClientOptions = {}
 ): ApiRequestHandle<T> {
+    const normalizedMethod = method.toUpperCase();
     const headers: Record<string, string> = { Accept: 'application/json' };
     const debugEnabled = isTetroneDebugEnabled();
 
@@ -72,7 +122,7 @@ export default function fetchClient<T extends object = Record<string, unknown>>(
     }
 
     const config: RequestInit = {
-        method,
+        method: normalizedMethod,
         headers: { ...headers, ...customHeaders },
         credentials: 'include',
         ...customConfig,
@@ -110,7 +160,7 @@ export default function fetchClient<T extends object = Record<string, unknown>>(
                     new CustomEvent('tetrone:trace-captured', {
                         detail: {
                             trace_id: traceId,
-                            method: method.toUpperCase(),
+                            method: normalizedMethod,
                             path: `/v1${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`,
                             status: response.status,
                             duration_ms: traceMs ? Number(traceMs) : null,
@@ -125,7 +175,7 @@ export default function fetchClient<T extends object = Record<string, unknown>>(
                 ok: response.ok,
             } as ApiResponse<T>;
 
-            if (debugEnabled && responseData.ok && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
+            if (debugEnabled && responseData.ok && ['POST', 'PUT', 'PATCH'].includes(normalizedMethod)) {
                 const mediaList = extractDebugAttachments(responseData);
                 if (mediaList.length > 0) {
                     window.dispatchEvent(
@@ -135,6 +185,8 @@ export default function fetchClient<T extends object = Record<string, unknown>>(
             }
 
             const responseCode = typeof data.code === 'string' ? data.code : undefined;
+            const rawMessage = typeof data.message === 'string' ? data.message : undefined;
+            const isSuccess = responseData.ok && !responseCode?.startsWith('ERR_');
 
             if (!silentAuth) {
                 if (response.status === 401 && responseCode !== 'ERR_INVALID_CREDENTIALS') {
@@ -146,11 +198,41 @@ export default function fetchClient<T extends object = Record<string, unknown>>(
                 }
             }
 
+            if (isSuccess) {
+                const isMutating = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(normalizedMethod);
+                const isReadOrPassiveCode = Boolean(
+                    responseCode &&
+                        (responseCode.endsWith('_RETRIEVED') ||
+                            responseCode.endsWith('_LOADED') ||
+                            PASSIVE_SUCCESS_CODES.has(responseCode))
+                );
+
+                if (
+                    !silent &&
+                    !silentSuccess &&
+                    (showSuccessToast || (isMutating && !isReadOrPassiveCode))
+                ) {
+                    const successText = resolveSuccessMessage(responseCode, showSuccessToast);
+                    if (successText) {
+                        notifySuccess(successText);
+                    }
+                }
+            } else {
+                const isSessionRedirect =
+                    !silentAuth &&
+                    response.status === 401 &&
+                    responseCode !== 'ERR_INVALID_CREDENTIALS';
+
+                if (!silent && !silentError && !isSessionRedirect) {
+                    notifyError(resolveErrorMessage(responseCode, rawMessage));
+                }
+            }
+
             if (APP_ENV === 'dev') {
-                if (responseData.ok && !responseCode?.startsWith('ERR_')) {
-                    console.log(`API Success [${method} ${endpoint}]`, responseData);
+                if (isSuccess) {
+                    console.log(`API Success [${normalizedMethod} ${endpoint}]`, responseData);
                 } else {
-                    console.error(`API Error [${method} ${endpoint}] Status: ${response.status}`, responseData);
+                    console.error(`API Error [${normalizedMethod} ${endpoint}] Status: ${response.status}`, responseData);
                 }
             }
 
@@ -164,11 +246,15 @@ export default function fetchClient<T extends object = Record<string, unknown>>(
             } as ApiResponse<T>;
 
             if (APP_ENV === 'dev') {
-                console.error(`Network/CORS Error [${method} ${endpoint}]`, error);
+                console.error(`Network/CORS Error [${normalizedMethod} ${endpoint}]`, error);
             }
 
             if (!silentAuth) {
                 window.dispatchEvent(new CustomEvent('server-offline'));
+            }
+
+            if (!silent && !silentError) {
+                notifyError(resolveErrorMessage('ERR_NETWORK'));
             }
 
             return errorData;

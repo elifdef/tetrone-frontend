@@ -6,8 +6,8 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Tabs from '@/components/ui/Tabs';
 import SpaceService, { type SpaceQueryParams } from '@/services/space.service';
-import CreateSpaceModal from '@/components/spaces/CreateSpaceModal';
-import SpaceListItem from '@/components/spaces/SpaceListItem';
+import CreateSpaceModal from '@/features/space/components/CreateSpaceModal';
+import SpaceListItem from '@/features/space/components/SpaceListItem';
 import { notifyError, notifySuccess } from '@/components/common/Notify';
 import type { SpaceData } from '@/types/space';
 

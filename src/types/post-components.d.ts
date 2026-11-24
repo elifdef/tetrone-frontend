@@ -28,7 +28,7 @@ declare module '@/components/post/PostItem' {
         onDelete?: (postId: number | string) => void;
         isOwner?: boolean;
         currentUsername?: string | null;
-        onLikeToggle?: (postId: number | string) => void;
+        onLikeToggle?: (postId: number | string, isLiked?: boolean) => void;
         onRepostSuccess?: () => void;
         isInner?: boolean;
         readonly?: boolean;

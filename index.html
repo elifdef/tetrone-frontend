@@ -11,8 +11,9 @@
                   var saved = localStorage.getItem('tetrone_personalization');
                   if (saved) {
                       var prefs = JSON.parse(saved);
+                      var activeTheme = prefs.siteTheme || prefs.name;
                       if (prefs.isDark) document.documentElement.setAttribute('data-theme', 'dark');
-                      if (prefs.name && prefs.name !== 'classic') document.documentElement.setAttribute('data-style', prefs.name);
+                      if (activeTheme && activeTheme !== 'classic') document.documentElement.setAttribute('data-style', activeTheme);
                   }
               } catch (e) {}
           })();
@@ -20,6 +21,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/app/main.tsx"></script>
   </body>
 </html>

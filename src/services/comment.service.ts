@@ -2,10 +2,10 @@ import fetchClient from '../api/client';
 import type { TipTapDoc } from '@/types/user';
 
 const CommentService = {
-    getComments: async (postId: number | string, page = 1) =>
+    getComments: (postId: number | string, page = 1) =>
         fetchClient(`/posts/${postId}/comments?page=${page}`),
 
-    addComment: async (
+    addComment: (
         postId: number | string,
         content: TipTapDoc | string | Record<string, unknown>,
         parentId: number | string | null = null
@@ -18,7 +18,7 @@ const CommentService = {
             },
         }),
 
-    update: async (
+    update: (
         commentId: number | string,
         content: TipTapDoc | string | Record<string, unknown>
     ) =>
@@ -29,13 +29,13 @@ const CommentService = {
             },
         }),
 
-    delete: async (commentId: number | string) =>
+    delete: (commentId: number | string) =>
         fetchClient(`/comments/${commentId}`, { method: 'DELETE' }),
 
-    toggleLike: async (commentId: number | string) =>
+    toggleLike: (commentId: number | string) =>
         fetchClient(`/comments/${commentId}/like`, { method: 'POST' }),
 
-    toggleReaction: async (commentId: number | string, stickerId: number | string) =>
+    toggleReaction: (commentId: number | string, stickerId: number | string) =>
         fetchClient(`/comments/${commentId}/reactions`, {
             method: 'POST',
             body: { sticker_id: stickerId },

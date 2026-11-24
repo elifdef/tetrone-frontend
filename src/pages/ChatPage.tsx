@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageTitle } from '../hooks/usePageTitle';
-import { useChatPage } from '../components/chat/hooks/useChatPage';
-import ChatLayout from '../components/chat/ChatLayout';
-import ChatInfoModal from '../components/chat/ChatInfoModal';
+import { useChatPage } from '@/features/chat/components/hooks/useChatPage';
+import ChatLayout from '@/features/chat/components/ChatLayout';
+import ChatInfoModal from '@/features/chat/components/ChatInfoModal';
 
 export default function ChatPage() {
     const { t } = useTranslation();

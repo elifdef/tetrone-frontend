@@ -35,6 +35,16 @@ export interface UserPermissions {
     can_view_friends: boolean;
 }
 
+export interface UserNotificationCategorySetting {
+    is_enabled?: boolean;
+    sound_id?: number | string | null;
+}
+
+export interface UserNotificationSettings {
+    messages?: UserNotificationCategorySetting;
+    [key: string]: UserNotificationCategorySetting | unknown;
+}
+
 export type FriendshipStatusValue =
     | 'none'
     | 'friends'
@@ -73,7 +83,7 @@ export interface UserData {
     can_view_friends?: boolean;
     friends_count?: number;
     followers_count?: number;
-    notification_settings?: Record<string, unknown> | null;
+    notification_settings?: UserNotificationSettings | null;
 }
 
 export interface UsersListResponse {

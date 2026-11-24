@@ -10,7 +10,7 @@ import PostService from '../../services/post.service';
 import { notifyError } from '../common/Notify';
 import { triggerStickerConfetti } from '../../utils/confetti';
 import { PinIcon } from '../ui/Icons';
-import ShareToChatModal from "../modals/ShareToChatModal";
+import ShareToChatModal from '@features/chat/components/modals/ShareToChatModal';
 
 const PostItem = ({
     post, onEdit, onDelete, isOwner, currentUsername, onLikeToggle, onRepostSuccess,

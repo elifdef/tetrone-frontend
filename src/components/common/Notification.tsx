@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState, useContext, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { useNotificationConfig } from '../../hooks/useNotificationConfig';
-import { NotificationContext } from '../../context/NotificationContext';
+import { useNotificationConfig } from '@/hooks/useNotificationConfig';
+import { NotificationContext } from '@/context/NotificationContext';
 import ReportResultModal from '../modals/ReportResultModal';
 import ShieldIcon from '../../assets/shield.svg?react';
 import Avatar from '../ui/Avatar';
 import RichText from './RichText';
 import { audioManager } from '../../utils/audioManager';
-import { getPlainText } from '../chat/utils/messageParser';
+import { getPlainText } from '@features/chat/components/utils/messageParser';
 import type { NotificationActor, NotificationPayload, NotificationTarget } from '@/types/notification';
 import type { TipTapDoc } from '@/types/tiptap';
 

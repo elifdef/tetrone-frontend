@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
-import fetchClient from '../api/client';
+import ActivityService from '@/services/activity.service';
 import type { UserData } from '@/types/user';
+
+const STORAGE_KEY = 'tetrone_pending_time';
+const MAX_PENDING_SECONDS = 120;
 
 export const useScreenTime = (currentUser: UserData | null | undefined): void => {
     useEffect(() => {
@@ -8,35 +11,34 @@ export const useScreenTime = (currentUser: UserData | null | undefined): void =>
 
         const tickInterval = setInterval(() => {
             if (document.visibilityState === 'visible') {
-                let current = parseInt(localStorage.getItem('tetrone_pending_time') || '0', 10);
+                let current = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
 
                 if (Number.isNaN(current) || current < 0) current = 0;
-                if (current > 120) current = 120;
+                if (current > MAX_PENDING_SECONDS) current = MAX_PENDING_SECONDS;
 
-                localStorage.setItem('tetrone_pending_time', String(current + 1));
+                localStorage.setItem(STORAGE_KEY, String(current + 1));
             }
         }, 1000);
 
         const syncInterval = setInterval(() => {
-            const pending = parseInt(localStorage.getItem('tetrone_pending_time') || '0', 10);
+            const pending = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
 
             if (Number.isNaN(pending) || pending <= 0) {
-                localStorage.setItem('tetrone_pending_time', '0');
+                localStorage.setItem(STORAGE_KEY, '0');
                 return;
             }
 
-            const secsToSend = Math.min(pending, 120);
+            const secsToSend = Math.min(pending, MAX_PENDING_SECONDS);
 
-            fetchClient('/activity/screen-time/sync', {
-                method: 'POST',
-                body: { seconds: secsToSend },
-                silentAuth: true,
-            }).then((res) => {
+            void ActivityService.syncScreenTime(secsToSend).then((res) => {
                 if (res && !res.code?.startsWith('ERR_')) {
-                    let currentNow = parseInt(localStorage.getItem('tetrone_pending_time') || '0', 10);
+                    let currentNow = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
                     if (Number.isNaN(currentNow)) currentNow = 0;
 
-                    localStorage.setItem('tetrone_pending_time', String(Math.max(0, currentNow - secsToSend)));
+                    localStorage.setItem(
+                        STORAGE_KEY,
+                        String(Math.max(0, currentNow - secsToSend))
+                    );
                 }
             });
         }, 60000);

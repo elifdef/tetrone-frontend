@@ -5,7 +5,7 @@ import PostFooter from "../post/PostFooter.jsx";
 import PostHeader from "../post/PostHeader.jsx";
 import RichText from "../common/RichText.jsx";
 import { usePostMedia } from "../post/hooks/usePostMedia.js";
-import VideoPlayer from "../ui/VideoPlayer.jsx";
+import VideoPlayer from "../ui/VideoPlayer";
 import { usePostActions } from "../post/hooks/usePostActions.js";
 import Modal from "./Modal.jsx";
 

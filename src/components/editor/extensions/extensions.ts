@@ -10,7 +10,7 @@ declare module '@tiptap/core' {
             toggleSpoiler: () => ReturnType;
         };
         fontSize: {
-            setFontSize: (fontSize: string | null) => ReturnType;
+            setFontSize: (fontSize: string) => ReturnType;
             unsetFontSize: () => ReturnType;
         };
         pullquote: {
@@ -70,9 +70,9 @@ export const FontSize = Extension.create({
     addCommands() {
         return {
             setFontSize:
-                (fontSize) =>
+                (fontSize: string) =>
                 ({ chain }) => {
-                    if (fontSize !== null && !ALLOWED_FONT_SIZES.includes(fontSize as TipTapAllowedFontSize)) {
+                    if (!ALLOWED_FONT_SIZES.includes(fontSize as TipTapAllowedFontSize)) {
                         return false;
                     }
                     return chain().setMark('textStyle', { fontSize }).run();

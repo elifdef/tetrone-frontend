@@ -1,4 +1,3 @@
-
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
@@ -19,6 +18,10 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
+            '@app': path.resolve(__dirname, './src/app'),
+            '@shared': path.resolve(__dirname, './src/shared'),
+            '@widgets': path.resolve(__dirname, './src/widgets'),
+            '@features': path.resolve(__dirname, './src/features'),
             '@ui': path.resolve(__dirname, './src/components/ui'),
             '@components': path.resolve(__dirname, './src/components'),
             '@hooks': path.resolve(__dirname, './src/hooks'),

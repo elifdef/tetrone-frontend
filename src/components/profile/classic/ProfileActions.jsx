@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router";
 import { useTranslation } from 'react-i18next';
 import Button from "../../ui/Button";
-import ShareToChatModal from "../../modals/ShareToChatModal";
+import ShareToChatModal from '@features/chat/components/modals/ShareToChatModal';
 
 export default function ProfileActions({
     user, sameUser, loading, status, isBlockedByMe, isBlockedByTarget,

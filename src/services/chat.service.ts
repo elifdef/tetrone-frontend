@@ -1,9 +1,14 @@
 import fetchClient from '../api/client';
 import type { ApiRequestHandle } from '@/types/api';
 import type {
-    ChatData,
+    ChatDeleteResponse,
+    ChatForwardResponse,
+    ChatImportantMessageResponse,
+    ChatInitResponse,
     ChatListResponse,
+    ChatMessageResponse,
     ChatMessagesResponse,
+    ChatPinMessageResponse,
     ChatRoleValue,
     GroupInfoUpdatedResponse,
     GroupMemberInvitedResponse,
@@ -26,8 +31,8 @@ const ChatService = {
         return fetchClient<ChatListResponse>('/chat', { method: 'GET' });
     },
 
-    initChat: (targetUsername: string): ApiRequestHandle<{ code: string; chat: ChatData }> => {
-        return fetchClient<{ code: string; chat: ChatData }>('/chat/init', {
+    initChat: (targetUsername: string): ApiRequestHandle<ChatInitResponse> => {
+        return fetchClient<ChatInitResponse>('/chat/init', {
             method: 'POST',
             body: { target_username: targetUsername },
         });
@@ -38,7 +43,7 @@ const ChatService = {
         description: TipTapDoc | string | null = '',
         participantUsernames: string[] = [],
         avatarFile: File | null = null
-    ): ApiRequestHandle<{ code: string; chat: ChatData }> => {
+    ): ApiRequestHandle<ChatInitResponse> => {
         const formData = new FormData();
         formData.append('title', typeof title === 'object' && title !== null ? JSON.stringify(title) : String(title ?? ''));
         if (description) {
@@ -49,7 +54,7 @@ const ChatService = {
             formData.append('avatar', avatarFile);
         }
 
-        return fetchClient<{ code: string; chat: ChatData }>('/chat/group', {
+        return fetchClient<ChatInitResponse>('/chat/group', {
             method: 'POST',
             body: formData,
         });
@@ -61,9 +66,12 @@ const ChatService = {
         date: string | null = null
     ): ApiRequestHandle<ChatMessagesResponse> => {
         const dateParam = date ? `&date=${encodeURIComponent(date)}` : '';
-        return fetchClient<ChatMessagesResponse>(`/chat/${encodeURIComponent(slug)}/messages?page=${page}${dateParam}&_t=${Date.now()}`, {
-            method: 'GET',
-        });
+        return fetchClient<ChatMessagesResponse>(
+            `/chat/${encodeURIComponent(slug)}/messages?page=${page}${dateParam}&_t=${Date.now()}`,
+            {
+                method: 'GET',
+            }
+        );
     },
 
     sendMessage: (
@@ -73,7 +81,7 @@ const ChatService = {
         shareable: ShareableInput | null = null,
         replyToUuid: string | null = null,
         sendAsGroup = false
-    ): ApiRequestHandle<Record<string, unknown>> => {
+    ): ApiRequestHandle<ChatMessageResponse> => {
         const formData = new FormData();
         if (text) {
             formData.append('text', typeof text === 'object' ? JSON.stringify(text) : text);
@@ -95,7 +103,7 @@ const ChatService = {
             }
         });
 
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/message`, {
+        return fetchClient<ChatMessageResponse>(`/chat/${encodeURIComponent(slug)}/message`, {
             method: 'POST',
             body: formData,
         });
@@ -107,7 +115,7 @@ const ChatService = {
         text: TipTapDoc | string | null,
         newFiles: Array<UploadableChatFile | File> = [],
         deletedMedia: string[] = []
-    ): ApiRequestHandle<Record<string, unknown>> => {
+    ): ApiRequestHandle<ChatMessageResponse> => {
         const formData = new FormData();
         formData.append('_method', 'PUT');
 
@@ -122,24 +130,37 @@ const ChatService = {
         });
         deletedMedia.forEach((fileName) => formData.append('deleted_media[]', fileName));
 
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}/update`, {
-            method: 'POST',
-            body: formData,
-        });
+        return fetchClient<ChatMessageResponse>(
+            `/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}/update`,
+            {
+                method: 'POST',
+                body: formData,
+            }
+        );
     },
 
-    deleteMessage: (slug: string, messageUuid: string, forBoth = false): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}`, {
-            method: 'DELETE',
-            body: { for_both: forBoth },
-        });
+    deleteMessage: (slug: string, messageUuid: string, forBoth = false): ApiRequestHandle<ChatDeleteResponse> => {
+        return fetchClient<ChatDeleteResponse>(
+            `/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}`,
+            {
+                method: 'DELETE',
+                body: { for_both: forBoth },
+            }
+        );
     },
 
-    deleteBulkMessages: (slug: string, messageUuids: string[] = [], forBoth = false): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/messages/bulk-delete`, {
-            method: 'POST',
-            body: { message_uuids: messageUuids, for_both: forBoth },
-        });
+    deleteBulkMessages: (
+        slug: string,
+        messageUuids: string[] = [],
+        forBoth = false
+    ): ApiRequestHandle<{ code: string; slug: string; count: number }> => {
+        return fetchClient<{ code: string; slug: string; count: number }>(
+            `/chat/${encodeURIComponent(slug)}/messages/bulk-delete`,
+            {
+                method: 'POST',
+                body: { message_uuids: messageUuids, for_both: forBoth },
+            }
+        );
     },
 
     forwardMessages: (
@@ -147,8 +168,8 @@ const ChatService = {
         targetSlug: string,
         messageUuids: string[] = [],
         comment: TipTapDoc | string = ''
-    ): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(targetSlug)}/forward`, {
+    ): ApiRequestHandle<ChatForwardResponse> => {
+        return fetchClient<ChatForwardResponse>(`/chat/${encodeURIComponent(targetSlug)}/forward`, {
             method: 'POST',
             body: {
                 source_slug: sourceSlug,
@@ -158,72 +179,103 @@ const ChatService = {
         });
     },
 
-    toggleImportantMessage: (slug: string, messageUuid: string): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}/important`, {
-            method: 'POST',
-        });
+    toggleImportantMessage: (
+        slug: string,
+        messageUuid: string
+    ): ApiRequestHandle<ChatImportantMessageResponse> => {
+        return fetchClient<ChatImportantMessageResponse>(
+            `/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}/important`,
+            {
+                method: 'POST',
+            }
+        );
     },
 
-    toggleBulkImportantMessages: (slug: string, messageUuids: string[] = []): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/messages/bulk-important`, {
-            method: 'POST',
-            body: { message_uuids: messageUuids },
-        });
+    toggleBulkImportantMessages: (
+        slug: string,
+        messageUuids: string[] = []
+    ): ApiRequestHandle<{ code: string; slug: string }> => {
+        return fetchClient<{ code: string; slug: string }>(
+            `/chat/${encodeURIComponent(slug)}/messages/bulk-important`,
+            {
+                method: 'POST',
+                body: { message_uuids: messageUuids },
+            }
+        );
     },
 
-    togglePin: (slug: string, messageUuid: string): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}/pin`, {
-            method: 'POST',
-        });
+    togglePin: (slug: string, messageUuid: string): ApiRequestHandle<ChatPinMessageResponse> => {
+        return fetchClient<ChatPinMessageResponse>(
+            `/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}/pin`,
+            {
+                method: 'POST',
+            }
+        );
     },
 
-    reportMessage: (slug: string, messageUuid: string, reason: string): ApiRequestHandle<Record<string, unknown>> => {
+    reportMessage: (
+        slug: string,
+        messageUuid: string,
+        reason: string
+    ): ApiRequestHandle<Record<string, unknown>> => {
         return fetchClient(`/chat/${encodeURIComponent(slug)}/message/${encodeURIComponent(messageUuid)}/report`, {
             method: 'POST',
             body: { reason },
         });
     },
 
-    markAsRead: (slug: string): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/read`, {
+    markAsRead: (slug: string): ApiRequestHandle<{ code: string; slug: string }> => {
+        return fetchClient<{ code: string; slug: string }>(`/chat/${encodeURIComponent(slug)}/read`, {
             method: 'POST',
         });
     },
 
-    markAsUnread: (slug: string): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/unread`, {
+    markAsUnread: (slug: string): ApiRequestHandle<{ code: string; slug: string }> => {
+        return fetchClient<{ code: string; slug: string }>(`/chat/${encodeURIComponent(slug)}/unread`, {
             method: 'POST',
         });
     },
 
-    markAllAsRead: (): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient('/chat/read-all', {
+    markAllAsRead: (): ApiRequestHandle<{ code: string }> => {
+        return fetchClient<{ code: string }>('/chat/read-all', {
             method: 'POST',
         });
     },
 
-    togglePinChat: (slug: string, isPinned = true): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/pin-chat`, {
-            method: 'POST',
-            body: { is_pinned: isPinned },
-        });
+    togglePinChat: (
+        slug: string,
+        isPinned = true
+    ): ApiRequestHandle<{ code: string; slug: string; is_pinned: boolean }> => {
+        return fetchClient<{ code: string; slug: string; is_pinned: boolean }>(
+            `/chat/${encodeURIComponent(slug)}/pin-chat`,
+            {
+                method: 'POST',
+                body: { is_pinned: isPinned },
+            }
+        );
     },
 
-    muteChat: (slug: string, duration: string | null = 'forever'): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/mute`, {
-            method: 'POST',
-            body: { duration },
-        });
+    muteChat: (
+        slug: string,
+        duration: string | null = 'forever'
+    ): ApiRequestHandle<{ code: string; slug: string; duration: string | null }> => {
+        return fetchClient<{ code: string; slug: string; duration: string | null }>(
+            `/chat/${encodeURIComponent(slug)}/mute`,
+            {
+                method: 'POST',
+                body: { duration },
+            }
+        );
     },
 
-    clearChatHistory: (slug: string): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}/history`, {
+    clearChatHistory: (slug: string): ApiRequestHandle<{ code: string; slug: string }> => {
+        return fetchClient<{ code: string; slug: string }>(`/chat/${encodeURIComponent(slug)}/history`, {
             method: 'DELETE',
         });
     },
 
-    deleteChat: (slug: string, forBoth = false): ApiRequestHandle<Record<string, unknown>> => {
-        return fetchClient(`/chat/${encodeURIComponent(slug)}`, {
+    deleteChat: (slug: string, forBoth = false): ApiRequestHandle<ChatDeleteResponse> => {
+        return fetchClient<ChatDeleteResponse>(`/chat/${encodeURIComponent(slug)}`, {
             method: 'DELETE',
             body: { for_both: forBoth },
         });
