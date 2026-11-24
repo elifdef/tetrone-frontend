@@ -271,6 +271,16 @@ export function isValidHttpUrl(href: unknown): href is string {
     }
 }
 
+export function isValidStickerSrc(src: unknown): src is string {
+    if (typeof src !== 'string') return false;
+    const trimmed = src.trim();
+    if (trimmed === '') return false;
+    if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+        return true;
+    }
+    return isValidHttpUrl(trimmed);
+}
+
 export type TipTapValidationErrorCode =
     | 'INVALID_ROOT'
     | 'DISALLOWED_NODE'
@@ -411,6 +421,11 @@ export function validateTipTapDoc(
                         errors.push({ code: 'INVALID_ATTRIBUTE', path: `${path}.attrs.color`, detail: String(attrs.color) });
                     }
                 }
+                if (typedNode === 'customSticker' && attrs.src !== undefined && attrs.src !== null && attrs.src !== '') {
+                    if (!isValidStickerSrc(attrs.src)) {
+                        errors.push({ code: 'INVALID_ATTRIBUTE', path: `${path}.attrs.src`, detail: String(attrs.src) });
+                    }
+                }
             }
         }
 
@@ -513,6 +528,12 @@ function sanitizeAttrs(type: TipTapNodeType, rawAttrs: Record<string, unknown>):
 
     if (type === 'heading' && ![1, 2, 3].includes(Number(clean.level))) {
         clean.level = 1;
+    }
+
+    if (type === 'customSticker' && clean.src !== undefined && clean.src !== null && clean.src !== '') {
+        if (!isValidStickerSrc(clean.src)) {
+            delete clean.src;
+        }
     }
 
     return clean;

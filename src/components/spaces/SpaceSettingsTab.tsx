@@ -1,16 +1,43 @@
-// src/components/spaces/SpaceSettingsTab.jsx
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useMemo, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { SpaceContext } from '../../context/SpaceContext';
-import SpaceService from '../../services/space.service';
-import Button from '../ui/Button';
-import CustomSelect from '../ui/CustomSelect';
-import ImageDropzone from '../settings/ImageDropzone';
-import SmartEditor from '../editor/SmartEditor.jsx';
-import { notifyError, notifySuccess } from '../common/Notify';
+import { SpaceContext } from '@/context/space-context';
+import SpaceService from '@/services/space.service';
+import Button from '@/components/ui/Button';
+import CustomSelect from '@/components/ui/CustomSelect';
+import ImageDropzone, { type ImageDropzoneSelectEvent } from '@/components/settings/ImageDropzone';
+import SmartEditor from '@/components/editor/SmartEditor';
+import { notifyError, notifySuccess } from '@/components/common/Notify';
+import type { SpaceData, SpacePostingRule, SpacePrivacy } from '@/types/space';
+import { isTipTapDoc, type TipTapDoc } from '@/types/tiptap';
 
-const SettingsRow = ({ label, description, children }) => (
+interface SettingsRowProps {
+    label: string;
+    description?: string;
+    children: ReactNode;
+}
+
+interface SpaceSettingsFormState {
+    name: string;
+    description: TipTapDoc | null;
+    privacy_type: SpacePrivacy;
+    posting_rule: SpacePostingRule;
+}
+
+const parseTipTapDoc = (value: TipTapDoc | string | null | undefined): TipTapDoc | null => {
+    if (!value) return null;
+    if (typeof value === 'string') {
+        try {
+            const parsed: unknown = JSON.parse(value);
+            return isTipTapDoc(parsed) ? parsed : null;
+        } catch {
+            return null;
+        }
+    }
+    return isTipTapDoc(value) ? value : null;
+};
+
+const SettingsRow = ({ label, description, children }: SettingsRowProps) => (
     <div className="flex items-start p-[12px] border-b border-border bg-bg-box gap-[15px] max-md:flex-col max-md:gap-[6px]">
         <div className="w-[200px] shrink-0 text-right max-md:w-full max-md:text-left">
             <div className="font-bold text-[11px] text-text-muted">{label}:</div>
@@ -26,53 +53,54 @@ const SettingsRow = ({ label, description, children }) => (
     </div>
 );
 
-const SpaceSettingsTab = () => {
+interface SpaceSettingsFormProps {
+    space: SpaceData;
+    updateSpace: (updates: Partial<SpaceData>) => void;
+    isOwner: boolean;
+}
+
+const SpaceSettingsForm = ({ space, updateSpace, isOwner }: SpaceSettingsFormProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { space, updateSpace, isOwner } = useContext(SpaceContext);
 
     const [loading, setLoading] = useState(false);
-    const [avatarFile, setAvatarFile] = useState(null);
-    const [avatarPreview, setAvatarPreview] = useState('');
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
-    const [form, setForm] = useState({
-        name: '',
-        description: null,
-        privacy_type: 'public',
-        posting_rule: 'all'
-    });
+    const [form, setForm] = useState<SpaceSettingsFormState>(() => ({
+        name: space.name || '',
+        description: parseTipTapDoc(space.description),
+        privacy_type: space.privacy_type || 'public',
+        posting_rule: space.posting_rule || 'all',
+    }));
 
-    useEffect(() => {
-        if (space) {
-            setForm({
-                name: space.name || '',
-                description: space.description || null,
-                privacy_type: space.privacy_type || 'public',
-                posting_rule: space.posting_rule || 'all'
-            });
-        }
-    }, [space]);
+    const objectUrl = useMemo(
+        () => (avatarFile ? URL.createObjectURL(avatarFile) : null),
+        [avatarFile]
+    );
 
     useEffect(() => {
-        if (avatarFile instanceof File || avatarFile instanceof Blob) {
-            const url = URL.createObjectURL(avatarFile);
-            setAvatarPreview(url);
-            return () => URL.revokeObjectURL(url);
-        }
-        setAvatarPreview(space?.avatar || '');
-    }, [avatarFile, space?.avatar]);
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [objectUrl]);
 
-    const handleChange = (field, value) =>
-        setForm(prev => ({ ...prev, [field]: value }));
+    const avatarPreview = objectUrl || space.avatar || '';
 
-    const handleAvatarSelect = (data) => {
-        if (!data) return setAvatarFile(null);
-        if (data.target?.files) setAvatarFile(data.target.files[0]);
-        else if (Array.isArray(data)) setAvatarFile(data[0]);
-        else setAvatarFile(data);
+    const handleChange = <K extends keyof SpaceSettingsFormState>(
+        field: K,
+        value: SpaceSettingsFormState[K]
+    ) => {
+        setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleAvatarSelect = (event: ImageDropzoneSelectEvent) => {
+        const selected = event.target?.files?.[0] ?? null;
+        setAvatarFile(selected);
+    };
+
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
 
@@ -81,8 +109,16 @@ const SpaceSettingsTab = () => {
         formData.append('privacy_type', form.privacy_type);
         formData.append('posting_rule', form.posting_rule);
         formData.append('is_members_hidden', space.is_members_hidden ? '1' : '0');
-        formData.append('description', form.description ? JSON.stringify(form.description) : '');
-        formData.append('rules', space.rules ? JSON.stringify(space.rules) : '');
+        formData.append(
+            'description',
+            form.description ? JSON.stringify(form.description) : ''
+        );
+        formData.append(
+            'rules',
+            space.rules
+                ? (typeof space.rules === 'object' ? JSON.stringify(space.rules) : space.rules)
+                : ''
+        );
 
         if (Array.isArray(space.links) && space.links.length > 0) {
             space.links.forEach((link, idx) => {
@@ -91,7 +127,7 @@ const SpaceSettingsTab = () => {
             });
         }
 
-        if (avatarFile instanceof File || avatarFile instanceof Blob) {
+        if (avatarFile) {
             formData.append('avatar_file', avatarFile);
         }
 
@@ -117,14 +153,12 @@ const SpaceSettingsTab = () => {
         SpaceService.deleteSpace(space.username)
             .onSuccess((res) => {
                 notifySuccess(t(`api.success.${res.code}`));
-                navigate('/spaces');
+                void navigate('/spaces');
             })
             .onError((err) => {
                 notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
-
-    if (!space) return null;
 
     return (
         <div className="flex flex-col gap-[10px]">
@@ -144,21 +178,29 @@ const SpaceSettingsTab = () => {
                 </SettingsRow>
 
                 <SettingsRow label={t('spaces.avatar')} description={t('spaces.avatar_hint')}>
-                    <div className="w-[90px]">
-                        <ImageDropzone
-                            currentImage={avatarPreview}
-                            onFileSelect={handleAvatarSelect}
-                            className="aspect-square object-cover border border-border"
-                        />
+                    <div className="flex items-start gap-[12px] max-sm:flex-col">
+                        {avatarPreview && (
+                            <img
+                                src={avatarPreview}
+                                alt={space.name}
+                                className="w-[72px] h-[72px] shrink-0 object-cover border border-border"
+                            />
+                        )}
+                        <div className="flex-1 w-full">
+                            <ImageDropzone
+                                onFileSelect={handleAvatarSelect}
+                                fileName={avatarFile?.name ?? null}
+                            />
+                        </div>
                     </div>
                 </SettingsRow>
 
                 <SettingsRow label={t('spaces.field_privacy')} description={t(`spaces.privacy_desc_${form.privacy_type}`)}>
-                    <CustomSelect
+                    <CustomSelect<SpacePrivacy>
                         options={[
                             { value: 'public', label: t('spaces.privacy_public') },
                             { value: 'closed', label: t('spaces.privacy_closed') },
-                            { value: 'private', label: t('spaces.privacy_private') }
+                            { value: 'private', label: t('spaces.privacy_private') },
                         ]}
                         value={form.privacy_type}
                         onChange={(val) => handleChange('privacy_type', val)}
@@ -166,10 +208,10 @@ const SpaceSettingsTab = () => {
                 </SettingsRow>
 
                 <SettingsRow label={t('spaces.field_posting')} description={t('spaces.posting_desc')}>
-                    <CustomSelect
+                    <CustomSelect<SpacePostingRule>
                         options={[
                             { value: 'all', label: t('spaces.posting_all') },
-                            { value: 'admins', label: t('spaces.posting_admins') }
+                            { value: 'admins', label: t('spaces.posting_admins') },
                         ]}
                         value={form.posting_rule}
                         onChange={(val) => handleChange('posting_rule', val)}
@@ -212,6 +254,21 @@ const SpaceSettingsTab = () => {
                 </div>
             )}
         </div>
+    );
+};
+
+const SpaceSettingsTab = () => {
+    const { space, updateSpace, isOwner } = useContext(SpaceContext);
+
+    if (!space) return null;
+
+    return (
+        <SpaceSettingsForm
+            key={space.username}
+            space={space}
+            updateSpace={updateSpace}
+            isOwner={isOwner}
+        />
     );
 };
 

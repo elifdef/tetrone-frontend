@@ -1,18 +1,25 @@
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { STAFF_ROLES } from '../../context/SpaceContext';
+import { isSpaceStaffRole } from '@/context/space-context';
+import type { SpaceData } from '@/types/space';
 
-const SpaceListItem = ({ space, onLeave }) => {
+interface SpaceListItemProps {
+    space: SpaceData;
+    onLeave: (spaceUsername: string) => void;
+}
+
+const SpaceListItem = ({ space, onLeave }: SpaceListItemProps) => {
     const { t } = useTranslation();
 
     const isOwner = space.member_role === 'owner';
-    const isStaff = STAFF_ROLES.includes(space.member_role);
+    const isStaff = isSpaceStaffRole(space.member_role);
+    const privacyType = space.privacy_type ?? 'public';
 
     return (
         <div className="flex items-start bg-bg-box border border-border p-[10px] gap-[12px] hover:bg-bg-page transition-colors max-md:flex-col max-md:items-center max-md:text-center">
             <Link to={`/${space.username}`} className="shrink-0 p-[2px] bg-bg-page border border-border">
                 <img
-                    src={space.avatar}
+                    src={space.avatar ?? undefined}
                     alt={space.name}
                     className="w-[75px] h-[75px] object-cover block"
                 />
@@ -28,7 +35,7 @@ const SpaceListItem = ({ space, onLeave }) => {
 
                 <div className="flex max-md:justify-center">
                     <span className="w-[95px] shrink-0 text-text-muted max-md:w-auto max-md:mr-[4px]">{t('spaces.info_type')}:</span>
-                    <span>{t(`spaces.privacy_${space.privacy_type}`)}</span>
+                    <span>{t(`spaces.privacy_${privacyType}`)}</span>
                 </div>
 
                 <div className="flex max-md:justify-center">
@@ -38,7 +45,7 @@ const SpaceListItem = ({ space, onLeave }) => {
                     </Link>
                 </div>
 
-                {isStaff && (
+                {isStaff && space.member_role && (
                     <div className="flex max-md:justify-center">
                         <span className="w-[95px] shrink-0 text-text-muted max-md:w-auto max-md:mr-[4px]">{t('spaces.blocks_staff')}:</span>
                         <span className="font-bold text-theme-link">{t(`spaces.role_${space.member_role}`)}</span>

@@ -1,14 +1,28 @@
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useState, useEffect, useContext, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SpaceContext } from '@/context/SpaceContext';
+import { SpaceContext } from '@/context/space-context';
 import SpaceService from '@/services/space.service';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import CustomSelect from '@/components/ui/CustomSelect';
 import DateInput from '@/components/ui/DateInput';
 import { notifyError, notifySuccess } from '@/components/common/Notify';
+import type {
+    SpaceInviteCreatePayload,
+    SpaceInviteData,
+    SpaceInviteRules,
+    SpaceRole,
+} from '@/types/space';
 
-const FormRow = ({ label, description, children }) => (
+type AssignableInviteRole = Exclude<SpaceRole, 'owner'>;
+
+interface FormRowProps {
+    label: string;
+    description?: string;
+    children: ReactNode;
+}
+
+const FormRow = ({ label, description, children }: FormRowProps) => (
     <div className="flex items-start p-[10px_12px] border-b border-border bg-bg-box gap-[15px] max-md:flex-col max-md:gap-[6px]">
         <div className="w-[190px] shrink-0 text-right max-md:w-full max-md:text-left">
             <div className="font-bold text-[11px] text-text-muted">{label}:</div>
@@ -28,14 +42,14 @@ const SpaceInvitesTab = () => {
     const { t } = useTranslation();
     const { space, canManageInvites } = useContext(SpaceContext);
 
-    const [invites, setInvites] = useState([]);
+    const [invites, setInvites] = useState<SpaceInviteData[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
 
     const [maxUses, setMaxUses] = useState('');
     const [expiresAt, setExpiresAt] = useState('');
     const [targetUsername, setTargetUsername] = useState('');
-    const [assignRole, setAssignRole] = useState('member');
+    const [assignRole, setAssignRole] = useState<AssignableInviteRole>('member');
     const [minAccountAgeDays, setMinAccountAgeDays] = useState('');
     const [note, setNote] = useState('');
     const [autoApprove, setAutoApprove] = useState(false);
@@ -45,29 +59,42 @@ const SpaceInvitesTab = () => {
     const currentYear = now.getFullYear();
     const todayIso = `${currentYear}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    const fetchInvites = useCallback(() => {
-        setLoading(true);
-        SpaceService.getInvites(space.username)
-            .onSuccess((res) => {
-                if (res.invites) setInvites(res.invites);
-            })
-            .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
-            })
-            .onFinally(() => {
-                setLoading(false);
-            });
-    }, [space.username, t]);
+    const spaceUsername = space?.username;
 
     useEffect(() => {
-        if (canManageInvites) fetchInvites();
-    }, [canManageInvites, fetchInvites]);
+        if (!canManageInvites || !spaceUsername) return;
 
-    const handleCreate = (e) => {
+        let cancelled = false;
+
+        SpaceService.getInvites(spaceUsername)
+            .onSuccess((res) => {
+                if (!cancelled && res.invites) {
+                    setInvites(res.invites);
+                }
+            })
+            .onError((err) => {
+                if (!cancelled) {
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                }
+            })
+            .onFinally(() => {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [canManageInvites, spaceUsername, t]);
+
+    if (!canManageInvites || !space) return null;
+
+    const handleCreate = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsCreating(true);
 
-        const payload = {};
+        const payload: SpaceInviteCreatePayload = {};
         if (maxUses) payload.max_uses = parseInt(maxUses, 10);
         if (expiresAt) {
             const [y, m, d] = expiresAt.split('-').map(Number);
@@ -76,7 +103,7 @@ const SpaceInvitesTab = () => {
         }
         if (targetUsername.trim()) payload.target_username = targetUsername.trim();
 
-        const rules = {};
+        const rules: SpaceInviteRules = {};
         if (assignRole !== 'member') rules.assign_role = assignRole;
         if (autoApprove) rules.auto_approve = true;
         if (requireVerifiedEmail) rules.require_verified_email = true;
@@ -92,7 +119,8 @@ const SpaceInvitesTab = () => {
         SpaceService.createInvite(space.username, payload)
             .onSuccess((res) => {
                 if (res.invite) {
-                    setInvites(prev => [res.invite, ...prev]);
+                    const createdInvite = res.invite;
+                    setInvites((prev) => [createdInvite, ...prev]);
                     setMaxUses('');
                     setExpiresAt('');
                     setTargetUsername('');
@@ -112,12 +140,12 @@ const SpaceInvitesTab = () => {
             });
     };
 
-    const handleRevoke = (token) => {
+    const handleRevoke = (token: string) => {
         if (!window.confirm(t('common.confirm_action'))) return;
 
         SpaceService.revokeInvite(space.username, token)
             .onSuccess((res) => {
-                setInvites(prev => prev.filter(inv => inv.token !== token));
+                setInvites((prev) => prev.filter((inv) => inv.token !== token));
                 notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
@@ -125,12 +153,12 @@ const SpaceInvitesTab = () => {
             });
     };
 
-    const handleRevokeOthers = (keepToken) => {
+    const handleRevokeOthers = (keepToken: string) => {
         if (!window.confirm(t('common.confirm_action'))) return;
 
         SpaceService.revokeOthers(space.username, keepToken)
             .onSuccess((res) => {
-                setInvites(prev => prev.filter(inv => inv.token === keepToken));
+                setInvites((prev) => prev.filter((inv) => inv.token === keepToken));
                 notifySuccess(t(`api.success.${res.code}`));
             })
             .onError((err) => {
@@ -138,14 +166,13 @@ const SpaceInvitesTab = () => {
             });
     };
 
-    const getInviteUrl = (token) => `${window.location.origin}/${space.username}?invite=${token}`;
+    const getInviteUrl = (token: string): string =>
+        `${window.location.origin}/${space.username}?invite=${token}`;
 
-    const handleCopy = (token) => {
-        navigator.clipboard.writeText(getInviteUrl(token));
+    const handleCopy = (token: string) => {
+        void navigator.clipboard.writeText(getInviteUrl(token));
         notifySuccess(t('common.copied'));
     };
-
-    if (!canManageInvites) return null;
 
     return (
         <div className="flex flex-col gap-[10px]">
@@ -207,10 +234,10 @@ const SpaceInvitesTab = () => {
                         options={[
                             { value: 'member', label: t('spaces.role_member') },
                             { value: 'moderator', label: t('spaces.role_moderator') },
-                            { value: 'admin', label: t('spaces.role_admin') }
+                            { value: 'admin', label: t('spaces.role_admin') },
                         ]}
                         value={assignRole}
-                        onChange={setAssignRole}
+                        onChange={(val) => setAssignRole(val as AssignableInviteRole)}
                     />
                 </FormRow>
 
@@ -271,9 +298,9 @@ const SpaceInvitesTab = () => {
                     ) : invites.length === 0 ? (
                         <div className="text-center text-text-muted py-[20px]">{t('spaces.invites_empty')}</div>
                     ) : (
-                        invites.map(invite => {
-                            const rules = invite.rules || {};
-                            const hasRoleBadge = rules.assign_role && rules.assign_role !== 'member';
+                        invites.map((invite) => {
+                            const rules: SpaceInviteRules = invite.rules || {};
+                            const hasRoleBadge = Boolean(rules.assign_role && rules.assign_role !== 'member');
 
                             return (
                                 <div
@@ -292,7 +319,7 @@ const SpaceInvitesTab = () => {
                                         </div>
 
                                         <div className="flex flex-wrap gap-[4px]">
-                                            {hasRoleBadge && (
+                                            {hasRoleBadge && rules.assign_role && (
                                                 <span className="px-[5px] py-[1px] bg-theme-header-bg border border-border text-theme-link text-[10px] font-bold">
                                                     {t(`spaces.role_${rules.assign_role}`)}
                                                 </span>

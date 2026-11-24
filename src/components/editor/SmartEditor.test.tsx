@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import SmartEditor from './SmartEditor';
 import RichText from '../common/RichText';
+import StickerService from '../../services/sticker.service';
 import { FULL_POST_FIXTURE } from './presets.test';
 import { validateTipTapDoc } from './presets';
 import type { TipTapDoc } from '@/types/tiptap';
@@ -21,13 +22,21 @@ vi.mock('../../services/sticker.service', () => ({
                 return { onError: () => {} };
             },
         })),
-        getStickerInfo: vi.fn(),
+        getStickerInfo: vi.fn(() => ({
+            onSuccess: (cb: (res: { pack: Record<string, unknown>; samples: unknown[] }) => void) => {
+                cb({
+                    pack: { short_name: 'furina_de_fontaine', title: 'Furina', is_installed: false },
+                    samples: [],
+                });
+                return { onError: () => {} };
+            },
+        })),
         installPack: vi.fn(),
     },
 }));
 
 describe('SmartEditor & RichText full formatting integration', () => {
-    it('renders every block and inline mark from the full post fixture in RichText', () => {
+    it('renders every block, inline mark, and customSticker from the full post fixture in RichText', () => {
         const { container } = render(
             <MemoryRouter>
                 <RichText text={FULL_POST_FIXTURE} limit={10000} />
@@ -84,6 +93,19 @@ describe('SmartEditor & RichText full formatting integration', () => {
         expect(container.querySelector('span[style*="Times New Roman"]')).not.toBeNull();
         expect(container.querySelector('span[style*="font-size: 16px"]')).not.toBeNull();
         expect(container.querySelector('br')).not.toBeNull();
+
+        // CustomSticker with packName extracted from src
+        const stickerImg = container.querySelector('img.micro-sticker');
+        expect(stickerImg).not.toBeNull();
+        expect(stickerImg?.getAttribute('src')).toBe(
+            '/storage/emojis/furina_de_fontaine/sticker-1795518900-25fc0de68dfba850.webp'
+        );
+        expect(stickerImg?.getAttribute('alt')).toBe(':sticker_30:');
+        expect(stickerImg?.getAttribute('data-shortcode')).toBe('sticker_30');
+        expect(stickerImg?.getAttribute('data-pack-name')).toBe('furina_de_fontaine');
+
+        fireEvent.click(stickerImg!);
+        expect(StickerService.getStickerInfo).toHaveBeenCalledWith('furina_de_fontaine');
     });
 
     it('exposes ONLY bold and italic in FloatingFormatMenu when preset="bio"', () => {

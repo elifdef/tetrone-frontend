@@ -31,7 +31,8 @@ import TextAlign from '@tiptap/extension-text-align';
 import { UniqueId } from '../editor/extensions/UniqueId';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { isTipTapTextNode, type TipTapDoc, type TipTapMark, type TipTapNode } from '@/types/tiptap';
+import { decodeTipTapContent, ensureMentionSpacing, processHashtags } from '../../utils/tiptapContent';
+import type { TipTapDoc } from '@/types/tiptap';
 import type { UserData } from '@/types/user';
 
 export interface RichTextProps {
@@ -161,121 +162,6 @@ const RICH_TEXT_EXTENSIONS = [
 const packInfoCache: Record<string, { info: StickerPackInfo; samples: StickerTooltipSample[] }> = {};
 const userProfileCache: Record<string, UserData | null> = {};
 
-const decodeHtmlEntities = (text: string): string => {
-    const textArea = document.createElement('textarea');
-    textArea.innerHTML = text;
-    return textArea.value;
-};
-
-export const decodeTipTapContent = <T,>(content: T): T => {
-    if (!content) return content;
-    if (typeof content === 'string') return content;
-
-    if (Array.isArray(content)) {
-        return content
-            .map((item) => decodeTipTapContent(item))
-            .filter((node) => {
-                if (
-                    node &&
-                    typeof node === 'object' &&
-                    (node as { type?: unknown }).type === 'text' &&
-                    typeof (node as { text?: unknown }).text !== 'string'
-                ) {
-                    return false;
-                }
-                return true;
-            }) as unknown as T;
-    }
-
-    if (typeof content === 'object') {
-        const newObj = { ...(content as Record<string, unknown>) };
-        if (newObj.type === 'text' && typeof newObj.text === 'string') {
-            newObj.text = decodeHtmlEntities(newObj.text);
-        }
-        if (newObj.content) {
-            newObj.content = decodeTipTapContent(newObj.content);
-        }
-        return newObj as T;
-    }
-    return content;
-};
-
-const ensureMentionSpacing = <T,>(content: T): T => {
-    if (!content) return content;
-    if (Array.isArray(content)) return content.map((item) => ensureMentionSpacing(item)) as unknown as T;
-
-    if (typeof content === 'object') {
-        const newObj = { ...(content as Record<string, unknown>) };
-        if (Array.isArray(newObj.content)) {
-            const normalized = newObj.content.map((item) => ensureMentionSpacing(item) as TipTapNode);
-            for (let i = 0; i < normalized.length - 1; i++) {
-                const curr = normalized[i];
-                const next = normalized[i + 1];
-                if (
-                    curr?.type === 'mention' &&
-                    next?.type === 'text' &&
-                    typeof next.text === 'string' &&
-                    next.text.length > 0 &&
-                    !/^[\s.,!?;:)\]]/.test(next.text)
-                ) {
-                    normalized[i + 1] = { ...next, text: ` ${next.text}` };
-                }
-            }
-            newObj.content = normalized;
-        }
-        return newObj as T;
-    }
-
-    return content;
-};
-
-const processHashtags = <T,>(content: T): T => {
-    if (!content) return content;
-    if (Array.isArray(content)) return content.map((item) => processHashtags(item)) as unknown as T;
-
-    if (typeof content === 'object') {
-        const newObj = { ...(content as Record<string, unknown>) };
-
-        if (Array.isArray(newObj.content)) {
-            const newChildren: TipTapNode[] = [];
-
-            (newObj.content as TipTapNode[]).forEach((child) => {
-                if (
-                    isTipTapTextNode(child) &&
-                    (!child.marks || !child.marks.some((m) => m.type === 'link' || m.type === 'hashtag'))
-                ) {
-                    const regex = /(#[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9_]+)/gu;
-                    const parts = child.text.split(regex);
-
-                    if (parts.length === 1) {
-                        newChildren.push(processHashtags(child));
-                    } else {
-                        parts.forEach((part) => {
-                            if (part.match(regex)) {
-                                const marks: TipTapMark[] = child.marks ? [...child.marks] : [];
-                                marks.push({
-                                    type: 'hashtag',
-                                    attrs: {
-                                        'data-hashtag': part.slice(1).toLowerCase(),
-                                    },
-                                });
-                                newChildren.push({ type: 'text', text: part, marks });
-                            } else if (part) {
-                                newChildren.push({ ...child, text: part });
-                            }
-                        });
-                    }
-                } else {
-                    newChildren.push(processHashtags(child));
-                }
-            });
-            newObj.content = newChildren;
-        }
-        return newObj as T;
-    }
-    return content;
-};
-
 const RichText = React.memo(function RichText({ text, className = 'post-text', limit = 500 }: RichTextProps) {
     const { t } = useTranslation();
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -347,7 +233,7 @@ const RichText = React.memo(function RichText({ text, className = 'post-text', l
             const langSpan = document.createElement('span');
             langSpan.className = 'font-bold uppercase text-[9px] tracking-[1px]';
             langSpan.style.color = 'var(--theme-text-muted)';
-            langSpan.innerText = langName;
+            langSpan.textContent = langName;
 
             const copyBtn = document.createElement('button');
             copyBtn.className = 'bg-transparent border-none cursor-pointer flex items-center gap-[4px] p-[2px] transition-colors hover:opacity-70 outline-none';
@@ -355,12 +241,12 @@ const RichText = React.memo(function RichText({ text, className = 'post-text', l
             copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="text-[9px] font-bold">Copy</span>`;
 
             copyBtn.onclick = () => {
-                void navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+                void navigator.clipboard.writeText(codeBlock.textContent ?? '').then(() => {
                     const span = copyBtn.querySelector('span');
-                    if (span) span.innerText = t('action.copied');
+                    if (span) span.textContent = t('action.copied');
                     copyBtn.style.color = 'var(--theme-success)';
                     setTimeout(() => {
-                        if (span) span.innerText = 'Copy';
+                        if (span) span.textContent = 'Copy';
                         copyBtn.style.color = 'var(--theme-link)';
                     }, 2000);
                 });

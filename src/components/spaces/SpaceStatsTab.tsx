@@ -1,13 +1,22 @@
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { SpaceContext } from '@context/SpaceContext';
-import SpaceService from '@services/space.service';
-import { notifyError } from '@common/Notify';
+import { SpaceContext } from '@/context/space-context';
+import SpaceService from '@/services/space.service';
+import { notifyError } from '@/components/common/Notify';
+import type { SpaceStatsData } from '@/types/space';
 
-const StatCard = ({ title, value, trend, trendLabel }) => {
-    const isPositive = trend > 0;
-    const isNegative = trend < 0;
+interface StatCardProps {
+    title: string;
+    value: string | number;
+    trend?: number | null;
+    trendLabel?: string;
+}
+
+const StatCard = ({ title, value, trend, trendLabel }: StatCardProps) => {
+    const numericTrend = trend ?? 0;
+    const isPositive = numericTrend > 0;
+    const isNegative = numericTrend < 0;
 
     return (
         <div className="bg-bg-page border border-border p-[10px] flex flex-col justify-between h-full">
@@ -23,7 +32,7 @@ const StatCard = ({ title, value, trend, trendLabel }) => {
                         isPositive ? 'text-[#4bb34b]' : isNegative ? 'text-[#ff3347]' : 'text-text-muted'
                     }`}
                 >
-                    {isPositive ? '▲' : isNegative ? '▼' : '•'} {Math.abs(trend)}%
+                    {isPositive ? '▲' : isNegative ? '▼' : '•'} {Math.abs(numericTrend)}%
                     <span className="text-text-muted font-normal ml-[2px]">{trendLabel}</span>
                 </div>
             )}
@@ -31,7 +40,14 @@ const StatCard = ({ title, value, trend, trendLabel }) => {
     );
 };
 
-const StatBar = ({ label, percentage, count, color = '#5b9bd5' }) => (
+interface StatBarProps {
+    label?: string;
+    percentage: number;
+    count: number;
+    color?: string;
+}
+
+const StatBar = ({ label, percentage, count, color = '#5b9bd5' }: StatBarProps) => (
     <div className="mb-[8px] last:mb-0">
         <div className="flex justify-between text-[10px] mb-[2px]">
             <span className="text-text-main">{label}</span>
@@ -49,24 +65,39 @@ const StatBar = ({ label, percentage, count, color = '#5b9bd5' }) => (
 const SpaceStatsTab = () => {
     const { t } = useTranslation();
     const { space } = useContext(SpaceContext);
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState<SpaceStatsData | null>(null);
+    const [loadedForUsername, setLoadedForUsername] = useState<string | null>(null);
+
+    const spaceUsername = space?.username;
 
     useEffect(() => {
-        if (!space?.username) return;
-        setLoading(true);
+        if (!spaceUsername) return;
 
-        SpaceService.getSpaceStats(space.username)
+        let cancelled = false;
+
+        SpaceService.getSpaceStats(spaceUsername)
             .onSuccess((res) => {
-                if (res.stats) setStats(res.stats);
+                if (!cancelled && res.stats) {
+                    setStats(res.stats);
+                }
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                if (!cancelled) {
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                }
             })
             .onFinally(() => {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoadedForUsername(spaceUsername);
+                }
             });
-    }, [space?.username, t]);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [spaceUsername, t]);
+
+    const loading = Boolean(spaceUsername) && loadedForUsername !== spaceUsername;
 
     if (!space) return null;
     if (loading) {
@@ -85,13 +116,13 @@ const SpaceStatsTab = () => {
         )
     );
 
-    const formatShortDate = (dateStr) => {
+    const formatShortDate = (dateStr: string): string => {
         if (!dateStr) return '';
         const parts = dateStr.split('-');
         return parts.length === 3 ? `${parts[2]}.${parts[1]}` : dateStr;
     };
 
-    const formatTime = (dateTimeStr) => {
+    const formatTime = (dateTimeStr: string | null): string => {
         if (!dateTimeStr) return '';
         const date = new Date(dateTimeStr);
         if (Number.isNaN(date.getTime())) return '';

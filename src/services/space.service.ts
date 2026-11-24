@@ -1,8 +1,22 @@
-import fetchClient from '../api/client';
+import fetchClient from '@/api/client';
+import type { ApiRequestHandle } from '@/types/api';
+import type {
+    SpaceActionResponse,
+    SpaceInviteCreatePayload,
+    SpaceInviteResponse,
+    SpaceInvitesResponse,
+    SpaceMembersResponse,
+    SpacePostsResponse,
+    SpaceResponse,
+    SpacesListResponse,
+    SpaceStatsResponse,
+    SpaceUpdatePayload,
+    UpdateMemberRolePayload,
+} from '@/types/space';
 
-type QueryParams = Record<string, string | number | boolean | undefined | null>;
+export type SpaceQueryParams = Record<string, string | number | boolean | undefined | null>;
 
-const toQuery = (params: QueryParams = {}): string => {
+const toQuery = (params: SpaceQueryParams = {}): string => {
     const entries: Record<string, string> = {};
     for (const [key, value] of Object.entries(params)) {
         if (value !== undefined && value !== null && value !== '') {
@@ -14,53 +28,69 @@ const toQuery = (params: QueryParams = {}): string => {
 };
 
 const SpaceService = {
-    createSpace: (payload: FormData | Record<string, unknown>) =>
-        fetchClient('/spaces', { method: 'POST', body: payload }),
+    createSpace: (payload: FormData | Record<string, unknown>): ApiRequestHandle<SpaceResponse> =>
+        fetchClient<SpaceResponse>('/spaces', { method: 'POST', body: payload }),
 
-    updateSpace: (username: string, payload: FormData | Record<string, unknown>) => {
+    updateSpace: (
+        username: string,
+        payload: FormData | SpaceUpdatePayload
+    ): ApiRequestHandle<SpaceResponse> => {
         const isFormData = payload instanceof FormData;
         if (isFormData && !payload.has('_method')) {
             payload.append('_method', 'PUT');
         }
 
-        return fetchClient(`/spaces/${encodeURIComponent(username)}`, {
+        return fetchClient<SpaceResponse>(`/spaces/${encodeURIComponent(username)}`, {
             method: isFormData ? 'POST' : 'PUT',
-            body: payload,
+            body: payload as FormData | Record<string, unknown>,
         });
     },
 
-    getSpace: (username: string, params: QueryParams = {}) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}${toQuery(params)}`),
+    getSpace: (username: string, params: SpaceQueryParams = {}): ApiRequestHandle<SpaceResponse> =>
+        fetchClient<SpaceResponse>(`/spaces/${encodeURIComponent(username)}${toQuery(params)}`),
 
-    getSpacesList: (params: QueryParams = {}) =>
-        fetchClient(`/spaces${toQuery(params)}`),
+    getSpacesList: (params: SpaceQueryParams = {}): ApiRequestHandle<SpacesListResponse> =>
+        fetchClient<SpacesListResponse>(`/spaces${toQuery(params)}`),
 
-    getSpacePosts: (username: string, page = 1) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/posts?page=${page}`),
+    getSpacePosts: (username: string, page = 1): ApiRequestHandle<SpacePostsResponse> =>
+        fetchClient<SpacePostsResponse>(`/spaces/${encodeURIComponent(username)}/posts?page=${page}`),
 
-    joinSpace: (username: string, token: string | null = null) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/join`, {
+    joinSpace: (username: string, token: string | null = null): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(`/spaces/${encodeURIComponent(username)}/join`, {
             method: 'POST',
             body: token ? { invite_token: token } : {},
         }),
 
-    leaveSpace: (username: string) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/leave`, { method: 'POST' }),
+    leaveSpace: (username: string): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(`/spaces/${encodeURIComponent(username)}/leave`, {
+            method: 'POST',
+        }),
 
-    deleteSpace: (username: string) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}`, { method: 'DELETE' }),
+    deleteSpace: (username: string): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(`/spaces/${encodeURIComponent(username)}`, {
+            method: 'DELETE',
+        }),
 
-    getSpaceMembers: (username: string, params: QueryParams = {}) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/members${toQuery(params)}`),
+    getSpaceMembers: (
+        username: string,
+        params: SpaceQueryParams = {}
+    ): ApiRequestHandle<SpaceMembersResponse> =>
+        fetchClient<SpaceMembersResponse>(`/spaces/${encodeURIComponent(username)}/members${toQuery(params)}`),
 
-    approveMember: (spaceUsername: string, targetUsername: string) =>
-        fetchClient(
+    approveMember: (
+        spaceUsername: string,
+        targetUsername: string
+    ): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(
             `/spaces/${encodeURIComponent(spaceUsername)}/members/${encodeURIComponent(targetUsername)}/approve`,
             { method: 'POST' }
         ),
 
-    rejectMember: (spaceUsername: string, targetUsername: string) =>
-        fetchClient(
+    rejectMember: (
+        spaceUsername: string,
+        targetUsername: string
+    ): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(
             `/spaces/${encodeURIComponent(spaceUsername)}/members/${encodeURIComponent(targetUsername)}/reject`,
             { method: 'POST' }
         ),
@@ -68,37 +98,48 @@ const SpaceService = {
     updateMemberRole: (
         spaceUsername: string,
         targetUsername: string,
-        payload: Record<string, unknown>
-    ) =>
-        fetchClient(
+        payload: UpdateMemberRolePayload
+    ): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(
             `/spaces/${encodeURIComponent(spaceUsername)}/members/${encodeURIComponent(targetUsername)}/role`,
-            { method: 'PUT', body: payload }
+            { method: 'PUT', body: payload as unknown as Record<string, unknown> }
         ),
 
-    kickMember: (spaceUsername: string, targetUsername: string) =>
-        fetchClient(
+    kickMember: (
+        spaceUsername: string,
+        targetUsername: string
+    ): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(
             `/spaces/${encodeURIComponent(spaceUsername)}/members/${encodeURIComponent(targetUsername)}`,
             { method: 'DELETE' }
         ),
 
-    getInvites: (username: string) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/invites`),
+    getInvites: (username: string): ApiRequestHandle<SpaceInvitesResponse> =>
+        fetchClient<SpaceInvitesResponse>(`/spaces/${encodeURIComponent(username)}/invites`),
 
-    createInvite: (username: string, payload: Record<string, unknown>) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/invites`, { method: 'POST', body: payload }),
-
-    revokeInvite: (username: string, token: string) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/invites/${encodeURIComponent(token)}`, {
-            method: 'DELETE',
+    createInvite: (
+        username: string,
+        payload: SpaceInviteCreatePayload
+    ): ApiRequestHandle<SpaceInviteResponse> =>
+        fetchClient<SpaceInviteResponse>(`/spaces/${encodeURIComponent(username)}/invites`, {
+            method: 'POST',
+            body: payload as unknown as Record<string, unknown>,
         }),
 
-    revokeOthers: (username: string, token: string) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/invites/${encodeURIComponent(token)}/others`, {
-            method: 'DELETE',
-        }),
+    revokeInvite: (username: string, token: string): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(
+            `/spaces/${encodeURIComponent(username)}/invites/${encodeURIComponent(token)}`,
+            { method: 'DELETE' }
+        ),
 
-    getSpaceStats: (username: string) =>
-        fetchClient(`/spaces/${encodeURIComponent(username)}/stats`),
+    revokeOthers: (username: string, token: string): ApiRequestHandle<SpaceActionResponse> =>
+        fetchClient<SpaceActionResponse>(
+            `/spaces/${encodeURIComponent(username)}/invites/${encodeURIComponent(token)}/others`,
+            { method: 'DELETE' }
+        ),
+
+    getSpaceStats: (username: string): ApiRequestHandle<SpaceStatsResponse> =>
+        fetchClient<SpaceStatsResponse>(`/spaces/${encodeURIComponent(username)}/stats`),
 };
 
 export default SpaceService;

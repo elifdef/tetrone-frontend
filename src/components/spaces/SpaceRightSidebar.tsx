@@ -3,11 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import SpaceService from '@/services/space.service';
 import NotificationSettingsService from '@/services/notification.settings.service';
-import { SpaceContext, STAFF_ROLES } from '@/context/SpaceContext';
+import { SpaceContext, isSpaceStaffRole } from '@/context/space-context';
 import { notifyError, notifySuccess } from '@/components/common/Notify';
 import Avatar from '@/components/ui/Avatar';
 
-const SpaceRightSidebar = ({ currentTab }) => {
+interface SpaceRightSidebarProps {
+    currentTab: string;
+}
+
+const SpaceRightSidebar = ({ currentTab }: SpaceRightSidebarProps) => {
     const { t } = useTranslation();
     const { space, updateSpace, isOwner, canManageSettings, canManageInvites, canManageMembers } = useContext(SpaceContext);
     const [isLoading, setIsLoading] = useState(false);
@@ -16,10 +20,12 @@ const SpaceRightSidebar = ({ currentTab }) => {
     if (!space) return null;
 
     const spaceUrl = `/${space.username}`;
+    const privacyType = space.privacy_type ?? 'public';
     const isPending = space.membership_status === 'pending';
-    const isPrivate = space.privacy_type === 'private';
-    const isClosed = space.privacy_type === 'closed';
+    const isPrivate = privacyType === 'private';
+    const isClosed = privacyType === 'closed';
     const canViewContent = space.can_view_content !== false;
+    const pendingRequestsCount = space.pending_requests_count ?? 0;
 
     const handleMembershipToggle = () => {
         if (space.is_member === null || isOwner || isLoading || isPending) return;
@@ -32,7 +38,7 @@ const SpaceRightSidebar = ({ currentTab }) => {
                         is_member: false,
                         membership_status: null,
                         member_role: null,
-                        members_count: Math.max(0, (space.members_count || 1) - 1)
+                        members_count: Math.max(0, (space.members_count || 1) - 1),
                     });
                     notifySuccess(t(`api.success.${res.code}`));
                 })
@@ -53,7 +59,7 @@ const SpaceRightSidebar = ({ currentTab }) => {
                             membership_status: 'approved',
                             member_role: 'member',
                             can_view_content: true,
-                            members_count: (space.members_count || 0) + 1
+                            members_count: (space.members_count || 0) + 1,
                         });
                     }
                     notifySuccess(t(`api.success.${res.code}`));
@@ -67,7 +73,7 @@ const SpaceRightSidebar = ({ currentTab }) => {
         }
     };
 
-    const getLinkClass = (tabName) => {
+    const getLinkClass = (tabName: string): string => {
         const isActive = currentTab === tabName;
         return `block p-[5px_8px] text-[11px] text-left w-full transition-colors border-b last:border-b-0 border-border no-underline ${
             isActive
@@ -76,11 +82,11 @@ const SpaceRightSidebar = ({ currentTab }) => {
         }`;
     };
 
-    const staffMembers = (space.preview_members || []).filter(m =>
-        STAFF_ROLES.includes(m.role)
+    const staffMembers = (space.preview_members || []).filter((m) =>
+        isSpaceStaffRole(m.role)
     );
 
-    const getActionLabel = () => {
+    const getActionLabel = (): string => {
         if (isLoading) return t('common.loading');
         if (space.is_member) return t('spaces.leave');
         if (isPending) return t('spaces.members_requests');
@@ -161,9 +167,9 @@ const SpaceRightSidebar = ({ currentTab }) => {
                     </Link>
                     <Link to={`${spaceUrl}?tab=members`} className={`${getLinkClass('members')} flex items-center justify-between`}>
                         <span>{t('spaces.tab_members')}</span>
-                        {canManageMembers && space.pending_requests_count > 0 && (
+                        {canManageMembers && pendingRequestsCount > 0 && (
                             <span className="px-[5px] bg-theme-link text-white text-[10px] font-bold leading-[14px]">
-                                +{space.pending_requests_count}
+                                +{pendingRequestsCount}
                             </span>
                         )}
                     </Link>
@@ -197,7 +203,7 @@ const SpaceRightSidebar = ({ currentTab }) => {
                         {t('spaces.blocks_staff')}
                     </div>
                     <div className="p-[6px] flex flex-col gap-[6px]">
-                        {staffMembers.map(staff => (
+                        {staffMembers.map((staff) => (
                             <Link
                                 key={staff.username}
                                 to={`/${staff.username}`}
@@ -226,11 +232,11 @@ const SpaceRightSidebar = ({ currentTab }) => {
                     {t('spaces.privacy')}
                 </div>
                 <div className="p-[8px] text-text-muted text-[11px] leading-[1.4]">
-                    {t(`spaces.privacy_desc_${space.privacy_type}`)}
+                    {t(`spaces.privacy_desc_${privacyType}`)}
                 </div>
             </div>
 
-            {space.links?.length > 0 && (
+            {space.links && space.links.length > 0 && (
                 <div className="bg-bg-box border border-border">
                     <div className="bg-theme-header-bg text-theme-link p-[4px_8px] text-[11px] font-bold border-b border-border border-t-[2px] border-t-theme-link">
                         {t('spaces.friends_links')}

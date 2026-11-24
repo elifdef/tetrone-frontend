@@ -4,12 +4,12 @@ import { useEditor, EditorContent } from '@tiptap/react';
 
 import useEditorExtensions from './hooks/useEditorExtensions';
 import useOnClickOutside from './hooks/useOnClickOutside';
-import { decodeTipTapContent } from '../common/RichText';
+import { decodeTipTapContent } from '../../utils/tiptapContent';
 import { hasEditorFeature } from './presets';
 
 import FloatingFormatMenu from './FloatingFormatMenu';
 import StickerPicker, { type PickerStickerItem, type PickerStickerPack } from './StickerPicker';
-import { EmojiIcon, FormatTextIcon } from '../ui/Icons';
+import { EmojiIcon, FormatTextIcon } from '@ui/Icons';
 import type { EditorPresetName, TipTapDoc } from '@/types/tiptap';
 
 export interface SmartEditorProps {
@@ -103,18 +103,29 @@ export default function SmartEditor({
     useEffect(() => {
         if (!editor || editor.isDestroyed) return;
 
+        const syncEmptyState = () => {
+            setIsEmpty(editor.isEmpty);
+        };
+
+        editor.on('transaction', syncEmptyState);
+        return () => {
+            editor.off('transaction', syncEmptyState);
+        };
+    }, [editor]);
+
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) return;
+
         if (!value || Object.keys(value).length === 0) {
             if (!editor.isEmpty) {
-                editor.commands.clearContent();
+                editor.commands.clearContent(false);
             }
-            setIsEmpty(true);
             return;
         }
 
         const decoded = decodeTipTapContent(value);
         if (JSON.stringify(editor.getJSON()) !== JSON.stringify(decoded)) {
             editor.commands.setContent(decoded as Record<string, unknown>, { emitUpdate: false });
-            setIsEmpty(editor.isEmpty);
         }
     }, [value, editor]);
 

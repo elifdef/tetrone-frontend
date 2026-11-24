@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent, type FormEvent, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,23 +9,43 @@ import { notifyError, notifySuccess } from '@/components/common/Notify';
 import Modal from '@/components/modals/Modal';
 import SmartEditor from '@/components/editor/SmartEditor';
 import { CloseIcon } from '@/components/ui/Icons';
+import type { SpacePrivacy } from '@/types/space';
+import type { TipTapDoc } from '@/types/tiptap';
 
-const CreateSpaceModal = ({ onClose }) => {
+interface CreateSpaceModalProps {
+    onClose: () => void;
+}
+
+interface CreateSpaceFormState {
+    name: string;
+    username: string;
+    description: TipTapDoc | null;
+    privacy_type: SpacePrivacy;
+    avatar: File | null;
+}
+
+interface PrivacyOptionItem {
+    value: SpacePrivacy;
+    label: string;
+    desc: string;
+}
+
+const CreateSpaceModal = ({ onClose }: CreateSpaceModalProps) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [isProcessing, setIsProcessing] = useState(false);
-    const [avatarPreview, setAvatarPreview] = useState(null);
-    const [fieldErrors, setFieldErrors] = useState({});
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string[] | undefined>>({});
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<CreateSpaceFormState>({
         name: '',
         username: '',
         description: null,
         privacy_type: 'public',
-        avatar: null
+        avatar: null,
     });
 
     useEffect(() => {
@@ -36,7 +56,7 @@ const CreateSpaceModal = ({ onClose }) => {
         };
     }, [avatarPreview]);
 
-    const handleAvatarChange = (e) => {
+    const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -44,36 +64,36 @@ const CreateSpaceModal = ({ onClose }) => {
             URL.revokeObjectURL(avatarPreview);
         }
 
-        setFormData(prev => ({ ...prev, avatar: file }));
+        setFormData((prev) => ({ ...prev, avatar: file }));
         setAvatarPreview(URL.createObjectURL(file));
-        setFieldErrors(prev => ({ ...prev, avatar_file: null }));
+        setFieldErrors((prev) => ({ ...prev, avatar_file: undefined }));
     };
 
-    const handleRemoveAvatar = (e) => {
+    const handleRemoveAvatar = (e: MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         if (avatarPreview) {
             URL.revokeObjectURL(avatarPreview);
         }
         setAvatarPreview(null);
-        setFormData(prev => ({ ...prev, avatar: null }));
+        setFormData((prev) => ({ ...prev, avatar: null }));
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     };
 
-    const handleUsernameChange = (e) => {
+    const handleUsernameChange = (e: ChangeEvent<HTMLInputElement>) => {
         const sanitized = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-        setFormData(prev => ({ ...prev, username: sanitized }));
-        setFieldErrors(prev => ({ ...prev, username: null }));
+        setFormData((prev) => ({ ...prev, username: sanitized }));
+        setFieldErrors((prev) => ({ ...prev, username: undefined }));
     };
 
-    const handleEditorChange = (content) => {
-        setFormData(prev => ({ ...prev, description: content }));
-        setFieldErrors(prev => ({ ...prev, description: null }));
+    const handleEditorChange = (content: TipTapDoc) => {
+        setFormData((prev) => ({ ...prev, description: content }));
+        setFieldErrors((prev) => ({ ...prev, description: undefined }));
     };
 
-    const handleSubmit = (e) => {
-        if (e) e.preventDefault();
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         if (isProcessing) return;
 
         setIsProcessing(true);
@@ -85,10 +105,7 @@ const CreateSpaceModal = ({ onClose }) => {
         payload.append('privacy_type', formData.privacy_type);
 
         if (formData.description) {
-            const descValue = typeof formData.description === 'object'
-                ? JSON.stringify(formData.description)
-                : formData.description;
-            payload.append('description', descValue);
+            payload.append('description', JSON.stringify(formData.description));
         }
 
         if (formData.avatar) {
@@ -97,11 +114,11 @@ const CreateSpaceModal = ({ onClose }) => {
 
         SpaceService.createSpace(payload)
             .onSuccess((res) => {
-                queryClient.invalidateQueries({ queryKey: ['my_managed_spaces'] });
+                void queryClient.invalidateQueries({ queryKey: ['my_managed_spaces'] });
                 notifySuccess(t(`api.success.${res.code || 'SPACE_CREATED'}`));
                 onClose();
                 if (res.space?.username) {
-                    navigate(`/${res.space.username}`);
+                    void navigate(`/${res.space.username}`);
                 }
             })
             .onError((err) => {
@@ -115,22 +132,22 @@ const CreateSpaceModal = ({ onClose }) => {
             });
     };
 
-    const privacyOptions = [
+    const privacyOptions: PrivacyOptionItem[] = [
         {
             value: 'public',
             label: t('spaces.privacy_public'),
-            desc: t('spaces.privacy_desc_public')
+            desc: t('spaces.privacy_desc_public'),
         },
         {
             value: 'private',
             label: t('spaces.privacy_private'),
-            desc: t('spaces.privacy_desc_private')
+            desc: t('spaces.privacy_desc_private'),
         },
         {
             value: 'closed',
             label: t('spaces.privacy_closed'),
-            desc: t('spaces.privacy_desc_closed')
-        }
+            desc: t('spaces.privacy_desc_closed'),
+        },
     ];
 
     const footerButtons = (
@@ -191,7 +208,7 @@ const CreateSpaceModal = ({ onClose }) => {
                             accept="image/*"
                             onChange={handleAvatarChange}
                         />
-                        {fieldErrors.avatar_file && (
+                        {fieldErrors.avatar_file?.[0] && (
                             <span className="text-[10px] text-theme-error text-center max-w-[88px]">
                                 {fieldErrors.avatar_file[0]}
                             </span>
@@ -208,11 +225,11 @@ const CreateSpaceModal = ({ onClose }) => {
                                 maxLength={128}
                                 value={formData.name}
                                 onChange={(e) => {
-                                    setFormData(prev => ({ ...prev, name: e.target.value }));
-                                    setFieldErrors(prev => ({ ...prev, name: null }));
+                                    setFormData((prev) => ({ ...prev, name: e.target.value }));
+                                    setFieldErrors((prev) => ({ ...prev, name: undefined }));
                                 }}
                             />
-                            {fieldErrors.name && (
+                            {fieldErrors.name?.[0] && (
                                 <span className="text-[10px] text-theme-error">{fieldErrors.name[0]}</span>
                             )}
                         </div>
@@ -236,7 +253,7 @@ const CreateSpaceModal = ({ onClose }) => {
                             <span className="text-[10px] text-text-muted truncate">
                                 {window.location.origin}/@{formData.username || 'username'}
                             </span>
-                            {fieldErrors.username && (
+                            {fieldErrors.username?.[0] && (
                                 <span className="text-[10px] text-theme-error">{fieldErrors.username[0]}</span>
                             )}
                         </div>
@@ -254,7 +271,7 @@ const CreateSpaceModal = ({ onClose }) => {
                                 <button
                                     key={option.value}
                                     type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, privacy_type: option.value }))}
+                                    onClick={() => setFormData((prev) => ({ ...prev, privacy_type: option.value }))}
                                     className={`text-left p-[8px] border transition-colors cursor-pointer flex flex-col gap-[3px] outline-none ${
                                         isSelected
                                             ? 'border-theme-link bg-[rgba(91,155,213,0.08)]'
@@ -294,7 +311,7 @@ const CreateSpaceModal = ({ onClose }) => {
                             placeholder={t('spaces.description_placeholder')}
                         />
                     </div>
-                    {fieldErrors.description && (
+                    {fieldErrors.description?.[0] && (
                         <span className="text-[10px] text-theme-error">{fieldErrors.description[0]}</span>
                     )}
                 </div>

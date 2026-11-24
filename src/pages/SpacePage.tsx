@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -15,9 +15,15 @@ import SpaceService from '@/services/space.service';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { notifyError, notifySuccess } from '@/components/common/Notify';
-import { SpaceContext, SpaceProvider } from '@/context/SpaceContext';
+import { SpaceProvider } from '@/context/SpaceContext';
+import { SpaceContext } from '@/context/space-context';
+import type { SpaceData } from '@/types/space';
 
-const ForbiddenBox = ({ message }) => (
+interface ForbiddenBoxProps {
+    message: string;
+}
+
+const ForbiddenBox = ({ message }: ForbiddenBoxProps) => (
     <div className="p-[20px] bg-bg-box border border-border text-center text-text-muted">
         {message}
     </div>
@@ -32,10 +38,11 @@ const RestrictedSpaceBox = () => {
 
     if (!space) return null;
 
+    const privacyType = space.privacy_type ?? 'public';
     const isPending = space.membership_status === 'pending';
-    const isClosed = space.privacy_type === 'closed';
+    const isClosed = privacyType === 'closed';
 
-    const extractCleanToken = (raw) => {
+    const extractCleanToken = (raw: string): string => {
         const trimmed = raw.trim();
         if (!trimmed) return '';
         try {
@@ -44,11 +51,11 @@ const RestrictedSpaceBox = () => {
             if (queryInvite) return queryInvite.trim();
             return url.pathname.split('/').filter(Boolean).pop() || '';
         } catch {
-            return trimmed.split('invite=').pop().split('/').pop().trim();
+            return trimmed.split('invite=').pop()?.split('/').pop()?.trim() || '';
         }
     };
 
-    const submitJoin = (tokenToUse = null) => {
+    const submitJoin = (tokenToUse: string | null = null) => {
         if (isSubmitting || isPending) return;
         if (isClosed && !tokenToUse) return;
 
@@ -65,8 +72,9 @@ const RestrictedSpaceBox = () => {
                                 updateSpace(spaceRes.space);
                             }
                             if (searchParams.has('invite')) {
-                                searchParams.delete('invite');
-                                setSearchParams(searchParams, { replace: true });
+                                const nextParams = new URLSearchParams(searchParams);
+                                nextParams.delete('invite');
+                                setSearchParams(nextParams, { replace: true });
                             }
                         })
                         .onError((err) => {
@@ -82,7 +90,7 @@ const RestrictedSpaceBox = () => {
             });
     };
 
-    const handleInviteFormSubmit = (e) => {
+    const handleInviteFormSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const cleanToken = extractCleanToken(inviteToken);
         if (!cleanToken) return;
@@ -95,13 +103,13 @@ const RestrictedSpaceBox = () => {
 
             <div className="bg-bg-box border border-border p-[20px] flex flex-col items-center text-center gap-[10px]">
                 <div className="text-[12px] font-bold text-theme-link">
-                    {t(`spaces.privacy_${space.privacy_type}`)}
+                    {t(`spaces.privacy_${privacyType}`)}
                 </div>
 
                 <p className="m-0 text-text-muted max-w-[440px] leading-[1.45]">
                     {isPending
                         ? t('spaces.request_sent_info')
-                        : t(`spaces.privacy_desc_${space.privacy_type}`)}
+                        : t(`spaces.privacy_desc_${privacyType}`)}
                 </p>
 
                 {space.is_member !== null && !isPending && (
@@ -188,7 +196,11 @@ const SpacePageLayout = () => {
     );
 };
 
-const SpacePage = ({ initialSpaceData }) => (
+interface SpacePageProps {
+    initialSpaceData: SpaceData | null;
+}
+
+const SpacePage = ({ initialSpaceData }: SpacePageProps) => (
     <SpaceProvider initialSpace={initialSpaceData}>
         <SpacePageLayout />
     </SpaceProvider>

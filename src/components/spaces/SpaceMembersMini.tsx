@@ -1,8 +1,8 @@
-// src/components/spaces/SpaceMembersMini.jsx
-import { useTranslation } from 'react-i18next';
 import { useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { SpaceContext } from '../../context/SpaceContext';
+import { SpaceContext } from '@/context/space-context';
+import type { SpaceUserSummary } from '@/types/space';
 
 const SpaceMembersMini = () => {
     const { t } = useTranslation();
@@ -10,7 +10,7 @@ const SpaceMembersMini = () => {
 
     if (!space) return null;
 
-    const previewMembers = space.preview_members || [space.owner].filter(Boolean);
+    const previewMembers: SpaceUserSummary[] = space.preview_members || (space.owner ? [space.owner] : []);
     const totalCount = space.members_count ?? previewMembers.length;
 
     return (
@@ -35,7 +35,7 @@ const SpaceMembersMini = () => {
                             className="flex flex-col items-center text-center group no-underline"
                         >
                             <img
-                                src={member.avatar}
+                                src={member.avatar ?? undefined}
                                 alt={member.username}
                                 className="w-[50px] h-[50px] object-cover mb-[3px] border border-border"
                             />

@@ -13,7 +13,7 @@ import type { EditorFormatFeature, TipTapDoc } from '@/types/tiptap';
 
 /**
  * Повний реальний документ поста з усіма варіантами блоків, вирівнювання,
- * заголовків, списків, чекбоксів, цитат, коду, спойлерів, таблиць та стилів.
+ * заголовків, списків, чекбоксів, цитат, коду, спойлерів, таблиць, стилів та стікерів.
  */
 export const FULL_POST_FIXTURE: TipTapDoc = {
     type: 'doc',
@@ -174,7 +174,18 @@ export const FULL_POST_FIXTURE: TipTapDoc = {
         {
             type: 'paragraph',
             attrs: { id: 'block-7hda52sr0', textAlign: null },
-            content: [{ type: 'text', text: 'Привет', marks: [{ type: 'textStyle', attrs: { fontSize: '16px' } }] }],
+            content: [
+                { type: 'text', text: 'Привет', marks: [{ type: 'textStyle', attrs: { fontSize: '16px' } }] },
+                {
+                    type: 'customSticker',
+                    attrs: {
+                        id: 28,
+                        src: '/storage/emojis/furina_de_fontaine/sticker-1795518900-25fc0de68dfba850.webp',
+                        packName: null,
+                        shortcode: 'sticker_30',
+                    },
+                },
+            ],
         },
         { type: 'hardBreak' },
     ],
@@ -362,6 +373,15 @@ describe('TipTap presets & strict validation', () => {
                                 },
                             ],
                         },
+                        {
+                            type: 'customSticker',
+                            attrs: {
+                                id: 99,
+                                shortcode: 'bad',
+                                src: 'javascript:alert(1)',
+                                packName: null,
+                            },
+                        },
                     ],
                 },
                 {
@@ -393,6 +413,7 @@ describe('TipTap presets & strict validation', () => {
         expect(validation.errors.some((e) => e.path.endsWith('fontFamily'))).toBe(true);
         expect(validation.errors.some((e) => e.path.endsWith('fontSize'))).toBe(true);
         expect(validation.errors.some((e) => e.path.endsWith('color'))).toBe(true);
+        expect(validation.errors.some((e) => e.path.endsWith('src'))).toBe(true);
 
         const sanitized = sanitizeTipTapDoc(xssDoc, 'post');
         expect(validateTipTapDoc(sanitized, 'post').valid).toBe(true);

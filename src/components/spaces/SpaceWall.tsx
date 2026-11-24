@@ -1,40 +1,47 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '@/context/AuthContext';
-import { SpaceContext } from '@/context/SpaceContext';
+import { SpaceContext } from '@/context/space-context';
 import SpaceService from '@/services/space.service';
 import InfiniteScrollList from '@/components/common/InfiniteScrollList';
 import PostItem from '@/components/post/PostItem';
 import CreatePostForm from '@/components/post/CreatePostForm';
 import PostService from '@/services/post.service';
 import { notifyError, notifySuccess } from '@/components/common/Notify';
+import type { SpaceData, SpacePost } from '@/types/space';
 
-const SpaceWall = () => {
+interface SpaceWallContentProps {
+    space: SpaceData;
+    canManageMembers: boolean;
+    canPost: boolean;
+}
+
+const SpaceWallContent = ({ space, canManageMembers, canPost }: SpaceWallContentProps) => {
     const { t } = useTranslation();
     const { user } = useContext(AuthContext);
-    const { space, canManageMembers, canPost } = useContext(SpaceContext);
 
-    const [posts, setPosts] = useState([]);
+    const [posts, setPosts] = useState<SpacePost[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [isLoadingInitial, setIsLoadingInitial] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState(false);
 
+    const spaceUsername = space.username;
+
     const fetchPosts = useCallback((pageNum = 1) => {
-        if (!space?.username) return;
         if (pageNum === 1) setIsLoadingInitial(true);
         else setIsLoadingMore(true);
         setError(false);
 
-        SpaceService.getSpacePosts(space.username, pageNum)
+        SpaceService.getSpacePosts(spaceUsername, pageNum)
             .onSuccess((res) => {
                 const newPosts = Array.isArray(res.posts)
                     ? res.posts
-                    : (res.posts?.data || []);
-                const meta = res.meta || res.posts?.meta;
+                    : (res.posts?.data ?? []);
+                const meta = res.meta || (!Array.isArray(res.posts) ? res.posts?.meta : undefined);
 
-                setPosts(prev => (pageNum === 1 ? newPosts : [...prev, ...newPosts]));
+                setPosts((prev) => (pageNum === 1 ? newPosts : [...prev, ...newPosts]));
                 setHasMore(meta ? meta.current_page < meta.last_page : false);
             })
             .onError(() => {
@@ -44,12 +51,37 @@ const SpaceWall = () => {
                 setIsLoadingInitial(false);
                 setIsLoadingMore(false);
             });
-    }, [space?.username]);
+    }, [spaceUsername]);
 
     useEffect(() => {
-        setPage(1);
-        fetchPosts(1);
-    }, [fetchPosts]);
+        let cancelled = false;
+
+        SpaceService.getSpacePosts(spaceUsername, 1)
+            .onSuccess((res) => {
+                if (cancelled) return;
+                const newPosts = Array.isArray(res.posts)
+                    ? res.posts
+                    : (res.posts?.data ?? []);
+                const meta = res.meta || (!Array.isArray(res.posts) ? res.posts?.meta : undefined);
+
+                setPosts(newPosts);
+                setHasMore(meta ? meta.current_page < meta.last_page : false);
+            })
+            .onError(() => {
+                if (!cancelled) {
+                    setError(true);
+                }
+            })
+            .onFinally(() => {
+                if (!cancelled) {
+                    setIsLoadingInitial(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [spaceUsername]);
 
     const loadMore = () => {
         if (!isLoadingMore && hasMore && !error) {
@@ -59,51 +91,50 @@ const SpaceWall = () => {
         }
     };
 
-    const handlePostCreated = (finalData) => {
+    const handlePostCreated = (finalData: Record<string, unknown>): Promise<boolean> => {
         return new Promise((resolve) => {
             PostService.create({
                 ...finalData,
-                target_username: space.username
+                target_username: space.username,
             })
-                .onSuccess((res) => {
+                .onSuccess((res: { code?: string; post?: SpacePost }) => {
                     if (res.post) {
-                        setPosts(prev => [res.post, ...prev]);
+                        const createdPost = res.post;
+                        setPosts((prev) => [createdPost, ...prev]);
                     }
                     notifySuccess(t(`api.success.${res.code}`));
                     resolve(true);
                 })
-                .onError((err) => {
+                .onError((err: { code?: string }) => {
                     notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
                     resolve(false);
                 });
         });
     };
 
-    const handleDeletePost = (postId) => {
+    const handleDeletePost = (postId: number | string) => {
         if (!window.confirm(t('common.confirm_action'))) return;
 
         PostService.delete(postId)
-            .onSuccess((res) => {
-                setPosts(prev => prev.filter(p => p.id !== postId));
+            .onSuccess((res: { code?: string }) => {
+                setPosts((prev) => prev.filter((p) => p.id !== postId));
                 notifySuccess(t(`api.success.${res.code}`));
             })
-            .onError((err) => {
+            .onError((err: { code?: string }) => {
                 notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 
-    const handlePinToggle = (postId) => {
+    const handlePinToggle = (postId: number | string) => {
         PostService.togglePin(postId)
-            .onSuccess((res) => {
+            .onSuccess((res: { code?: string }) => {
                 fetchPosts(1);
                 notifySuccess(t(`api.success.${res.code}`));
             })
-            .onError((err) => {
+            .onError((err: { code?: string }) => {
                 notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
-
-    if (!space) return null;
 
     return (
         <>
@@ -134,18 +165,33 @@ const SpaceWall = () => {
                     </div>
                 }
             >
-                {posts.map(post => (
+                {posts.map((post) => (
                     <PostItem
                         key={post.id}
                         post={post}
                         currentUsername={user?.username}
                         isOwner={canManageMembers}
                         onDelete={handleDeletePost}
-                        onPinToggle={canManageMembers ? handlePinToggle : null}
+                        onPinToggle={canManageMembers ? handlePinToggle : undefined}
                     />
                 ))}
             </InfiniteScrollList>
         </>
+    );
+};
+
+const SpaceWall = () => {
+    const { space, canManageMembers, canPost } = useContext(SpaceContext);
+
+    if (!space) return null;
+
+    return (
+        <SpaceWallContent
+            key={space.username}
+            space={space}
+            canManageMembers={canManageMembers}
+            canPost={canPost}
+        />
     );
 };
 

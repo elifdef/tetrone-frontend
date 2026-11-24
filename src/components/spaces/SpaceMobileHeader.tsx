@@ -3,22 +3,40 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import SpaceService from '@/services/space.service';
 import NotificationSettingsService from '@/services/notification.settings.service';
-import { SpaceContext, STAFF_ROLES } from '@/context/SpaceContext';
+import { SpaceContext, isSpaceStaffRole } from '@/context/space-context';
 import { notifyError, notifySuccess } from '@/components/common/Notify';
 import Avatar from '@/components/ui/Avatar';
 import RichText from '@/components/common/RichText';
+import { decodeTipTapContent } from '@/utils/tiptapContent';
+import { isTipTapDoc, type TipTapDoc } from '@/types/tiptap';
 
-const hasTipTapContent = (doc) => {
-    if (!doc || typeof doc !== 'object' || !Array.isArray(doc.content)) return false;
-    return doc.content.some(node => (
-        (Array.isArray(node.content) && node.content.length > 0)
-        || (node.type && node.type !== 'paragraph')
-    ));
+interface SpaceMobileHeaderProps {
+    currentTab: string;
+}
+
+const hasTipTapContent = (value: TipTapDoc | string | null | undefined): boolean => {
+    const raw = typeof value === 'string' ? (() => {
+        try {
+            return JSON.parse(value) as unknown;
+        } catch {
+            return null;
+        }
+    })() : value;
+
+    const doc = decodeTipTapContent(raw);
+    if (!isTipTapDoc(doc)) return false;
+
+    return doc.content.some(
+        (node) =>
+            ('content' in node && Array.isArray(node.content) && node.content.length > 0) ||
+            node.type !== 'paragraph'
+    );
 };
 
-const cleanLabel = (text) => String(text || '').replace(/[:?]+$/, '');
+const cleanLabel = (text: string | undefined | null): string =>
+    String(text || '').replace(/[:?]+$/, '');
 
-const SpaceMobileHeader = ({ currentTab }) => {
+const SpaceMobileHeader = ({ currentTab }: SpaceMobileHeaderProps) => {
     const { t } = useTranslation();
     const { space, updateSpace, isOwner, canManageSettings, canManageInvites, canManageMembers } = useContext(SpaceContext);
     const [isLoading, setIsLoading] = useState(false);
@@ -28,15 +46,17 @@ const SpaceMobileHeader = ({ currentTab }) => {
     if (!space) return null;
 
     const spaceUrl = `/${space.username}`;
+    const privacyType = space.privacy_type ?? 'public';
     const isPending = space.membership_status === 'pending';
-    const isPrivate = space.privacy_type === 'private';
-    const isClosed = space.privacy_type === 'closed';
+    const isPrivate = privacyType === 'private';
+    const isClosed = privacyType === 'closed';
     const canViewContent = space.can_view_content !== false;
     const showDescription = hasTipTapContent(space.description);
     const showJoinButton = !isOwner && space.is_member !== null && (!isClosed || space.is_member || isPending);
+    const pendingRequestsCount = space.pending_requests_count ?? 0;
 
-    const staffMembers = (space.preview_members || []).filter(m =>
-        STAFF_ROLES.includes(m.role)
+    const staffMembers = (space.preview_members || []).filter((m) =>
+        isSpaceStaffRole(m.role)
     );
 
     const handleMembershipToggle = () => {
@@ -50,7 +70,7 @@ const SpaceMobileHeader = ({ currentTab }) => {
                         is_member: false,
                         membership_status: null,
                         member_role: null,
-                        members_count: Math.max(0, (space.members_count || 1) - 1)
+                        members_count: Math.max(0, (space.members_count || 1) - 1),
                     });
                     notifySuccess(t(`api.success.${res.code}`));
                 })
@@ -71,7 +91,7 @@ const SpaceMobileHeader = ({ currentTab }) => {
                             membership_status: 'approved',
                             member_role: 'member',
                             can_view_content: true,
-                            members_count: (space.members_count || 0) + 1
+                            members_count: (space.members_count || 0) + 1,
                         });
                     }
                     notifySuccess(t(`api.success.${res.code}`));
@@ -116,7 +136,7 @@ const SpaceMobileHeader = ({ currentTab }) => {
         }
     };
 
-    const getActionLabel = () => {
+    const getActionLabel = (): string => {
         if (isLoading) return t('common.loading');
         if (space.is_member) return t('spaces.leave');
         if (isPending) return t('spaces.members_requests');
@@ -124,7 +144,7 @@ const SpaceMobileHeader = ({ currentTab }) => {
         return t('spaces.join');
     };
 
-    const getTabClass = (tabName) => {
+    const getTabClass = (tabName: string): string => {
         const isActive = currentTab === tabName;
         return `px-[12px] py-[8px] text-[11px] whitespace-nowrap shrink-0 no-underline border-r last:border-r-0 border-border transition-colors ${
             isActive
@@ -135,14 +155,13 @@ const SpaceMobileHeader = ({ currentTab }) => {
 
     return (
         <div className="hidden max-lg:flex flex-col bg-bg-box border border-border overflow-hidden">
-            {/* Верхній заголовок простору */}
             <div className="bg-theme-header-bg border-b border-border border-t-[2px] border-t-theme-link p-[6px_10px] flex items-center justify-between gap-[8px]">
                 <div className="flex items-center gap-[6px] min-w-0">
                     <h1 className="text-[13px] font-bold text-theme-link m-0 truncate">
                         {space.name}
                     </h1>
                     <span className="text-[9px] px-[5px] py-[1px] bg-bg-box border border-border text-text-muted shrink-0">
-                        {t(`spaces.privacy_${space.privacy_type}`)}
+                        {t(`spaces.privacy_${privacyType}`)}
                     </span>
                 </div>
                 <span className="text-[10px] text-text-muted shrink-0">
@@ -150,7 +169,6 @@ const SpaceMobileHeader = ({ currentTab }) => {
                 </span>
             </div>
 
-            {/* Компактна шапка: аватарка + опис + метадані */}
             <div className="p-[10px] flex items-start gap-[10px]">
                 <Avatar
                     user={space}
@@ -163,7 +181,7 @@ const SpaceMobileHeader = ({ currentTab }) => {
                             <RichText text={space.description} />
                         ) : (
                             <span className="text-text-muted">
-                                {t(`spaces.privacy_desc_${space.privacy_type}`)}
+                                {t(`spaces.privacy_desc_${privacyType}`)}
                             </span>
                         )}
                     </div>
@@ -189,7 +207,6 @@ const SpaceMobileHeader = ({ currentTab }) => {
                 </div>
             </div>
 
-            {/* Кнопки дій + розгортання додаткової інформації */}
             <div className="px-[10px] pb-[10px] flex items-center gap-[6px] flex-wrap">
                 {showJoinButton && (
                     <button
@@ -219,23 +236,22 @@ const SpaceMobileHeader = ({ currentTab }) => {
 
                 <button
                     type="button"
-                    onClick={() => setIsDetailsOpen(prev => !prev)}
+                    onClick={() => setIsDetailsOpen((prev) => !prev)}
                     className="py-[5px] px-[8px] bg-bg-page hover:bg-theme-header-bg text-theme-link border border-border text-[11px] cursor-pointer ml-auto shrink-0"
                 >
                     {cleanLabel(t('spaces.info_type'))} {isDetailsOpen ? '▲' : '▼'}
                 </button>
             </div>
 
-            {/* Розгорнута інформація (тип, публікації, персонал, посилання) */}
             {isDetailsOpen && (
                 <div className="border-t border-border bg-bg-page p-[10px] flex flex-col gap-[8px] text-[11px]">
                     <div className="flex flex-col gap-[3px]">
                         <div className="flex gap-[6px]">
                             <span className="text-text-muted shrink-0">{cleanLabel(t('spaces.info_type'))}:</span>
-                            <span className="text-text-main font-bold">{t(`spaces.privacy_${space.privacy_type}`)}</span>
+                            <span className="text-text-main font-bold">{t(`spaces.privacy_${privacyType}`)}</span>
                         </div>
                         <div className="text-[10px] text-text-muted leading-[1.35]">
-                            {t(`spaces.privacy_desc_${space.privacy_type}`)}
+                            {t(`spaces.privacy_desc_${privacyType}`)}
                         </div>
                     </div>
 
@@ -250,7 +266,7 @@ const SpaceMobileHeader = ({ currentTab }) => {
                                 {t('spaces.blocks_staff')}
                             </span>
                             <div className="flex flex-wrap gap-[6px]">
-                                {staffMembers.map(staff => (
+                                {staffMembers.map((staff) => (
                                     <Link
                                         key={staff.username}
                                         to={`/${staff.username}`}
@@ -274,7 +290,7 @@ const SpaceMobileHeader = ({ currentTab }) => {
                         </div>
                     )}
 
-                    {space.links?.length > 0 && (
+                    {space.links && space.links.length > 0 && (
                         <div className="pt-[6px] border-t border-dashed border-border flex flex-col gap-[4px]">
                             <span className="text-[10px] font-bold text-text-muted uppercase">
                                 {t('spaces.friends_links')}
@@ -297,7 +313,6 @@ const SpaceMobileHeader = ({ currentTab }) => {
                 </div>
             )}
 
-            {/* Горизонтальна смужка вкладок */}
             {canViewContent && (
                 <nav className="flex border-t border-border bg-bg-page overflow-x-auto">
                     <Link to={spaceUrl} className={getTabClass('wall')}>
@@ -305,9 +320,9 @@ const SpaceMobileHeader = ({ currentTab }) => {
                     </Link>
                     <Link to={`${spaceUrl}?tab=members`} className={`${getTabClass('members')} flex items-center gap-[4px]`}>
                         <span>{t('spaces.tab_members')}</span>
-                        {canManageMembers && space.pending_requests_count > 0 && (
+                        {canManageMembers && pendingRequestsCount > 0 && (
                             <span className="px-[4px] bg-theme-link text-white text-[9px] font-bold leading-[13px]">
-                                +{space.pending_requests_count}
+                                +{pendingRequestsCount}
                             </span>
                         )}
                     </Link>

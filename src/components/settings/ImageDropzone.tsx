@@ -1,28 +1,40 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, type ChangeEvent, type DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const ImageDropzone = ({ onFileSelect, fileName }) => {
+export type ImageDropzoneSelectEvent =
+    | ChangeEvent<HTMLInputElement>
+    | { target: { files: File[] } };
+
+export interface ImageDropzoneProps {
+    onFileSelect: (event: ImageDropzoneSelectEvent) => void;
+    fileName?: string | null;
+}
+
+const ImageDropzone = ({ onFileSelect, fileName }: ImageDropzoneProps) => {
     const { t } = useTranslation();
     const [isDragging, setIsDragging] = useState(false);
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const processFile = (file) => {
-        if (file && file.type.startsWith('image/')) {
-            onFileSelect({ target: { files: [file] } });
-        }
-    };
+    const processFile = useCallback(
+        (file: File | undefined) => {
+            if (file && file.type.startsWith('image/')) {
+                onFileSelect({ target: { files: [file] } });
+            }
+        },
+        [onFileSelect]
+    );
 
-    const handleDragOver = (e) => {
+    const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setIsDragging(true);
     };
 
-    const handleDragLeave = (e) => {
+    const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setIsDragging(false);
     };
 
-    const handleDrop = (e) => {
+    const handleDrop = (e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -31,18 +43,19 @@ const ImageDropzone = ({ onFileSelect, fileName }) => {
     };
 
     useEffect(() => {
-        const handlePaste = (e) => {
-            const tagName = e.target.tagName?.toLowerCase();
+        const handlePaste = (e: ClipboardEvent) => {
+            const target = e.target as HTMLElement | null;
+            const tagName = target?.tagName?.toLowerCase();
             if (tagName === 'input' || tagName === 'textarea') return;
 
-            if (e.clipboardData.files && e.clipboardData.files.length > 0) {
+            if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
                 processFile(e.clipboardData.files[0]);
             }
         };
 
         window.addEventListener('paste', handlePaste);
         return () => window.removeEventListener('paste', handlePaste);
-    }, [onFileSelect]);
+    }, [processFile]);
 
     return (
         <div

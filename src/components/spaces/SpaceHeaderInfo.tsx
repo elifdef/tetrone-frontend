@@ -1,15 +1,31 @@
-import { useTranslation } from 'react-i18next';
 import { useContext } from 'react';
-import { SpaceContext } from '@/context/SpaceContext';
+import { useTranslation } from 'react-i18next';
+import { SpaceContext } from '@/context/space-context';
 import RichText from '@/components/common/RichText';
+import { decodeTipTapContent } from '@/utils/tiptapContent';
+import { isTipTapDoc, type TipTapDoc } from '@/types/tiptap';
 
-const hasTipTapContent = (doc) => {
-    if (!doc || typeof doc !== 'object' || !Array.isArray(doc.content)) return false;
-    return doc.content.some(node => (
-        (Array.isArray(node.content) && node.content.length > 0)
-        || (node.type && node.type !== 'paragraph')
-    ));
+const hasTipTapContent = (value: TipTapDoc | string | null | undefined): boolean => {
+    const raw = typeof value === 'string' ? (() => {
+        try {
+            return JSON.parse(value) as unknown;
+        } catch {
+            return null;
+        }
+    })() : value;
+
+    const doc = decodeTipTapContent(raw);
+    if (!isTipTapDoc(doc)) return false;
+
+    return doc.content.some(
+        (node) =>
+            ('content' in node && Array.isArray(node.content) && node.content.length > 0) ||
+            node.type !== 'paragraph'
+    );
 };
+
+const cleanLabel = (text: string | undefined | null): string =>
+    String(text || '').replace(/[:?]+$/, '');
 
 const SpaceHeaderInfo = () => {
     const { t } = useTranslation();
@@ -17,9 +33,8 @@ const SpaceHeaderInfo = () => {
 
     if (!space) return null;
 
+    const privacyType = space.privacy_type ?? 'public';
     const showDescription = hasTipTapContent(space.description);
-
-    const cleanLabel = (text) => String(text || '').replace(/[:?]+$/, '');
 
     return (
         <div className="bg-bg-box border border-border min-w-0 overflow-hidden max-lg:hidden">
@@ -35,7 +50,7 @@ const SpaceHeaderInfo = () => {
             <div className="p-[10px] text-text-main text-[11px] flex flex-col gap-[4px]">
                 <div className="flex py-[2px] gap-[6px]">
                     <span className="w-[130px] shrink-0 text-text-muted">{cleanLabel(t('spaces.info_type'))}:</span>
-                    <span className="flex-1 min-w-0 break-words text-text-main">{t(`spaces.privacy_${space.privacy_type}`)}</span>
+                    <span className="flex-1 min-w-0 break-words text-text-main">{t(`spaces.privacy_${privacyType}`)}</span>
                 </div>
 
                 {space.owner && (
@@ -59,7 +74,7 @@ const SpaceHeaderInfo = () => {
                         <RichText text={space.description} />
                     ) : (
                         <span className="text-text-muted">
-                            {t(`spaces.privacy_desc_${space.privacy_type}`)}
+                            {t(`spaces.privacy_desc_${privacyType}`)}
                         </span>
                     )}
                 </div>

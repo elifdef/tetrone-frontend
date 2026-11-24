@@ -1,12 +1,31 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 
-export default function CustomSelect({ options, value, onChange, placeholder, className = "" }) {
+export interface CustomSelectOption<T extends string | number = string> {
+    value: T;
+    label: ReactNode;
+}
+
+export interface CustomSelectProps<T extends string | number = string> {
+    options: readonly CustomSelectOption<T>[];
+    value?: T | null;
+    onChange: (value: T) => void;
+    placeholder?: string;
+    className?: string;
+}
+
+export default function CustomSelect<T extends string | number = string>({
+    options,
+    value,
+    onChange,
+    placeholder,
+    className = '',
+}: CustomSelectProps<T>) {
     const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef(null);
+    const dropdownRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         };
@@ -14,9 +33,9 @@ export default function CustomSelect({ options, value, onChange, placeholder, cl
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const selectedOption = options.find(opt => String(opt.value) === String(value));
+    const selectedOption = options.find((opt) => String(opt.value) === String(value));
 
-    const handleSelect = (val) => {
+    const handleSelect = (val: T) => {
         onChange(val);
         setIsOpen(false);
     };
@@ -40,7 +59,7 @@ export default function CustomSelect({ options, value, onChange, placeholder, cl
                 <ul className="absolute top-[100%] left-0 right-0 max-h-[200px] overflow-y-auto bg-input-bg border border-border border-t-0 z-[1000] m-0 p-0 list-none shadow-[2px_2px_4px_rgba(0,0,0,0.2)]">
                     {options.map((opt) => (
                         <li
-                            key={opt.value}
+                            key={String(opt.value)}
                             onClick={() => handleSelect(opt.value)}
                             className={`flex items-center gap-[8px] p-[6px_8px] cursor-pointer text-[11px] border-b border-border last:border-b-0 transition-colors ${String(value) === String(opt.value) ? 'bg-bg-page font-bold text-text-main' : 'text-text-main hover:bg-bg-hover'}`}
                         >
