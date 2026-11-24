@@ -3,6 +3,7 @@ import JumpToDateModal from './components/modals/JumpToDateModal.jsx';
 import ReportMessageModal from './components/modals/ReportMessageModal.jsx';
 
 export default function ChatModals({
+    currentUser,
     friendsList = [],
     isCreateModalOpen,
     setIsCreateModalOpen,
@@ -21,6 +22,7 @@ export default function ChatModals({
             <CreateChatModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
+                currentUser={currentUser}
                 friendsList={friendsList}
                 onCreateNewChat={handleCreateNewChat}
             />

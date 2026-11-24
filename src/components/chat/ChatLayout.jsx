@@ -146,6 +146,7 @@ export default function ChatLayout(props) {
             </div>
 
             <ChatModals
+                currentUser={currentUser}
                 friendsList={friendsList}
                 isCreateModalOpen={isCreateModalOpen}
                 setIsCreateModalOpen={setIsCreateModalOpen}

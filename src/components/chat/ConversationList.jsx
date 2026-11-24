@@ -55,7 +55,7 @@ export default function ConversationList({
                     {t('chat.actions.mark_all_read')}
                 </Button>
                 <Button variant="primary" onClick={onOpenCreateModal}>
-                    {t('chat.actions.new_chat')}
+                    {t('chat.actions.create_group')}
                 </Button>
             </div>
 

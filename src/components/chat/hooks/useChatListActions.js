@@ -144,20 +144,35 @@ export function useChatListActions({
             });
     }, [activeChatSlug, setChats, setOpenedChatSlugs, setSearchParams, t]);
 
-    const handleCreateNewChat = useCallback(({ isGroup, targetUsername, title, description, participantUsernames = [] }) => {
+    const handleCreateNewChat = useCallback(({
+        isGroup = true,
+        targetUsername,
+        title,
+        description,
+        participantUsernames = [],
+        avatarFile = null,
+        onSuccess,
+        onFinally
+    }) => {
         const req = !isGroup
             ? chatService.initChat(targetUsername)
-            : chatService.createGroupChat(title, description, participantUsernames);
+            : chatService.createGroupChat(title, description, participantUsernames, avatarFile);
 
         req.onSuccess((res) => {
             if (res?.chat) {
                 setChats(prev => (prev.some(c => c.slug === res.chat.slug) ? prev : [res.chat, ...prev]));
             }
+            if (isGroup && res?.code) {
+                notifySuccess(t(`api.success.${res.code}`));
+            }
+            onSuccess?.(res);
             if (res?.slug) {
                 handleSelectChat(res.slug);
             }
         }).onError((err) => {
             notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+        }).onFinally(() => {
+            onFinally?.();
         });
     }, [setChats, handleSelectChat, t]);
 
