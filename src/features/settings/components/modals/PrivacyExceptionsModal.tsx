@@ -1,91 +1,107 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import Modal from './Modal.jsx';
-import PrivacyService from '../../services/privacy.service';
-import UserService from '../../services/user.service';
-import Button from '../ui/Button';
-import { notifyError, notifySuccess } from '../common/Notify';
-import Avatar from '../ui/Avatar';
+import Modal from '@/components/modals/Modal';
+import PrivacyService from '@/services/privacy.service';
+import UserService from '@/services/user.service';
+import Button from '@/components/ui/Button';
+import { notifyError, notifySuccess } from '@/components/common/Notify';
+import Avatar from '@/components/ui/Avatar';
+import type { UserData } from '@/types/user';
+import type {
+    PrivacyContextType,
+    PrivacyExceptionItem,
+    PrivacyExceptionTargetUser,
+} from '../../types/settings';
 
-export default function PrivacyExceptionsModal({ isOpen, onClose, context, initialExceptions, onSaveSuccess }) {
+export interface PrivacyExceptionsModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    context: PrivacyContextType | null;
+    initialExceptions: PrivacyExceptionItem[];
+    onSaveSuccess?: () => void;
+}
+
+const extractAllowedUsernames = (
+    exceptions: PrivacyExceptionItem[],
+    context: PrivacyContextType | null
+): string[] => {
+    if (!context) return [];
+    return exceptions
+        .filter((ex) => ex.context === context && ex.is_allowed)
+        .map((ex) => ex.target_user?.username)
+        .filter((u): u is string => Boolean(u));
+};
+
+export default function PrivacyExceptionsModal({
+    isOpen,
+    onClose,
+    context,
+    initialExceptions,
+    onSaveSuccess,
+}: PrivacyExceptionsModalProps) {
     const { t } = useTranslation();
 
-    const [searchResults, setSearchResults] = useState([]);
+    const [searchResults, setSearchResults] = useState<UserData[]>([]);
     const [search, setSearch] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
-    const [initialUsernames, setInitialUsernames] = useState([]);
-    const [localAllowedUsernames, setLocalAllowedUsernames] = useState([]);
+    const openSessionKey = isOpen && context ? `${context}` : '';
+    const [prevSessionKey, setPrevSessionKey] = useState('');
+    const [initialUsernames, setInitialUsernames] = useState<string[]>([]);
+    const [localAllowedUsernames, setLocalAllowedUsernames] = useState<string[]>([]);
 
-    const searchTimeoutRef = useRef(null);
-
-    useEffect(() => {
-        if (isOpen && context) {
-            const contextEx = initialExceptions.filter(ex => ex.context === context && ex.is_allowed);
-            const usernames = contextEx
-            .map(ex => ex.target_user?.username)
-            .filter(Boolean);
-
+    if (openSessionKey !== prevSessionKey) {
+        setPrevSessionKey(openSessionKey);
+        if (openSessionKey) {
+            const usernames = extractAllowedUsernames(initialExceptions, context);
             setInitialUsernames(usernames);
             setLocalAllowedUsernames(usernames);
             setSearch('');
-            fetchUsers('');
+            setIsLoading(true);
         }
-    }, [isOpen, context, initialExceptions]);
+    }
 
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || !context) return;
 
-        if (searchTimeoutRef.current) {
-            clearTimeout(searchTimeoutRef.current);
-        }
+        const timer = setTimeout(() => {
+            const params: Record<string, string> = {};
+            if (search.trim() !== '') {
+                params['filter[search]'] = search;
+            }
 
-        searchTimeoutRef.current = setTimeout(() => {
-            fetchUsers(search);
-        }, 400);
+            UserService.getUsers(params)
+                .onSuccess((res) => {
+                    setSearchResults(res.users || []);
+                    setIsLoading(false);
+                })
+                .onError((err) => {
+                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    setIsLoading(false);
+                });
+        }, search === '' ? 0 : 400);
 
-        return () => clearTimeout(searchTimeoutRef.current);
-    }, [search, isOpen]);
+        return () => clearTimeout(timer);
+    }, [search, isOpen, context, t]);
 
-    const fetchUsers = (searchQuery) => {
-        setIsLoading(true);
-        const params = {};
-
-        if (searchQuery.trim() !== '') {
-            params['filter[search]'] = searchQuery;
-        }
-
-        UserService.getUsers(params)
-        .onSuccess((res) => {
-            setSearchResults(res.users || []);
-            setIsLoading(false);
-        })
-        .onError((err) => {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
-            setIsLoading(false);
-        });
-    };
-
-    const handleToggle = (username) => {
-        setLocalAllowedUsernames(prev =>
-            prev.includes(username)
-                ? prev.filter(u => u !== username)
-                : [...prev, username]
+    const handleToggle = (username: string) => {
+        setLocalAllowedUsernames((prev) =>
+            prev.includes(username) ? prev.filter((u) => u !== username) : [...prev, username]
         );
     };
 
     const isDirty = useMemo(() => {
         if (initialUsernames.length !== localAllowedUsernames.length) return true;
-        return !localAllowedUsernames.every(u => initialUsernames.includes(u));
+        return !localAllowedUsernames.every((u) => initialUsernames.includes(u));
     }, [initialUsernames, localAllowedUsernames]);
 
     const handleSave = () => {
-        if (!isDirty) return;
+        if (!isDirty || !context) return;
         setIsSaving(true);
 
-        const addedUsernames = localAllowedUsernames.filter(u => !initialUsernames.includes(u));
-        const removedUsernames = initialUsernames.filter(u => !localAllowedUsernames.includes(u));
+        const addedUsernames = localAllowedUsernames.filter((u) => !initialUsernames.includes(u));
+        const removedUsernames = initialUsernames.filter((u) => !localAllowedUsernames.includes(u));
 
         const totalRequests = addedUsernames.length + removedUsernames.length;
         if (totalRequests === 0) {
@@ -100,13 +116,13 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
             completed++;
             if (completed === totalRequests && !hasError) {
                 notifySuccess(t('settings.exceptions_saved'));
-                if (onSaveSuccess) onSaveSuccess();
+                onSaveSuccess?.();
                 onClose();
                 setIsSaving(false);
             }
         };
 
-        const handleError = (err) => {
+        const handleError = (err: { code?: string }) => {
             if (!hasError) {
                 hasError = true;
                 notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
@@ -114,35 +130,44 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
             }
         };
 
-        addedUsernames.forEach(username => {
+        addedUsernames.forEach((username) => {
             PrivacyService.setException(username, context, true)
-            .onSuccess(checkCompletion)
-            .onError(handleError);
+                .onSuccess(checkCompletion)
+                .onError(handleError);
         });
 
-        removedUsernames.forEach(username => {
+        removedUsernames.forEach((username) => {
             PrivacyService.deleteException(username, context)
-            .onSuccess(checkCompletion)
-            .onError(handleError);
+                .onSuccess(checkCompletion)
+                .onError(handleError);
         });
     };
 
     const displayUsers = useMemo(() => {
-        const usersMap = new Map();
+        const usersMap = new Map<string, Partial<UserData> & PrivacyExceptionTargetUser>();
 
-        initialExceptions.forEach(ex => {
+        initialExceptions.forEach((ex) => {
             if (ex.context === context && ex.is_allowed && ex.target_user) {
                 usersMap.set(ex.target_user.username, ex.target_user);
             }
         });
 
-        searchResults.forEach(user => {
-            usersMap.set(user.username, user);
+        searchResults.forEach((user) => {
+            usersMap.set(user.username, {
+                id: user.id ?? 0,
+                username: user.username,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                avatar: user.avatar,
+                username_color: user.personalization?.username_color,
+                personalization: user.personalization,
+            });
         });
 
-        return Array.from(usersMap.values()).filter(u => {
+        return Array.from(usersMap.values()).filter((u) => {
             if (!search.trim()) return true;
-            const fullName = `${u.first_name || ''} ${u.last_name || ''} ${u.username}`.toLowerCase();
+            const fullName =
+                `${u.first_name || ''} ${u.last_name || ''} ${u.username}`.toLowerCase();
             return fullName.includes(search.toLowerCase());
         });
     }, [searchResults, initialExceptions, context, search]);
@@ -177,7 +202,10 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
                     className="w-full bg-input-bg border border-input-border text-text-main p-[6px_10px] text-[11px] outline-none focus:border-theme-link transition-colors placeholder:text-text-muted"
                     placeholder={t('action.search')}
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => {
+                        setIsLoading(true);
+                        setSearch(e.target.value);
+                    }}
                     disabled={isSaving}
                 />
             </div>
@@ -188,9 +216,10 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
                         {t('common.loading')}
                     </div>
                 ) : displayUsers.length > 0 ? (
-                    displayUsers.map(user => {
+                    displayUsers.map((user) => {
                         const isChecked = localAllowedUsernames.includes(user.username);
-                        const nameColor = user.personalization?.username_color;
+                        const nameColor =
+                            user.personalization?.username_color || user.username_color;
 
                         return (
                             <div
@@ -206,7 +235,11 @@ export default function PrivacyExceptionsModal({ isOpen, onClose, context, initi
                                     <div className="flex flex-col">
                                         <span
                                             className="text-[11px] font-bold leading-tight"
-                                            style={nameColor ? { color: nameColor } : { color: 'var(--color-text-main)' }}
+                                            style={
+                                                nameColor
+                                                    ? { color: nameColor }
+                                                    : { color: 'var(--color-text-main)' }
+                                            }
                                         >
                                             {user.first_name} {user.last_name}
                                         </span>

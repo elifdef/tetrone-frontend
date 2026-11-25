@@ -1,22 +1,43 @@
+import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import Radio from "../ui/Radio.jsx";
+import Radio from '@/components/ui/Radio';
 
-const GenderSelect = ({ value, onChange, label, error }) => {
+export interface GenderSelectProps {
+    name?: string;
+    value: number | string;
+    onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+    label?: string;
+    error?: string;
+    required?: boolean;
+}
+
+const GenderSelect = ({
+    name = 'gender',
+    value,
+    onChange,
+    label,
+    error,
+    required = false,
+}: GenderSelectProps) => {
     const { t } = useTranslation();
 
     return (
         <div className="mb-[12px] relative">
-            {label && <label className="block mb-[4px] text-text-muted font-normal text-[11px]">{label}</label>}
+            {label && (
+                <label className="block mb-[4px] text-text-muted font-normal text-[11px]">
+                    {label}
+                </label>
+            )}
 
             <div className="flex items-center gap-[15px] mt-[4px]">
                 <label className="flex items-center gap-[6px] cursor-pointer text-[11px] text-text-main select-none">
                     <Radio
                         type="radio"
-                        name="gender"
+                        name={name}
                         value="1"
                         checked={Number(value) === 1}
                         onChange={onChange}
-                        required
+                        required={required}
                         className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer"
                     />
                     {t('common.male')}
@@ -25,11 +46,11 @@ const GenderSelect = ({ value, onChange, label, error }) => {
                 <label className="flex items-center gap-[6px] cursor-pointer text-[11px] text-text-main select-none">
                     <Radio
                         type="radio"
-                        name="gender"
+                        name={name}
                         value="2"
                         checked={Number(value) === 2}
                         onChange={onChange}
-                        required
+                        required={required}
                         className="m-0 w-[13px] h-[13px] accent-theme-link cursor-pointer"
                     />
                     {t('common.female')}
@@ -38,7 +59,7 @@ const GenderSelect = ({ value, onChange, label, error }) => {
 
             {error && (
                 <span className="text-theme-error text-[10px] mt-[4px] block">
-                    {error.message || error}
+                    {error}
                 </span>
             )}
         </div>

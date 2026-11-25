@@ -17,7 +17,7 @@ vi.mock('@components/editor/SmartEditor', () => ({
     default: () => <div data-testid="smart-editor" />,
 }));
 
-vi.mock('@common/RichText.jsx', () => ({
+vi.mock('@common/RichText', () => ({
     default: () => <span data-testid="rich-text" />,
 }));
 

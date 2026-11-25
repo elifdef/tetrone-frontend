@@ -1,37 +1,50 @@
-import { useState, useEffect } from 'react';
-import Button from '../ui/Button';
-import ManageUsernamesModal from './ManageUsernamesModal';
+import { useState } from 'react';
+import type { TFunction } from 'i18next';
+import Button from '@/components/ui/Button';
+import ManageUsernamesModal from './modals/ManageUsernamesModal';
+import type { UserData } from '@/types/user';
+import type { UserAliasItem } from '../types/settings';
 
-export default function UsernameManager({ user, t, onUserUpdate }) {
+export interface UsernameManagerProps {
+    user: UserData | null;
+    t: TFunction;
+    onUserUpdate?: () => void;
+}
+
+const mapUserAliases = (rawAliases?: UserData['aliases']): UserAliasItem[] =>
+    (rawAliases || []).map((a) => (typeof a === 'string' ? { id: a, handle: a } : a));
+
+export default function UsernameManager({ user, t, onUserUpdate }: UsernameManagerProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [primaryUsername, setPrimaryUsername] = useState('');
-    const [aliases, setAliases] = useState([]);
+    const [prevUser, setPrevUser] = useState(user);
+    const [primaryUsername, setPrimaryUsername] = useState(() => user?.username || '');
+    const [aliases, setAliases] = useState<UserAliasItem[]>(() => mapUserAliases(user?.aliases));
 
-    useEffect(() => {
+    if (user !== prevUser) {
+        setPrevUser(user);
         setPrimaryUsername(user?.username || '');
-        const rawAliases = user?.aliases || user?.handles || [];
-        setAliases(rawAliases.map(a => typeof a === 'string' ? { id: a, handle: a } : a));
-    }, [user]);
+        setAliases(mapUserAliases(user?.aliases));
+    }
 
-    const handleAliasAdded = (newAlias) => {
-        setAliases(prev => [...prev, { id: newAlias, handle: newAlias }]);
-        if (onUserUpdate) onUserUpdate();
+    const handleAliasAdded = (newAlias: string) => {
+        setAliases((prev) => [...prev, { id: newAlias, handle: newAlias }]);
+        onUserUpdate?.();
     };
 
-    const handleAliasDeleted = (deletedAlias) => {
-        setAliases(prev => prev.filter(a => a.handle !== deletedAlias));
-        if (onUserUpdate) onUserUpdate();
+    const handleAliasDeleted = (deletedAlias: string) => {
+        setAliases((prev) => prev.filter((a) => a.handle !== deletedAlias));
+        onUserUpdate?.();
     };
 
-    const handleAliasSwapped = (newPrimary) => {
+    const handleAliasSwapped = (newPrimary: string) => {
         const oldPrimary = primaryUsername;
         setPrimaryUsername(newPrimary);
-        setAliases(prev => {
-            const withoutNew = prev.filter(a => a.handle !== newPrimary);
+        setAliases((prev) => {
+            const withoutNew = prev.filter((a) => a.handle !== newPrimary);
             return [...withoutNew, { id: oldPrimary, handle: oldPrimary }];
         });
-        if (onUserUpdate) onUserUpdate();
+        onUserUpdate?.();
     };
 
     return (
@@ -48,7 +61,11 @@ export default function UsernameManager({ user, t, onUserUpdate }) {
                     <span>@{primaryUsername}</span>
                 </div>
                 <div className="max-md:w-full">
-                    <Button variant="secondary" onClick={() => setIsModalOpen(true)} className="max-md:w-full">
+                    <Button
+                        variant="secondary"
+                        onClick={() => setIsModalOpen(true)}
+                        className="max-md:w-full"
+                    >
                         {t('settings.btn_manage_usernames')}
                     </Button>
                 </div>

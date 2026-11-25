@@ -79,13 +79,11 @@ const SpaceMembersTab = () => {
                     }
                 }
             })
-            .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
-            })
+
             .onFinally(() => {
                 setLoading(false);
             });
-    }, [spaceUsername, activeTab, searchQuery, updateSpace, t]);
+    }, [spaceUsername, activeTab, searchQuery, updateSpace]);
 
     useEffect(() => {
         const delay = setTimeout(fetchMembers, 350);

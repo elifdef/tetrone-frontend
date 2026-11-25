@@ -5,7 +5,7 @@ import Avatar from '@ui/Avatar';
 import Button from '@ui/Button';
 import { CloseIcon } from '@ui/Icons';
 import SmartEditor from '@components/editor/SmartEditor';
-import RichText from '@common/RichText.jsx';
+import RichText from '@common/RichText';
 import userService from '@/services/user.service';
 import { parseRichText } from '../../utils/messageParser';
 import type { ChatData, ChatRoleValue } from '@/types/chat';

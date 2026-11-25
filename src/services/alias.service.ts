@@ -7,6 +7,9 @@ const AliasService = {
     changePrimaryUsername(alias: string) {
         return fetchClient(`/aliases/${encodeURIComponent(alias)}/primary`, { method: 'POST' });
     },
+    swapAlias(alias: string) {
+        return fetchClient(`/aliases/${encodeURIComponent(alias)}/primary`, { method: 'POST' });
+    },
     checkUsernameAvailability(username: string) {
         return fetchClient(`/check-alias?alias=${encodeURIComponent(username)}`);
     },

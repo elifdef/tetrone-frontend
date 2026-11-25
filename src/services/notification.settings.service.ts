@@ -1,11 +1,21 @@
 import fetchClient from '../api/client';
+import type { ApiRequestHandle } from '@/types/api';
+import type {
+    NotificationPreferencesMap,
+    NotificationSettingUpdateItem,
+} from '@/features/settings/types/settings';
 
 class NotificationSettingsService {
-    updateSettings(data: Record<string, unknown>) {
-        return fetchClient('/settings/notifications', {
-            method: 'PUT',
-            body: data,
-        });
+    updateSettings(data: {
+        settings: NotificationSettingUpdateItem[];
+    }): ApiRequestHandle<{ code: string; settings: NotificationPreferencesMap }> {
+        return fetchClient<{ code: string; settings: NotificationPreferencesMap }>(
+            '/settings/notifications',
+            {
+                method: 'PUT',
+                body: data,
+            }
+        );
     }
 
     getOverrides() {

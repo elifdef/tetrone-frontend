@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import RichText from '@common/RichText.jsx';
+import RichText from '@common/RichText';
 import { parseRichText, getPlainText } from '../utils/messageParser';
 import { PinSvg, CloseSvg } from '@ui/Icons.jsx';
 import type { ChatData, ChatMessageItem } from '@/types/chat';

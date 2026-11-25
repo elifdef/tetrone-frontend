@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import RichText from '@common/RichText.jsx';
+import RichText from '@common/RichText';
 import { parseRichText, getPlainText } from '../utils/messageParser';
 import type { ChatMessageItem, PendingForwardState, SharedEntityData } from '@/types/chat';
 import type { TipTapDoc } from '@/types/tiptap';

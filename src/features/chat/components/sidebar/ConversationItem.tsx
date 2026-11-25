@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useDateFormatter } from '@hooks/useDateFormatter';
 import Avatar from '@ui/Avatar';
-import RichText from '@common/RichText.jsx';
+import RichText from '@common/RichText';
 import ChatTitle from '../common/ChatTitle';
 import ConversationContextMenu from './ConversationContextMenu';
 import type { ChatMuteDuration } from './ConversationContextMenu';

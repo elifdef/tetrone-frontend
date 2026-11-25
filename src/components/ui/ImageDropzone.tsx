@@ -1,4 +1,11 @@
-import { useState, useEffect, useRef, useCallback, type ChangeEvent, type DragEvent } from 'react';
+import {
+    useState,
+    useEffect,
+    useRef,
+    useCallback,
+    type ChangeEvent,
+    type DragEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 export type ImageDropzoneSelectEvent =
@@ -8,9 +15,16 @@ export type ImageDropzoneSelectEvent =
 export interface ImageDropzoneProps {
     onFileSelect: (event: ImageDropzoneSelectEvent) => void;
     fileName?: string | null;
+    previewImage?: string | null;
+    onRemove?: () => void;
 }
 
-const ImageDropzone = ({ onFileSelect, fileName }: ImageDropzoneProps) => {
+const ImageDropzone = ({
+    onFileSelect,
+    fileName,
+    previewImage,
+    onRemove,
+}: ImageDropzoneProps) => {
     const { t } = useTranslation();
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -77,16 +91,34 @@ const ImageDropzone = ({ onFileSelect, fileName }: ImageDropzoneProps) => {
                 onChange={(e) => onFileSelect(e)}
             />
 
-            <div className="text-text-main">
-                <div>
-                    <strong className="text-theme-link hover:underline">{t('action.drag_and_drop')}</strong>{' '}
-                    {t('action.or_paste')}
+            {previewImage ? (
+                <div className="w-full flex flex-col items-center gap-[8px]">
+                    <img
+                        src={previewImage}
+                        alt="preview"
+                        className="max-h-[120px] w-auto object-contain border border-border"
+                    />
+                    {onRemove && (
+                        <span className="text-[10px] text-text-muted">
+                            {t('action.drag_and_drop')}
+                        </span>
+                    )}
                 </div>
-            </div>
+            ) : (
+                <div className="text-text-main">
+                    <div>
+                        <strong className="text-theme-link hover:underline">
+                            {t('action.drag_and_drop')}
+                        </strong>{' '}
+                        {t('action.or_paste')}
+                    </div>
+                </div>
+            )}
 
             {fileName && (
                 <div className="mt-[8px] text-[11px] text-text-muted">
-                    {t('common.selected_file')}: <strong className="text-text-main">{fileName}</strong>
+                    {t('common.selected_file')}:{' '}
+                    <strong className="text-text-main">{fileName}</strong>
                 </div>
             )}
         </div>

@@ -1,15 +1,34 @@
 import { useState } from 'react';
-import Modal from '../modals/Modal.jsx';
-import Button from '../ui/Button';
-import UserService from '../../services/user.service';
-import { notifySuccess, notifyError } from '../common/Notify';
-import AddAliasForm from './AddAliasForm';
+import type { TFunction } from 'i18next';
+import Modal from '@/components/modals/Modal';
+import Button from '@/components/ui/Button';
+import AliasService from '@/services/alias.service';
+import { notifySuccess, notifyError } from '@/components/common/Notify';
+import AddAliasForm from '../AddAliasForm';
+import type { UserAliasItem } from '../../types/settings';
+
+export interface ManageUsernamesModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    primaryUsername: string;
+    aliases: UserAliasItem[];
+    t: TFunction;
+    onAliasAdded: (newAlias: string) => void;
+    onAliasDeleted: (deletedAlias: string) => void;
+    onAliasSwapped: (newPrimary: string) => void;
+}
 
 export default function ManageUsernamesModal({
-                                                 isOpen, onClose, primaryUsername, aliases, t,
-                                                 onAliasAdded, onAliasDeleted, onAliasSwapped
-                                             }) {
-    const [view, setView] = useState('list');
+    isOpen,
+    onClose,
+    primaryUsername,
+    aliases,
+    t,
+    onAliasAdded,
+    onAliasDeleted,
+    onAliasSwapped,
+}: ManageUsernamesModalProps) {
+    const [view, setView] = useState<'list' | 'add'>('list');
     const [loading, setLoading] = useState(false);
 
     const maxAliases = 16;
@@ -19,30 +38,30 @@ export default function ManageUsernamesModal({
         onClose();
     };
 
-    const handleMakePrimary = async (alias) => {
+    const handleMakePrimary = async (alias: string) => {
         setLoading(true);
-        const res = await UserService.swapAlias(alias);
+        const res = await AliasService.swapAlias(alias);
         setLoading(false);
 
-        if (res) {
+        if (res?.ok) {
             notifySuccess(t('settings.alias_swapped_success'));
             onAliasSwapped(alias);
         } else {
-            notifyError(res.message);
+            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
         }
     };
 
-    const handleDeleteAlias = async (alias) => {
+    const handleDeleteAlias = async (alias: string) => {
         if (!window.confirm(t('settings.confirm_delete_alias'))) return;
         setLoading(true);
-        const res = await UserService.deleteAlias(alias);
+        const res = await AliasService.deleteAlias(alias);
         setLoading(false);
 
-        if (res) {
+        if (res?.ok) {
             notifySuccess(t('settings.alias_deleted_success'));
             onAliasDeleted(alias);
         } else {
-            notifyError(res.message);
+            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
         }
     };
 
@@ -62,16 +81,27 @@ export default function ManageUsernamesModal({
                         </div>
                     </div>
 
-                    {aliases.map(a => (
-                        <div key={a.id} className="flex items-center justify-between p-[8px_12px] bg-bg-page border border-border hover:bg-bg-hover">
+                    {aliases.map((a) => (
+                        <div
+                            key={a.id}
+                            className="flex items-center justify-between p-[8px_12px] bg-bg-page border border-border hover:bg-bg-hover"
+                        >
                             <div className="flex items-center gap-[10px] text-[11px] font-bold text-text-main">
                                 <span>@{a.handle}</span>
                             </div>
                             <div className="flex gap-[8px] items-center">
-                                <Button variant="secondary" onClick={() => handleMakePrimary(a.handle)} disabled={loading}>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => handleMakePrimary(a.handle)}
+                                    disabled={loading}
+                                >
                                     {t('action.make_primary')}
                                 </Button>
-                                <Button variant="danger" onClick={() => handleDeleteAlias(a.handle)} disabled={loading}>
+                                <Button
+                                    variant="danger"
+                                    onClick={() => handleDeleteAlias(a.handle)}
+                                    disabled={loading}
+                                >
                                     {t('action.delete')}
                                 </Button>
                             </div>
@@ -81,14 +111,20 @@ export default function ManageUsernamesModal({
 
                 {aliases.length < maxAliases && (
                     <div className="mt-[15px] text-center">
-                        <Button variant="secondary" onClick={() => setView('add')} disabled={loading}>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setView('add')}
+                            disabled={loading}
+                        >
                             + {t('settings.btn_add_alias')}
                         </Button>
                     </div>
                 )}
             </div>
             <div className="bg-bg-page border-t border-border py-[10px] px-[15px] flex justify-end items-center gap-[10px]">
-                <Button onClick={handleClose} disabled={loading}>{t('action.close')}</Button>
+                <Button onClick={handleClose} disabled={loading}>
+                    {t('action.close')}
+                </Button>
             </div>
         </>
     );
@@ -97,11 +133,15 @@ export default function ManageUsernamesModal({
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title={view === 'list' ? t('settings.manage_usernames') : t('settings.add_alias_title')}
+            title={
+                view === 'list' ? t('settings.manage_usernames') : t('settings.add_alias_title')
+            }
             sizeClass="modal-md"
             bodyClassName="!p-0"
         >
-            {view === 'list' ? renderList() : (
+            {view === 'list' ? (
+                renderList()
+            ) : (
                 <AddAliasForm
                     t={t}
                     onCancel={() => setView('list')}

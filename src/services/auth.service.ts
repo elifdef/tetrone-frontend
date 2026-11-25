@@ -1,5 +1,6 @@
 import fetchClient from '../api/client';
 import type { UserData } from '@/types/user';
+import type { DeleteAccountPayload, UserSession } from '@/features/settings/types/settings';
 
 const AuthService = {
     signUp: (formData: FormData | Record<string, unknown>) =>
@@ -12,13 +13,22 @@ const AuthService = {
     verifyEmail: (id: string | number, hash: string, query = '') =>
         fetchClient(`/email/verify/${id}/${hash}${query}`),
     resendVerification: () => fetchClient('/email/verification-notification', { method: 'POST' }),
-    getSessions: () => fetchClient('/settings/sessions'),
-    createApiToken: (data: Record<string, unknown>) =>
-        fetchClient('/settings/sessions/api-token', { method: 'POST', body: data }),
+    getSessions: () =>
+        fetchClient<{ code: string; sessions: UserSession[] }>('/settings/sessions'),
+    createApiToken: (data: { token_name: string }) =>
+        fetchClient<{ code: string; token: string; session?: UserSession }>(
+            '/settings/sessions/api-token',
+            {
+                method: 'POST',
+                body: data,
+            }
+        ),
     revokeSession: (tokenId: string | number) =>
-        fetchClient(`/settings/sessions/${tokenId}`, { method: 'DELETE' }),
-    revokeAllOtherSessions: () => fetchClient('/settings/sessions', { method: 'DELETE' }),
-    revokeAllSessions: () => fetchClient('/settings/sessions/all', { method: 'DELETE' }),
+        fetchClient<{ code: string }>(`/settings/sessions/${tokenId}`, { method: 'DELETE' }),
+    revokeAllOtherSessions: () =>
+        fetchClient<{ code: string }>('/settings/sessions', { method: 'DELETE' }),
+    revokeAllSessions: () =>
+        fetchClient<{ code: string }>('/settings/sessions/all', { method: 'DELETE' }),
     verifyResetCode: (email: string, code: string) =>
         fetchClient('/email/verify-reset-code', { method: 'POST', body: { email, code } }),
     forgotPassword: (email: string) =>
@@ -28,8 +38,11 @@ const AuthService = {
             method: 'POST',
             body: { email, code, password, password_confirmation },
         }),
-    deleteAccount: (data: Record<string, unknown>) =>
-        fetchClient('/user/account', { method: 'DELETE', body: data }),
+    deleteAccount: (data: DeleteAccountPayload) =>
+        fetchClient<{ code: string; download_url?: string }>('/user/account', {
+            method: 'DELETE',
+            body: data,
+        }),
     verifyPassword: (password: string) =>
         fetchClient('/verify-password', { method: 'POST', body: { password } }),
 };

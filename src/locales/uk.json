@@ -1627,7 +1627,6 @@
     "banner_background": "Фон банера",
     "banner_hint": "Цей банер буде відображатися позаду вашого фото профілю",
     "banner_image": "Зображення банера",
-    "banner_placeholder": "Наприклад: red, #ff0000, або linear-gradient(...)",
     "browser_push": "Браузерні Push-сповіщення",
     "btn_add_alias": "Зарезервувати аліас",
     "btn_manage_usernames": "Управління",
@@ -1636,8 +1635,6 @@
     "change_primary_msg": "Увага! Ваш старий юзернейм буде видалено та звільнено для інших користувачів. Ви зможете змінити його знову лише після завершення кулдауну.",
     "change_primary_title": "Змінити основний юзернейм",
     "choose_color": "Вибрати колір",
-    "color_format_hint": "#HEX або RGB",
-    "color_placeholder": "#ffffff або пусто",
     "comment_style_desc": "Налаштуй вигляд своїх коментарів під публікаціями інших користувачів.",
     "comment_style_title": "Стиль коментарів",
     "confirm_delete_alias": "Ви впевнені, що хочете видалити цей аліас? Він стане доступним для будь-якого іншого користувача.",
@@ -1758,7 +1755,19 @@
     "verification_badge": "Бейдж підтвердження профілю",
     "badge_classic": "Класична галочка",
     "badge_sticker": "Кастомний стікер",
-    "select_saved_sticker": "Оберіть стікер зі збережених:"
+    "select_saved_sticker": "Оберіть стікер зі збережених:",
+    "active_sessions_count": "Активних сесій: {{count}}",
+    "api_tokens_section": "Персональні API-токени",
+    "banner_placeholder": "hsl(...) або linear-gradient(...)",
+    "birth_date_birthday_only_hint": "Дату народження можна змінити лише у ваш день народження.",
+    "color_format_hint": "hsl(211, 35%, 41%)",
+    "color_placeholder": "hsl(211, 35%, 41%) або пусто",
+    "created_at": "Створено",
+    "last_used": "Останнє використання",
+    "no_other_sessions": "Немає інших активних сесій",
+    "no_sticker_selected": "Стікер не вибрано",
+    "started_at": "Початок сесії",
+    "terminate_session": "Завершити сесію"
   },
   "sidebar": {
     "guest": {

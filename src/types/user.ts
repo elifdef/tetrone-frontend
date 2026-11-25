@@ -42,7 +42,7 @@ export interface UserNotificationCategorySetting {
 
 export interface UserNotificationSettings {
     messages?: UserNotificationCategorySetting;
-    [key: string]: UserNotificationCategorySetting | unknown;
+    [key: string]: UserNotificationCategorySetting | undefined;
 }
 
 export type FriendshipStatusValue =
@@ -70,6 +70,7 @@ export interface UserData {
     email?: string | null;
     bio?: TipTapDoc | null;
     birth_date?: string | null;
+    birth_date_changed_at?: string | null;
     country?: string | null;
     email_verified_at?: string | null;
     role?: number | null;

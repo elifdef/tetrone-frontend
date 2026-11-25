@@ -5,7 +5,7 @@ import { SpaceContext } from '@/context/space-context';
 import SpaceService from '@/services/space.service';
 import Button from '@/components/ui/Button';
 import CustomSelect from '@/components/ui/CustomSelect';
-import ImageDropzone, { type ImageDropzoneSelectEvent } from '@/components/settings/ImageDropzone';
+import ImageDropzone, { type ImageDropzoneSelectEvent } from '@ui/ImageDropzone';
 import SmartEditor from '@/components/editor/SmartEditor';
 import { notifyError, notifySuccess } from '@/components/common/Notify';
 import type { SpaceData, SpacePostingRule, SpacePrivacy } from '@/types/space';

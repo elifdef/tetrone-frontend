@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import FeatureBlock from "./FeatureBlock";
-import randomRGB from "../../utils/randomRGB";
+import randomRGB from "../../utils/color";
 
 export default function FeaturesSection({ isMobile }) {
     const { t } = useTranslation();
