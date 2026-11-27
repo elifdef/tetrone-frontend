@@ -62,7 +62,7 @@ const RestrictedSpaceBox = () => {
         setIsSubmitting(true);
         SpaceService.joinSpace(space.username, tokenToUse || null)
             .onSuccess((res) => {
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
                 if (res.code === 'JOIN_REQUEST_SENT') {
                     updateSpace({ is_member: false, membership_status: 'pending' });
                 } else {
@@ -78,12 +78,12 @@ const RestrictedSpaceBox = () => {
                             }
                         })
                         .onError((err) => {
-                            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                         });
                 }
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             })
             .onFinally(() => {
                 setIsSubmitting(false);
@@ -168,11 +168,11 @@ const SpacePageLayout = () => {
 
         switch (currentTab) {
             case 'settings':
-                return canManageSettings ? <SpaceSettingsTab /> : <ForbiddenBox message={t('api.error.ERR_FORBIDDEN')} />;
+                return canManageSettings ? <SpaceSettingsTab /> : <ForbiddenBox message={t('code.ERR_FORBIDDEN')} />;
             case 'stats':
-                return canManageMembers ? <SpaceStatsTab /> : <ForbiddenBox message={t('api.error.ERR_FORBIDDEN')} />;
+                return canManageMembers ? <SpaceStatsTab /> : <ForbiddenBox message={t('code.ERR_FORBIDDEN')} />;
             case 'invites':
-                return canManageInvites ? <SpaceInvitesTab /> : <ForbiddenBox message={t('api.error.ERR_FORBIDDEN')} />;
+                return canManageInvites ? <SpaceInvitesTab /> : <ForbiddenBox message={t('code.ERR_FORBIDDEN')} />;
             case 'rules':
                 return <SpaceRulesTab />;
             case 'members':

@@ -115,7 +115,7 @@ const CreateSpaceModal = ({ onClose }: CreateSpaceModalProps) => {
         SpaceService.createSpace(payload)
             .onSuccess((res) => {
                 void queryClient.invalidateQueries({ queryKey: ['my_managed_spaces'] });
-                notifySuccess(t(`api.success.${res.code || 'SPACE_CREATED'}`));
+                notifySuccess(t(`code.${res.code || 'SPACE_CREATED'}`));
                 onClose();
                 if (res.space?.username) {
                     void navigate(`/${res.space.username}`);
@@ -125,7 +125,7 @@ const CreateSpaceModal = ({ onClose }: CreateSpaceModalProps) => {
                 if (err.errors) {
                     setFieldErrors(err.errors);
                 }
-                notifyError(t(`api.error.${err.code || 'ERR_VALIDATION'}`));
+                notifyError(t(`code.${err.code || 'ERR_VALIDATION'}`));
             })
             .onFinally(() => {
                 setIsProcessing(false);

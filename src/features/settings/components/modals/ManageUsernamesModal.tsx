@@ -47,7 +47,7 @@ export default function ManageUsernamesModal({
             notifySuccess(t('settings.alias_swapped_success'));
             onAliasSwapped(alias);
         } else {
-            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
         }
     };
 
@@ -61,7 +61,7 @@ export default function ManageUsernamesModal({
             notifySuccess(t('settings.alias_deleted_success'));
             onAliasDeleted(alias);
         } else {
-            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
         }
     };
 

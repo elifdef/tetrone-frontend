@@ -317,7 +317,7 @@ export const useProfileSettings = (isSetupMode = false) => {
                 if (isSetupMode) {
                     window.location.href = `/${user.username}`;
                 } else {
-                    notifySuccess(t(`api.success.${res.code || 'PROFILE_UPDATED'}`));
+                    notifySuccess(t(`code.${res.code || 'PROFILE_UPDATED'}`));
                     setFormData((prev) => ({ ...prev, avatarFile: null, removeAvatar: false }));
                     setSubmitted(false);
                 }

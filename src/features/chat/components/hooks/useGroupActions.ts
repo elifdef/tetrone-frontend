@@ -78,10 +78,10 @@ export function useGroupActions({ activeChatSlug, setChats }: UseGroupActionsPar
                             };
                         })
                     );
-                    notifySuccess(t(`api.success.${res.code || 'GROUP_MEMBER_INVITED'}`));
+                    notifySuccess(t(`code.${res.code || 'GROUP_MEMBER_INVITED'}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, setChats, t]
@@ -104,10 +104,10 @@ export function useGroupActions({ activeChatSlug, setChats }: UseGroupActionsPar
                             };
                         })
                     );
-                    notifySuccess(t(`api.success.${res.code || 'GROUP_ROLE_UPDATED'}`));
+                    notifySuccess(t(`code.${res.code || 'GROUP_ROLE_UPDATED'}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, setChats, t]
@@ -132,10 +132,10 @@ export function useGroupActions({ activeChatSlug, setChats }: UseGroupActionsPar
                             };
                         })
                     );
-                    notifySuccess(t(`api.success.${res.code || 'GROUP_MEMBER_KICKED'}`));
+                    notifySuccess(t(`code.${res.code || 'GROUP_MEMBER_KICKED'}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, setChats, t]

@@ -139,13 +139,13 @@ export default function EditPostModal({isOpen, onClose, post, onSaveSuccess})
         })
         .onSuccess((res) =>
         {
-            notifySuccess(t(`api.success.${res.code}`));
+            notifySuccess(t(`code.${res.code}`));
             if (onSaveSuccess) onSaveSuccess();
             onClose();
         })
         .onError((err) =>
         {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
         })
         .onFinally(() =>
         {

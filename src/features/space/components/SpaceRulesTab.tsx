@@ -6,7 +6,7 @@ import RichText from '@/components/common/RichText';
 import { decodeTipTapContent } from '@/utils/tiptapContent';
 import Button from '@/components/ui/Button';
 import SmartEditor from '@/components/editor/SmartEditor';
-import { notifySuccess, notifyError } from '@/components/common/Notify';
+import { notifySuccess } from '@/components/common/Notify';
 import type { SpaceUpdatePayload } from '@/types/space';
 import { isTipTapDoc, isTipTapStickerNode, isTipTapTextNode, type TipTapDoc } from '@/types/tiptap';
 
@@ -84,10 +84,7 @@ const SpaceRulesTab = () => {
                     updateSpace({ rules: nextRules });
                 }
                 setIsEditing(false);
-                notifySuccess(t(`api.success.${res.code}`));
-            })
-            .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onFinally(() => {
                 setIsLoading(false);

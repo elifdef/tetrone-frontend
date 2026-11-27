@@ -174,7 +174,7 @@ export function useChatPage() {
                     setCurrentPage(res?.meta?.current_page ?? 1);
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
 
             if (activeChatSlug !== 'saved') {

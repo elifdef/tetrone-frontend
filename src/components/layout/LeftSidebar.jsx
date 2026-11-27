@@ -42,7 +42,7 @@ const LeftSidebar = () => {
     const handleLogout = async () => {
         closeMenu();
         await logout();
-        navigate('/login');
+        navigate('/');
     };
 
     const badgeClass = "bg-[#c95151] text-white text-[9px] px-[4px] py-[2px] font-bold leading-none";

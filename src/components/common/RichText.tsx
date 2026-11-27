@@ -341,7 +341,7 @@ const RichText = React.memo(function RichText({ text, className = 'post-text', l
                         setIsLoadingTooltip(false);
                     })
                     .onError((err) => {
-                        notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                        notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                         setIsLoadingTooltip(false);
                         setTooltipData(null);
                     });
@@ -355,7 +355,7 @@ const RichText = React.memo(function RichText({ text, className = 'post-text', l
             if (!packShortName) return;
             StickerService.installPack(packShortName)
                 .onSuccess((res) => {
-                    notifySuccess(t(`api.success.${res.code || 'PACK_INSTALLED'}`));
+                    notifySuccess(t(`code.${res.code || 'PACK_INSTALLED'}`));
                     if (packInfoCache[packShortName]) {
                         packInfoCache[packShortName].info.is_installed = true;
                     }
@@ -364,7 +364,7 @@ const RichText = React.memo(function RichText({ text, className = 'post-text', l
                     );
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [t]

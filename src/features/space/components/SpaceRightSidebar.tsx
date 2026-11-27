@@ -40,10 +40,10 @@ const SpaceRightSidebar = ({ currentTab }: SpaceRightSidebarProps) => {
                         member_role: null,
                         members_count: Math.max(0, (space.members_count || 1) - 1),
                     });
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 })
                 .onFinally(() => {
                     setIsLoading(false);
@@ -62,10 +62,10 @@ const SpaceRightSidebar = ({ currentTab }: SpaceRightSidebarProps) => {
                             members_count: (space.members_count || 0) + 1,
                         });
                     }
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 })
                 .onFinally(() => {
                     setIsLoading(false);
@@ -102,10 +102,10 @@ const SpaceRightSidebar = ({ currentTab }: SpaceRightSidebarProps) => {
             NotificationSettingsService.deleteOverride(space.username, 'space')
                 .onSuccess((res) => {
                     updateSpace({ is_notifications_muted: false });
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 })
                 .onFinally(() => {
                     setIsMuteLoading(false);
@@ -114,10 +114,10 @@ const SpaceRightSidebar = ({ currentTab }: SpaceRightSidebarProps) => {
             NotificationSettingsService.updateOverride(space.username, { is_muted: true }, 'space')
                 .onSuccess((res) => {
                     updateSpace({ is_notifications_muted: true });
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 })
                 .onFinally(() => {
                     setIsMuteLoading(false);

@@ -74,7 +74,7 @@ const SpaceInvitesTab = () => {
             })
             .onError((err) => {
                 if (!cancelled) {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 }
             })
             .onFinally(() => {
@@ -130,10 +130,10 @@ const SpaceInvitesTab = () => {
                     setAutoApprove(false);
                     setRequireVerifiedEmail(false);
                 }
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             })
             .onFinally(() => {
                 setIsCreating(false);
@@ -146,10 +146,10 @@ const SpaceInvitesTab = () => {
         SpaceService.revokeInvite(space.username, token)
             .onSuccess((res) => {
                 setInvites((prev) => prev.filter((inv) => inv.token !== token));
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 
@@ -159,10 +159,10 @@ const SpaceInvitesTab = () => {
         SpaceService.revokeOthers(space.username, keepToken)
             .onSuccess((res) => {
                 setInvites((prev) => prev.filter((inv) => inv.token === keepToken));
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 

@@ -33,7 +33,7 @@ export const useSecuritySettings = () => {
                 resetPasswordInput?.();
 
                 notifySuccess(
-                    res.code ? t(`api.success.${res.code}`) : t('api.success.EMAIL_UPDATED')
+                    res.code ? t(`code.${res.code}`) : t('code.EMAIL_UPDATED')
                 );
                 setLoadingEmail(false);
             })
@@ -41,7 +41,7 @@ export const useSecuritySettings = () => {
                 if (err.status === 422 && err.errors?.email?.[0]) {
                     notifyError(err.errors.email[0]);
                 } else {
-                    notifyError(t(`api.error.${err.code || 'ERR_INVALID_PASSWORD'}`));
+                    notifyError(t(`code.${err.code || 'ERR_INVALID_PASSWORD'}`));
                 }
                 setLoadingEmail(false);
             });
@@ -55,7 +55,7 @@ export const useSecuritySettings = () => {
                 resetForm?.();
 
                 notifySuccess(
-                    res.code ? t(`api.success.${res.code}`) : t('api.success.PASSWORD_UPDATED')
+                    res.code ? t(`code.${res.code}`) : t('code.PASSWORD_UPDATED')
                 );
                 setLoadingPass(false);
             })
@@ -67,7 +67,7 @@ export const useSecuritySettings = () => {
                 } else if (errors.password?.[0]) {
                     notifyError(errors.password[0]);
                 } else {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 }
                 setLoadingPass(false);
             });

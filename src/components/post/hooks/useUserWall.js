@@ -64,7 +64,7 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                     return { ...oldData, pages: newPages };
                 });
             } else {
-                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
             }
         }
     });
@@ -101,7 +101,7 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                     return { ...oldData, pages: newPages };
                 });
             } else {
-                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
             }
         }
     });
@@ -122,10 +122,10 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                         }))
                     };
                 });
-                notifySuccess(t(`api.success.${res.code || 'SUCCESS'}`));
+                notifySuccess(t(`code.${res.code || 'SUCCESS'}`));
                 setEditingPostId(null);
             } else {
-                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
             }
         }
     });
@@ -145,7 +145,7 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                     };
                 });
             } else {
-                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
             }
         }
     });
@@ -168,7 +168,7 @@ export const useUserWall = (profileUser, activeTab = 'all') => {
                 });
                 notifySuccess(t('post.published_success'));
             } else {
-                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
             }
         }
     });

@@ -262,7 +262,7 @@ export default function PersonalizationSettings() {
                 notifySuccess(t('common.success'));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             })
             .onFinally(() => {
                 setIsSaving(false);

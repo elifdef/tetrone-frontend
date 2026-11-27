@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import LoginForm from "../auth/LoginForm";
-import RegisterForm from "../auth/RegisterForm";
+import LoginForm from "@features/auth/components/LoginForm";
+import RegisterForm from "@/features/auth/components/RegisterForm";
 
 export default function LandingAuthWidget() {
     const { t } = useTranslation();

@@ -137,10 +137,10 @@ const SpaceSettingsForm = ({ space, updateSpace, isOwner }: SpaceSettingsFormPro
                     updateSpace(res.space);
                 }
                 setAvatarFile(null);
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             })
             .onFinally(() => {
                 setLoading(false);
@@ -152,11 +152,11 @@ const SpaceSettingsForm = ({ space, updateSpace, isOwner }: SpaceSettingsFormPro
 
         SpaceService.deleteSpace(space.username)
             .onSuccess((res) => {
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
                 void navigate('/spaces');
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 

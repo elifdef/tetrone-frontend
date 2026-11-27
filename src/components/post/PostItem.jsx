@@ -80,11 +80,11 @@ const PostItem = ({
             const res = await PostService.toggleReaction(postData.id, stickerId);
             if (res && res.code && res.code.startsWith('ERR_')) {
                 updateLocalPost({ reactions: previousReactions });
-                notifyError(t(`api.error.${res.code}`));
+                notifyError(t(`code.${res.code}`));
                 return;
             }
             if (res) updateLocalPost({ reactions: res.reactions || (res.post ? res.post.reactions : []) });
-            else { updateLocalPost({ reactions: previousReactions }); notifyError(t('api.error.ERR_NETWORK')); }
+            else { updateLocalPost({ reactions: previousReactions }); notifyError(t('code.ERR_NETWORK')); }
         } catch (error) {
             updateLocalPost({ reactions: previousReactions });
             console.error(error);

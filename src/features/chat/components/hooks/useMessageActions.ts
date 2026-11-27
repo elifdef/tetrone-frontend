@@ -80,7 +80,7 @@ export function useMessageActions({
                     }));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, setMessagesMap, t]
@@ -100,7 +100,7 @@ export function useMessageActions({
                 setSelectedMessageUuids([]);
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
             });
     }, [activeChatSlug, selectedMessageUuids, setMessagesMap, setSelectedMessageUuids, t]);
 
@@ -119,7 +119,7 @@ export function useMessageActions({
                     setSelectedMessageUuids([]);
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, selectedMessageUuids, setMessagesMap, setSelectedMessageUuids, t]
@@ -135,7 +135,7 @@ export function useMessageActions({
                     handleSelectChat(targetChatSlug);
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, setSelectedMessageUuids, handleSelectChat, t]
@@ -175,7 +175,7 @@ export function useMessageActions({
                     setReplyingTo(null);
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
             return;
         }
@@ -200,10 +200,10 @@ export function useMessageActions({
                     setEditingMessage(null);
                     setText(null);
                     setFiles([]);
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         } else {
             chatService
@@ -243,7 +243,7 @@ export function useMessageActions({
                     setReplyingTo(null);
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         }
     }, [
@@ -275,10 +275,10 @@ export function useMessageActions({
                         ...prev,
                         [activeChatSlug]: (prev[activeChatSlug] || []).filter((m) => m.uuid !== uuid),
                     }));
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, setMessagesMap, t]
@@ -308,10 +308,10 @@ export function useMessageActions({
                             m.uuid === uuid ? { ...m, is_pinned: !m.is_pinned } : { ...m, is_pinned: false }
                         ),
                     }));
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, setMessagesMap, t]
@@ -323,10 +323,10 @@ export function useMessageActions({
             chatService
                 .reportMessage(activeChatSlug, messageUuid, reason)
                 .onSuccess((res) => {
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, t]

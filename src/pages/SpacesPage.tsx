@@ -8,7 +8,7 @@ import Tabs from '@/components/ui/Tabs';
 import SpaceService, { type SpaceQueryParams } from '@/services/space.service';
 import CreateSpaceModal from '@/features/space/components/CreateSpaceModal';
 import SpaceListItem from '@/features/space/components/SpaceListItem';
-import { notifyError, notifySuccess } from '@/components/common/Notify';
+import { notifySuccess } from '@/components/common/Notify';
 import type { SpaceData } from '@/types/space';
 
 type SpacesTabId = 'my' | 'managed' | 'global';
@@ -51,11 +51,6 @@ const SpacesResultsList = ({
                 setSpaces(items);
                 setHasMore(meta ? meta.current_page < meta.last_page : false);
             })
-            .onError((err) => {
-                if (!cancelled) {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
-                }
-            })
             .onFinally(() => {
                 if (!cancelled) {
                     setIsLoading(false);
@@ -87,13 +82,10 @@ const SpacesResultsList = ({
                 setSpaces((prev) => [...prev, ...items]);
                 setHasMore(meta ? meta.current_page < meta.last_page : false);
             })
-            .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
-            })
             .onFinally(() => {
                 setIsLoadingMore(false);
             });
-    }, [activeTab, page, searchQuery, t]);
+    }, [activeTab, page, searchQuery]);
 
     const handleLeaveSpace = (spaceUsername: string) => {
         if (!window.confirm(t('common.confirm_action'))) return;
@@ -101,11 +93,8 @@ const SpacesResultsList = ({
         SpaceService.leaveSpace(spaceUsername)
             .onSuccess((res) => {
                 setSpaces((prev) => prev.filter((s) => s.username !== spaceUsername));
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
-            .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
-            });
     };
 
     return (

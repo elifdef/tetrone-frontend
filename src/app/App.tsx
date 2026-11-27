@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/app/providers/auth-context';
 import AppRoutes from '@/app/routes/AppRoutes';
 import ErrorState from '@/components/ui/ErrorState';
-import { BannedScreen } from '@/components/auth/BannedScreen';
+import { BannedScreen } from '@/features/auth/components/BannedScreen';
 import { audioManager } from '@/utils/audioManager';
 import CookieBanner from '@/components/common/CookieBanner';
 import { useScreenTime } from '@/hooks/useScreenTime';
@@ -89,7 +89,7 @@ export default function App() {
     if (globalServerState === 'offline') {
         return (
             <GlobalErrorScreen
-                title={t('api.error.CRITICAL_SERVER_ERROR')}
+                title={t('code.CRITICAL_SERVER_DOWN')}
                 desc={t('easter_eggs.server_down_desc')}
                 onRetry={() => window.location.reload()}
             />
@@ -99,7 +99,7 @@ export default function App() {
     if (globalServerState === 'error') {
         return (
             <GlobalErrorScreen
-                title={t('api.error.CRITICAL_SERVER_ERROR')}
+                title={t('code.CRITICAL_SERVER_ERROR')}
                 desc={t('easter_eggs.server_err_desc')}
                 onRetry={() => setGlobalServerState(null)}
             />
@@ -114,7 +114,7 @@ export default function App() {
 
         return (
             <GlobalErrorScreen
-                title={t('api.error.SERVER_MAINTENANCE')}
+                title={t('code.SERVER_MAINTENANCE')}
                 desc={resolvedDesc}
                 onRetry={() => window.location.reload()}
                 showButton={false}
@@ -127,7 +127,7 @@ export default function App() {
     if (initError && !user) {
         return (
             <GlobalErrorScreen
-                title={t('api.error.CRITICAL_SERVER_ERROR')}
+                title={t('code.CRITICAL_SERVER_ERROR')}
                 desc={t('easter_eggs.server_err_desc')}
                 onRetry={() => window.location.reload()}
             />

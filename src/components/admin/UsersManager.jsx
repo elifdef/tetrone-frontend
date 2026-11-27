@@ -229,7 +229,7 @@ export const UsersManager = ({canBan = true}) =>
 
         AdminService.getUsers(searchQuery)
         .onSuccess((res) => setUsers(res.data || []))
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)))
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)))
         .onFinally(() => setIsLoading(false));
     }, [t]);
 
@@ -252,10 +252,10 @@ export const UsersManager = ({canBan = true}) =>
         AdminService.issueWarning(username, reason)
         .onSuccess((res) =>
         {
-            notifySuccess(t(`api.success.${res.code}`));
+            notifySuccess(t(`code.${res.code}`));
             fetchUsersAndStats(search);
         })
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)));
     };
 
     const handleMute = async (username, currentStatus) =>
@@ -267,10 +267,10 @@ export const UsersManager = ({canBan = true}) =>
         .onSuccess((res) =>
         {
             setUsers(prev => prev.map(u => u.username === username ? {...u, is_muted: !currentStatus} : u));
-            notifySuccess(t(`api.success.${res.code}`));
+            notifySuccess(t(`code.${res.code}`));
             AdminService.getUserStats(search).onSuccess(statRes => setStats(statRes.stats));
         })
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)));
     };
 
     const handleBan = async (username, currentStatus) =>
@@ -285,7 +285,7 @@ export const UsersManager = ({canBan = true}) =>
             notifySuccess(t('common.success'));
             AdminService.getUserStats(search).onSuccess(statRes => setStats(statRes.stats));
         })
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)));
     };
 
     return (

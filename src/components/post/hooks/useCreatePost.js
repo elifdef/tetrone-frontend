@@ -46,7 +46,7 @@ export const useCreatePost = (onSubmitSuccess, options = {}) => {
         const emptyEditor = isEditorEmpty(content);
 
         if (emptyEditor && formTools.files.length === 0 && !pollData) {
-            notifyError(t('api.errors.ERR_POST_EMPTY'));
+            notifyError(t('codes.ERR_POST_EMPTY'));
             return false;
         }
 

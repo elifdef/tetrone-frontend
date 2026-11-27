@@ -80,10 +80,10 @@ export default function FeedPage() {
             if (res && res.ok && res.post) {
                 handlePostCreated(res.post);
             } else {
-                notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
             }
         },
-        onError: () => notifyError(t('api.error.ERR_NETWORK'))
+        onError: () => notifyError(t('code.ERR_NETWORK'))
     });
 
     const handlePostCreated = (newPost) => {

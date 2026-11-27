@@ -43,7 +43,7 @@ export default function AddAliasForm({ t, onCancel, onSuccess }: AddAliasFormPro
                 }
             } else {
                 setIsAvailable(false);
-                setBackendError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+                setBackendError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
             }
         }, 500);
 
@@ -65,7 +65,7 @@ export default function AddAliasForm({ t, onCancel, onSuccess }: AddAliasFormPro
             notifySuccess(t('settings.alias_added_success'));
             onSuccess(inputValue);
         } else {
-            const errMsg = t(`api.error.${res?.code || 'ERR_UNKNOWN'}`);
+            const errMsg = t(`code.${res?.code || 'ERR_UNKNOWN'}`);
             setBackendError(errMsg);
             notifyError(errMsg);
         }

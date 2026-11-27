@@ -122,7 +122,7 @@ export function useChatListActions({
                     setChats((prev) => prev.map((c) => (c.slug === chatSlug ? { ...c, is_pinned: nextPinnedState } : c)));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [chats, setChats, t]
@@ -142,7 +142,7 @@ export function useChatListActions({
                     );
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [setChats, t]
@@ -156,7 +156,7 @@ export function useChatListActions({
                     setChats((prev) => prev.map((c) => (c.slug === chatSlug ? { ...c, muted_until: duration } : c)));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [setChats, t]
@@ -184,7 +184,7 @@ export function useChatListActions({
                     );
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [setMessagesMap, setChats, t]
@@ -202,10 +202,10 @@ export function useChatListActions({
                     if (activeChatSlug === slugStr) {
                         setSearchParams({});
                     }
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChatSlug, setChats, setOpenedChatSlugs, setSearchParams, t]
@@ -231,7 +231,7 @@ export function useChatListActions({
                     setChats((prev) => (prev.some((c) => c.slug === res.chat.slug) ? prev : [res.chat, ...prev]));
                 }
                 if (isGroup && res?.code) {
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 }
                 onSuccess?.(res);
                 if (res?.slug) {
@@ -239,7 +239,7 @@ export function useChatListActions({
                 }
             })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 })
                 .onFinally(() => {
                     onFinally?.();
@@ -260,10 +260,10 @@ export function useChatListActions({
                             prev.map((c) => (c.slug === activeChatSlug ? { ...c, is_blocked: true } : c))
                         );
                     }
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 });
         },
         [activeChat, activeChatSlug, setChats, t]

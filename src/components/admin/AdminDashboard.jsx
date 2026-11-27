@@ -32,7 +32,7 @@ export default function AdminDashboard() {
             setLoading(false);
         })
         .onError((err) => {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             setLoading(false);
         });
     }, [t]);

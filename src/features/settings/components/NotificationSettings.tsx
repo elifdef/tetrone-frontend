@@ -117,7 +117,7 @@ const NotificationSettings = () => {
                 notifySuccess(t('common.saved_successfully'));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             })
             .onFinally(() => {
                 setSaving(false);

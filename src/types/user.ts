@@ -85,6 +85,8 @@ export interface UserData {
     friends_count?: number;
     followers_count?: number;
     notification_settings?: UserNotificationSettings | null;
+    has_pattern_auth?: boolean;
+    preferred_auth_method?: 'password' | 'pattern';
 }
 
 export interface UsersListResponse {

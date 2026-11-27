@@ -1,9 +1,21 @@
 import fetchClient from '../api/client';
 
+export interface AppealStatusResponse {
+    code: string;
+    has_pending_appeal: boolean;
+}
+
+export interface SubmitAppealResponse {
+    code: string;
+}
+
 const AppealService = {
-    checkStatus: async () => fetchClient('/appeals/status'),
-    submitAppeal: async (message: string) =>
-        fetchClient('/appeals', { method: 'POST', body: { message } }),
+    checkStatus: () => fetchClient<AppealStatusResponse>('/appeals/status'),
+    submitAppeal: (message: string) =>
+        fetchClient<SubmitAppealResponse>('/appeals', {
+            method: 'POST',
+            body: { message },
+        }),
 };
 
 export default AppealService;

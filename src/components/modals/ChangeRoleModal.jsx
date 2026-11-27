@@ -36,7 +36,7 @@ export default function ChangeRoleModal({ isOpen, onClose, targetUser, currentUs
             onClose();
         })
         .onError((err) => {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
         })
         .onFinally(() => setIsSaving(false));
     };

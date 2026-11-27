@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     useEffect(() => {
         const handleSessionExpired = () => {
             logoutLocally();
-            notifyError(t('api.error.ERR_UNAUTHORIZED'));
+            notifyError(t('code.ERR_UNAUTHORIZED'));
             navigate('/login');
         };
 

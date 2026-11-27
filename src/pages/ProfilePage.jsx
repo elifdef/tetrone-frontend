@@ -32,7 +32,7 @@ export default function ProfilePage({ profile }) {
                 }
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
             });
     };
 

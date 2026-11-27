@@ -2,6 +2,7 @@ import { useSecuritySettings } from '../hooks/useSecuritySettings';
 import EmailChangeForm from './EmailChangeForm';
 import PasswordChangeForm from './PasswordChangeForm';
 import UsernameManager from './UsernameManager';
+import PatternSecuritySection from './PatternSecuritySection';
 import DangerZone from './DangerZone';
 
 const SecuritySettings = () => {
@@ -30,6 +31,9 @@ const SecuritySettings = () => {
                 <PasswordChangeForm
                     loading={loadingPass}
                     onSubmit={handleUpdatePassword}
+                    t={t}
+                />
+                <PatternSecuritySection
                     t={t}
                 />
 

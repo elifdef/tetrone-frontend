@@ -41,11 +41,11 @@ export const useEmailVerification = () => {
 
             setUser((prev: UserData | null) => (prev ? { ...prev, email_verified_at: verifiedDate } : prev));
 
-            const msg = res.code ? t(`api.success.${res.code}`) : t('banner.email.success');
+            const msg = res.code ? t(`code.${res.code}`) : t('banner.email.success');
             navigate('/', { replace: true, state: { verifySuccessMsg: msg } });
         },
         onError: (err) => {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             setTimeout(() => navigate('/', { replace: true }), 3000);
         },
     });
@@ -55,10 +55,10 @@ export const useEmailVerification = () => {
             return await AuthService.resendVerification();
         },
         onSuccess: (res) => {
-            notifyInfo(res.code ? t(`api.success.${res.code}`) : t('info.email_send_letter'));
+            notifyInfo(res.code ? t(`code.${res.code}`) : t('info.email_send_letter'));
         },
         onError: (err) => {
-            notifyError(t(`api.error.${err.code || 'error.email_send'}`));
+            notifyError(t(`code.${err.code || 'error.email_send'}`));
         },
     });
 

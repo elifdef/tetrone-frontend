@@ -106,7 +106,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
             if (!res || res.code !== 'COMMENT_LIKE_TOGGLED') throw new Error();
         } catch (err) {
             updateCache(c => ({ ...c, is_liked: originalLiked, likes_count: originalCount }));
-            notifyError(t('api.error.ERR_NETWORK'));
+            notifyError(t('code.ERR_NETWORK'));
         }
     };
 
@@ -156,7 +156,7 @@ export default function CommentItem({ comment, currentUser, onDelete, onEdit, on
             const res = await CommentService.toggleReaction(comment.id, stickerId);
             if (res?.code?.startsWith('ERR_')) {
                 updateCache(c => ({ ...c, reactions: previousReactions }));
-                notifyError(t(`api.error.${res.code}`));
+                notifyError(t(`code.${res.code}`));
                 return;
             }
             if (res?.reactions) updateCache(c => ({ ...c, reactions: res.reactions }));

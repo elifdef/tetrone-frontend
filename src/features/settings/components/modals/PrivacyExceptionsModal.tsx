@@ -77,7 +77,7 @@ export default function PrivacyExceptionsModal({
                     setIsLoading(false);
                 })
                 .onError((err) => {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                     setIsLoading(false);
                 });
         }, search === '' ? 0 : 400);
@@ -125,7 +125,7 @@ export default function PrivacyExceptionsModal({
         const handleError = (err: { code?: string }) => {
             if (!hasError) {
                 hasError = true;
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 setIsSaving(false);
             }
         };

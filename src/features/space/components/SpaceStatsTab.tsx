@@ -83,7 +83,7 @@ const SpaceStatsTab = () => {
             })
             .onError((err) => {
                 if (!cancelled) {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 }
             })
             .onFinally(() => {

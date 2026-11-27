@@ -15,6 +15,7 @@ const formatVersionType = (version, t) => {
     else if (lower.includes('-beta') || lower.includes('beta')) type = t('about.ver_beta');
     else if (lower.includes('-rc') || lower.includes('rc')) type = t('about.ver_rc');
     else if (lower.includes('-preview') || lower.includes('preview')) type = t('about.ver_preview');
+    else if (lower.includes('-experimental') || lower.includes('experimental')) type = t('about.ver_experimental');
 
     return `v${version} (${type})`;
 };

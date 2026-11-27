@@ -48,7 +48,7 @@ export default function ReportModal({isOpen, onClose, targetType, targetId})
             })
             .onError((err) =>
             {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 setIsLoadingReasons(false);
             });
         }
@@ -71,13 +71,13 @@ export default function ReportModal({isOpen, onClose, targetType, targetId})
         })
         .onSuccess((res) =>
         {
-            notifySuccess(res.code ? t(`api.success.${res.code}`) : t('reports.success'));
+            notifySuccess(res.code ? t(`code.${res.code}`) : t('reports.success'));
             handleClose();
             setIsSubmitting(false);
         })
         .onError((err) =>
         {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             setIsSubmitting(false);
         });
     };

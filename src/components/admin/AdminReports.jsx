@@ -74,7 +74,7 @@ export default function AdminReports()
         })
         .onError((err) =>
         {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             setLoading(false);
         });
     }, [t]);
@@ -102,12 +102,12 @@ export default function AdminReports()
         AdminService.handleReport(reportId, actionType, responseText.trim())
         .onSuccess((res) =>
         {
-            notifySuccess(t(`api.success.${res.code}`));
+            notifySuccess(t(`code.${res.code}`));
             fetchReports(filters);
         })
         .onError((err) =>
         {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
         });
     };
 

@@ -102,11 +102,11 @@ const SpaceWallContent = ({ space, canManageMembers, canPost }: SpaceWallContent
                         const createdPost = res.post;
                         setPosts((prev) => [createdPost, ...prev]);
                     }
-                    notifySuccess(t(`api.success.${res.code}`));
+                    notifySuccess(t(`code.${res.code}`));
                     resolve(true);
                 })
                 .onError((err: { code?: string }) => {
-                    notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                    notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                     resolve(false);
                 });
         });
@@ -118,10 +118,10 @@ const SpaceWallContent = ({ space, canManageMembers, canPost }: SpaceWallContent
         PostService.delete(postId)
             .onSuccess((res: { code?: string }) => {
                 setPosts((prev) => prev.filter((p) => p.id !== postId));
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err: { code?: string }) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 
@@ -129,10 +129,10 @@ const SpaceWallContent = ({ space, canManageMembers, canPost }: SpaceWallContent
         PostService.togglePin(postId)
             .onSuccess((res: { code?: string }) => {
                 fetchPosts(1);
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err: { code?: string }) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 

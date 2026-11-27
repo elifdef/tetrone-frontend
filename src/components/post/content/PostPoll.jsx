@@ -67,11 +67,11 @@ export default function PostPoll({ poll, postId, isOwner }) {
             setDraftOptionIds(res.poll.voted_option_ids);
             if (res.poll.quiz_data) setQuizData(res.poll.quiz_data);
 
-            notifySuccess(t(`api.success.${res.code || 'VOTE_REGISTERED'}`));
+            notifySuccess(t(`code.${res.code || 'VOTE_REGISTERED'}`));
             setIsLoading(false);
         })
         .onError((err) => {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             setDraftOptionIds(votedOptionIds);
             setIsLoading(false);
         });
@@ -93,7 +93,7 @@ export default function PostPoll({ poll, postId, isOwner }) {
             setIsLoadingVoters(false);
         })
         .onError((err) => {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             setIsVotersModalOpen(false);
             setIsLoadingVoters(false);
         });
@@ -112,11 +112,11 @@ export default function PostPoll({ poll, postId, isOwner }) {
         PostService.closePoll(postId)
         .onSuccess((res) => {
             setIsClosed(true);
-            notifySuccess(t(`api.success.${res.code || 'POLL_CLOSED'}`));
+            notifySuccess(t(`code.${res.code || 'POLL_CLOSED'}`));
             setIsLoading(false);
         })
         .onError((err) => {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             setIsLoading(false);
         });
     };
@@ -137,7 +137,7 @@ export default function PostPoll({ poll, postId, isOwner }) {
                 setIsLoadingStats(false);
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 setShowStats(false);
                 setIsLoadingStats(false);
             });

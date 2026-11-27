@@ -2,11 +2,41 @@ import fetchClient from '../api/client';
 import type { UserData } from '@/types/user';
 import type { DeleteAccountPayload, UserSession } from '@/features/settings/types/settings';
 
+export type AuthMethodType = 'password' | 'pattern';
+
+export type SignInPayload = {
+    login: string;
+    method: AuthMethodType;
+    password?: string;
+    pattern?: number[];
+};
+
+export type UpdatePatternPayload = {
+    current_password: string;
+    pattern?: number[];
+    disable_pattern?: boolean;
+    preferred_auth_method?: AuthMethodType;
+};
+
+export interface UpdatePatternResponse {
+    code: string;
+    has_pattern_auth: boolean;
+    preferred_auth_method: AuthMethodType;
+}
+
 const AuthService = {
     signUp: (formData: FormData | Record<string, unknown>) =>
         fetchClient('/auth/sign-up', { method: 'POST', body: formData }),
-    signIn: (login: string, password: string) =>
-        fetchClient<{ user: UserData }>('/auth/sign-in', { method: 'POST', body: { login, password } }),
+    signIn: (payload: SignInPayload) =>
+        fetchClient<{ code?: string; user: UserData }>('/auth/sign-in', {
+            method: 'POST',
+            body: payload,
+        }),
+    updatePattern: (payload: UpdatePatternPayload) =>
+        fetchClient<UpdatePatternResponse>('/user/pattern', {
+            method: 'PUT',
+            body: payload,
+        }),
     me: (signal: AbortSignal | null = null) =>
         fetchClient<{ user: UserData }>('/me', { signal, silentAuth: true }),
     logout: () => fetchClient('/auth/sign-out', { method: 'POST' }),

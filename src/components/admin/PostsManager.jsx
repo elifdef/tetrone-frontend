@@ -79,7 +79,7 @@ export const PostsManager = ({currentUser}) =>
             }
             setHasMore(meta ? meta.current_page < meta.last_page : false);
         })
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)))
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)))
         .onFinally(() =>
         {
             if (append) setIsLoadingMore(false);
@@ -118,10 +118,10 @@ export const PostsManager = ({currentUser}) =>
         .onSuccess((res) =>
         {
             setPosts(prev => prev.filter(post => post.id !== postId));
-            notifySuccess(t(`api.success.${res.code || 'POST_DELETED'}`));
+            notifySuccess(t(`code.${res.code || 'POST_DELETED'}`));
             AdminService.getPostStats(targetUser, dateFrom, dateTo).onSuccess(statRes => setStats(statRes.stats));
         })
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)));
     };
 
     const handleToggleCheck = (postId) =>
@@ -142,7 +142,7 @@ export const PostsManager = ({currentUser}) =>
             notifySuccess(t('common.success'));
             AdminService.getPostStats(targetUser, dateFrom, dateTo).onSuccess(statRes => setStats(statRes.stats));
         })
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)));
     };
 
     const startEditing = (post) => setEditingPostId(post.id);

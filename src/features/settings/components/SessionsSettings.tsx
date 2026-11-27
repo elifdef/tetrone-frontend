@@ -71,10 +71,10 @@ export default function SessionsSettings() {
         setIsActionLoading(true);
         const res = await AuthService.revokeSession(tokenId);
         if (res?.ok) {
-            notifySuccess(t(`api.${res.code}`));
+            notifySuccess(t(`code.${res.code}`));
             setSessions((prev) => prev.filter((s) => s.id !== tokenId));
         } else {
-            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
         }
         setIsActionLoading(false);
     };
@@ -86,10 +86,10 @@ export default function SessionsSettings() {
         setIsActionLoading(true);
         const res = await AuthService.revokeAllOtherSessions();
         if (res?.ok) {
-            notifySuccess(t(`api.${res.code}`));
+            notifySuccess(t(`code.${res.code}`));
             setSessions((prev) => prev.filter((s) => s.is_current));
         } else {
-            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
         }
         setIsActionLoading(false);
     };
@@ -102,7 +102,7 @@ export default function SessionsSettings() {
         setIsActionLoading(true);
         const res = await AuthService.createApiToken({ token_name: newTokenName.trim() });
         if (res?.ok && res.token) {
-            notifySuccess(t(`api.${res.code}`));
+            notifySuccess(t(`code.${res.code}`));
             setCreatedToken(res.token);
             setCopiedToken(false);
             setNewTokenName('');
@@ -116,7 +116,7 @@ export default function SessionsSettings() {
                 }
             }
         } else {
-            notifyError(t(`api.error.${res?.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${res?.code || 'ERR_UNKNOWN'}`));
         }
         setIsActionLoading(false);
     };

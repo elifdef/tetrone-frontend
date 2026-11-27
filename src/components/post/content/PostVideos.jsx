@@ -91,7 +91,7 @@ const LocalVideoItem = ({ video }) => {
     if (status === 'failed') {
         return (
             <div className="relative w-full aspect-video bg-bg-box border border-border flex items-center justify-center p-[12px] text-[11px] text-theme-error">
-                {t('api.error.ERR_UNKNOWN')}
+                {t('code.ERR_UNKNOWN')}
             </div>
         );
     }

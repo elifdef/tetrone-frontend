@@ -40,7 +40,7 @@ export default function InfiniteScrollList({
     if (error && itemsCount === 0) {
         return (
             <div className="tetrone-empty-state with-card">
-                <h3>{t('api.error.ERR_NETWORK')}</h3>
+                <h3>{t('code.ERR_NETWORK')}</h3>
                 {onRetry && <Button onClick={onRetry}>{t('action.refresh')}</Button>}
             </div>
         );
@@ -68,7 +68,7 @@ export default function InfiniteScrollList({
 
             {error && itemsCount > 0 && (
                 <div className="tetrone-infinite-error-box">
-                    <span className="tetrone-error-text">{t('api.error.ERR_NETWORK')}</span>
+                    <span className="tetrone-error-text">{t('code.ERR_NETWORK')}</span>
                     <br />
                     {onRetry && <Button onClick={onRetry}>{t('action.refresh')}</Button>}
                 </div>

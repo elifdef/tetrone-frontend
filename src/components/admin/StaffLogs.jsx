@@ -107,7 +107,7 @@ export default function StaffLogs() {
             setLogs(prev => [...prev, ...(res.logs || [])]);
             setPage(nextPage);
             setHasMore(res.meta ? res.meta.current_page < res.meta.last_page : false);
-        }).onError(() => notifyError(t('api.error.ERR_NETWORK')))
+        }).onError(() => notifyError(t('code.ERR_NETWORK')))
           .onFinally(() => setLoadingMore(false));
     }, [hasMore, loadingMore, page, usernameParam, t]);
 

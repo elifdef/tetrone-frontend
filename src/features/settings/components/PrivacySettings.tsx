@@ -50,7 +50,7 @@ export default function PrivacySettings() {
                 setIsLoading(false);
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
                 setIsLoading(false);
             });
     }, [t]);
@@ -85,10 +85,10 @@ export default function PrivacySettings() {
         PrivacyService.updateSettings(changedSettings)
             .onSuccess((res) => {
                 setInitialSettings(localSettings);
-                notifySuccess(t(`api.success.${res.code || 'PRIVACY_SETTING_UPDATED'}`));
+                notifySuccess(t(`code.${res.code || 'PRIVACY_SETTING_UPDATED'}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             })
             .onFinally(() => {
                 setIsSaving(false);

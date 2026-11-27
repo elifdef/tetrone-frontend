@@ -53,7 +53,15 @@ declare module '@/components/ui/Button' {
     import type { ComponentType, ButtonHTMLAttributes } from 'react';
 
     export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-        variant?: 'primary' | 'secondary' | 'danger' | 'save';
+        variant?:
+            | 'primary'
+            | 'secondary'
+            | 'danger'
+            | 'warning'
+            | 'approve'
+            | 'success'
+            | 'reject'
+            | 'save';
     }
 
     const Button: ComponentType<ButtonProps>;

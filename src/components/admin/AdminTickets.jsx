@@ -63,10 +63,10 @@ const AdminTicketDetail = ({ticket, onBack, onTicketUpdated}) =>
         {
             setReplyText('');
             setIsInternal(false);
-            notifySuccess(t(`api.success.${res.code}`));
+            notifySuccess(t(`code.${res.code}`));
             onTicketUpdated(ticket.id);
         })
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)))
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)))
         .onFinally(() => setReplying(false));
     };
 
@@ -80,7 +80,7 @@ const AdminTicketDetail = ({ticket, onBack, onTicketUpdated}) =>
             notifySuccess(t('common.success'));
             onTicketUpdated(ticket.id);
         })
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)));
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)));
     };
 
     return (
@@ -265,7 +265,7 @@ export default function AdminTickets()
         })
         .onError((err) =>
         {
-            notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+            notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
         })
         .onFinally(() =>
         {
@@ -286,7 +286,7 @@ export default function AdminTickets()
         setLoading(true);
         AdminService.getTicket(id)
         .onSuccess((res) => setSelectedTicket(res.ticket))
-        .onError((err) => notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`)))
+        .onError((err) => notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`)))
         .onFinally(() => setLoading(false));
     };
 

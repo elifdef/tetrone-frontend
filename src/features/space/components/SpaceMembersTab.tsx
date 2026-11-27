@@ -136,10 +136,10 @@ const SpaceMembersTab = () => {
                     }));
                 }
 
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 
@@ -165,10 +165,10 @@ const SpaceMembersTab = () => {
                     }));
                     updateSpace({ members_count: nextApproved });
                 }
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 
@@ -187,10 +187,10 @@ const SpaceMembersTab = () => {
                     members_count: nextApproved,
                     pending_requests_count: nextPending,
                 });
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 
@@ -201,10 +201,10 @@ const SpaceMembersTab = () => {
                 const nextPending = Math.max(0, pendingCount - 1);
                 setCounts((prev) => ({ ...prev, pending: nextPending }));
                 updateSpace({ pending_requests_count: nextPending });
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err.code || 'ERR_UNKNOWN'}`));
             });
     };
 

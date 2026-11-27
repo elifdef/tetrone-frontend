@@ -45,7 +45,7 @@ export default function ShareToChatModal({
                 setLoading(false);
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 setLoading(false);
             });
     }, [isOpen, t]);
@@ -82,12 +82,12 @@ export default function ShareToChatModal({
             { type: shareableType, id: shareableId }
         )
             .onSuccess((res) => {
-                notifySuccess(t(`api.success.${res.code}`));
+                notifySuccess(t(`code.${res.code}`));
                 setSendingSlug(null);
                 onClose();
             })
             .onError((err) => {
-                notifyError(t(`api.error.${err?.code || 'ERR_UNKNOWN'}`));
+                notifyError(t(`code.${err?.code || 'ERR_UNKNOWN'}`));
                 setSendingSlug(null);
             });
     };

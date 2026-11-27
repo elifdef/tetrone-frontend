@@ -1,8 +1,14 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import isoCountries from 'i18n-iso-countries';
+import isoUk from 'i18n-iso-countries/langs/uk.json';
+import isoEn from 'i18n-iso-countries/langs/en.json';
 import { countries as continentsData, continents } from 'countries-list';
+import CustomSelect, { type CustomSelectOption } from '@/components/ui/CustomSelect';
 import 'flag-icons/css/flag-icons.min.css';
+
+isoCountries.registerLocale(isoUk);
+isoCountries.registerLocale(isoEn);
 
 const continentM49: Record<string, string> = {
     AF: '002',
@@ -18,6 +24,7 @@ interface CountryItem {
     code: string;
     name: string;
     continentName: string;
+    keywords: string;
 }
 
 export interface CountrySelectProps {
@@ -28,21 +35,10 @@ export interface CountrySelectProps {
 
 const CountrySelect = ({ value, onChange }: CountrySelectProps) => {
     const { t, i18n } = useTranslation();
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const { groupedCountries, selectedCountry } = useMemo(() => {
-        const langCode = i18n.language;
+    const options = useMemo<CustomSelectOption<string>[]>(() => {
+        const rawLang = i18n.resolvedLanguage || i18n.language || 'uk';
+        const langCode = rawLang.split('-')[0].toLowerCase();
 
         let regionNames: Intl.DisplayNames | null;
         try {
@@ -51,11 +47,16 @@ const CountrySelect = ({ value, onChange }: CountrySelectProps) => {
             regionNames = null;
         }
 
+        const localizedMap = isoCountries.getNames(langCode, { select: 'official' });
+        const englishMap = isoCountries.getNames('en', { select: 'official' });
         const countriesObj =
-            isoCountries.getNames(langCode, { select: 'official' }) ||
-            isoCountries.getNames('en', { select: 'official' });
+            localizedMap && Object.keys(localizedMap).length > 0 ? localizedMap : englishMap;
 
-        const allCountries: CountryItem[] = Object.entries(countriesObj).map(([code, name]) => {
+        const allCountries: CountryItem[] = Object.entries(countriesObj).map(([code, rawName]) => {
+            const name = Array.isArray(rawName) ? rawName[0] : rawName;
+            const rawEnName = englishMap[code];
+            const enName = Array.isArray(rawEnName) ? rawEnName[0] : rawEnName || '';
+
             const continentCode =
                 (continentsData as Record<string, { continent?: string }>)[code]?.continent;
             let continentName = continentCode
@@ -70,112 +71,77 @@ const CountrySelect = ({ value, onChange }: CountrySelectProps) => {
                 }
             }
 
-            return { code, name, continentName };
+            return {
+                code,
+                name,
+                continentName,
+                keywords: `${name} ${enName} ${code}`,
+            };
         });
 
-        const selected = allCountries.find((c) => c.code === value);
-
         const grouped = allCountries.reduce<Record<string, CountryItem[]>>((acc, country) => {
-            const groupName = country.continentName;
-            if (!acc[groupName]) acc[groupName] = [];
-            acc[groupName].push(country);
+            if (!acc[country.continentName]) {
+                acc[country.continentName] = [];
+            }
+            acc[country.continentName].push(country);
             return acc;
         }, {});
 
-        Object.keys(grouped).forEach((continent) => {
-            grouped[continent].sort((a, b) => a.name.localeCompare(b.name));
-        });
+        const sortedContinents = Object.keys(grouped).sort((a, b) => a.localeCompare(b, langCode));
 
-        const sortedGrouped = Object.keys(grouped)
-            .sort((a, b) => a.localeCompare(b))
-            .reduce<Record<string, CountryItem[]>>((acc, key) => {
-                acc[key] = grouped[key];
-                return acc;
-            }, {});
+        const items: CustomSelectOption<string>[] = [
+            {
+                value: '',
+                label: t('settings.not_selected'),
+                keywords: t('settings.not_selected'),
+            },
+        ];
 
-        return { groupedCountries: sortedGrouped, selectedCountry: selected };
-    }, [i18n.language, value]);
+        for (const continent of sortedContinents) {
+            const sortedCountries = [...grouped[continent]].sort((a, b) =>
+                a.name.localeCompare(b.name, langCode)
+            );
 
-    const handleSelect = (code: string) => {
-        onChange({
-            target: { name: 'country', value: code },
-        });
-        setIsOpen(false);
-    };
+            for (const c of sortedCountries) {
+                items.push({
+                    value: c.code,
+                    group: continent,
+                    keywords: c.keywords,
+                    label: (
+                        <span className="flex items-center gap-[8px] min-w-0">
+                            <span className={`fi fi-${c.code.toLowerCase()} flex-shrink-0`} />
+                            <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                                {c.name}
+                            </span>
+                        </span>
+                    ),
+                });
+            }
+        }
+
+        return items;
+    }, [i18n.language, i18n.resolvedLanguage, t]);
 
     return (
-        <div className="mb-[12px] relative w-full" ref={dropdownRef}>
+        <div className="mb-[12px] relative w-full">
             <label className="block mb-[4px] text-text-muted font-normal text-[11px]">
                 {t('common.country')}
             </label>
 
-            <div className="relative w-full">
-                <div
-                    className={`flex items-center gap-[8px] bg-input-bg border h-[28px] px-[8px] box-border cursor-pointer select-none w-full overflow-hidden transition-colors ${
-                        isOpen
-                            ? 'border-input-border !border-b-transparent'
-                            : 'border-input-border hover:border-theme-link'
-                    }`}
-                    onClick={() => setIsOpen(!isOpen)}
-                >
-                    {selectedCountry ? (
-                        <>
-                            <span
-                                className={`fi fi-${selectedCountry.code.toLowerCase()} flex-shrink-0`}
-                            />
-                            <span className="whitespace-nowrap overflow-hidden text-ellipsis flex-1 text-text-main text-[11px]">
-                                {selectedCountry.name}
-                            </span>
-                        </>
-                    ) : (
-                        <span className="text-text-muted whitespace-nowrap overflow-hidden text-ellipsis flex-1 text-[11px]">
-                            {t('settings.not_selected')}
-                        </span>
-                    )}
-
-                    <span className="ml-auto text-[9px] text-text-muted flex-shrink-0">
-                        {isOpen ? '▲' : '▼'}
-                    </span>
-                </div>
-
-                {isOpen && (
-                    <ul className="absolute top-[100%] left-0 right-0 max-h-[200px] overflow-y-auto bg-input-bg border border-border border-t-0 z-[1000] m-0 p-0 list-none shadow-[2px_2px_4px_rgba(0,0,0,0.2)]">
-                        <li
-                            onClick={() => handleSelect('')}
-                            className="flex items-center gap-[8px] p-[6px_8px] cursor-pointer text-text-main border-b border-border last:border-b-0 hover:bg-bg-hover text-[11px]"
-                        >
-                            {t('settings.not_selected')}
-                        </li>
-
-                        {Object.entries(groupedCountries).map(([continent, countriesList]) => (
-                            <div key={continent}>
-                                <li className="bg-bg-box text-theme-link text-[9px] font-bold uppercase p-[4px_8px] cursor-default border-y border-border mt-[4px]">
-                                    {continent}
-                                </li>
-
-                                {countriesList.map((c) => (
-                                    <li
-                                        key={c.code}
-                                        onClick={() => handleSelect(c.code)}
-                                        className={`flex items-center gap-[8px] p-[6px_8px] cursor-pointer text-[11px] border-b border-border last:border-b-0 transition-colors ${
-                                            value === c.code
-                                                ? 'bg-bg-page font-bold text-text-main'
-                                                : 'text-text-main hover:bg-bg-hover'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`fi fi-${c.code.toLowerCase()} flex-shrink-0`}
-                                        />
-                                        <span className="whitespace-nowrap overflow-hidden text-ellipsis">
-                                            {c.name}
-                                        </span>
-                                    </li>
-                                ))}
-                            </div>
-                        ))}
-                    </ul>
-                )}
-            </div>
+            <CustomSelect<string>
+                options={options}
+                value={value}
+                onChange={(selectedCode) =>
+                    onChange({
+                        target: { name: 'country', value: selectedCode },
+                    })
+                }
+                placeholder={t('settings.not_selected')}
+                searchable
+                searchPlaceholder={t('action.search')}
+                emptyText={t('empty.search_results')}
+                className="w-full"
+            />
         </div>
     );
 };

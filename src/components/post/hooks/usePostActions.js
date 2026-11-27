@@ -57,7 +57,7 @@ export const usePostActions = (initialPost, readonly, onLikeToggle, onRepostSucc
                 is_liked: originalLiked,
                 likes_count: originalCount
             }));
-            notifyError(err.message || t('api.error.ERR_NETWORK'));
+            notifyError(err.message || t('code.ERR_NETWORK'));
         } finally {
             setIsLiking(false);
         }
